@@ -38,6 +38,16 @@ function CheckoutForm({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Debug logging
+  console.log('CheckoutForm render:', {
+    stripe: !!stripe,
+    elements: !!elements,
+    isLoading,
+    error,
+    planId,
+    userId
+  })
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
@@ -140,8 +150,9 @@ function CheckoutForm({
         <div className="space-y-3">
           <button
             type="submit"
-            disabled={!stripe || isLoading}
+            disabled={!stripe || !elements || isLoading}
             className="w-full bg-amber-600 text-white py-3 px-4 rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center space-x-2"
+            onClick={() => console.log('Button clicked:', { stripe: !!stripe, elements: !!elements, isLoading })}
           >
             {isLoading ? (
               <>
@@ -174,11 +185,21 @@ function CheckoutForm({
 }
 
 export default function StripeCheckout(props: StripeCheckoutProps) {
+  // Debug logging
+  console.log('StripeCheckout render:', {
+    stripePromise: !!stripePromise,
+    publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    props
+  })
+
   if (!stripePromise) {
     return (
       <div className="max-w-md mx-auto p-6 text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto mb-4"></div>
         <p className="text-slate-600">Loading payment system...</p>
+        <p className="text-xs text-slate-500 mt-2">
+          Stripe key: {process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? 'Loaded' : 'Missing'}
+        </p>
       </div>
     )
   }
