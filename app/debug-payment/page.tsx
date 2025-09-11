@@ -57,17 +57,19 @@ export default function DebugPaymentPage() {
   }
 
   const renderStep = (step: any) => {
-    const statusColor = {
+    const statusColorMap: {[key: string]: string} = {
       'success': 'text-green-600',
       'error': 'text-red-600',
       'running': 'text-blue-600'
-    }[step.status] || 'text-gray-600'
+    }
+    const statusColor = statusColorMap[step.status] || 'text-gray-600'
 
-    const statusIcon = {
+    const statusIconMap: {[key: string]: string} = {
       'success': '✅',
       'error': '❌',
       'running': '🔄'
-    }[step.status] || '⏳'
+    }
+    const statusIcon = statusIconMap[step.status] || '⏳'
 
     return (
       <div key={step.step} className="mb-4 p-4 border rounded-lg">
