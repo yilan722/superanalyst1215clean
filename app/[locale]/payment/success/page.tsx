@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle, ArrowRight, FileText } from 'lucide-react'
 import { type Locale } from '@/lib/i18n'
@@ -12,7 +12,7 @@ interface SuccessPageProps {
   }
 }
 
-export default function PaymentSuccessPage({ params }: SuccessPageProps) {
+function PaymentSuccessContent({ params }: SuccessPageProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { locale } = params
@@ -145,6 +145,23 @@ export default function PaymentSuccessPage({ params }: SuccessPageProps) {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PaymentSuccessPage({ params }: SuccessPageProps) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
+        <div className="text-center text-white">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+          <p>
+            {params.locale === 'zh' ? '加载中...' : 'Loading...'}
+          </p>
+        </div>
+      </div>
+    }>
+      <PaymentSuccessContent params={params} />
+    </Suspense>
   )
 }
 
