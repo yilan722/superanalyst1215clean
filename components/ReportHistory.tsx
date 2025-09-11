@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Download, Eye, Calendar, FileText, Trash2, RefreshCw } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '../lib/supabase-client'
 import useAuth from '@/lib/useAuth'
 
 import type { Locale } from '@/lib/i18n'

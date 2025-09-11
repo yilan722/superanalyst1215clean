@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createServerSupabaseClient()
     console.log('🚀 开始创建Insight Refinery数据库表...')
     
     // 读取SQL文件

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { supabase } from '../../lib/supabase'
+import { supabase } from '../../lib/supabase-client'
 
 export default function DebugLoginPage() {
   const [email, setEmail] = useState('test@example.com')

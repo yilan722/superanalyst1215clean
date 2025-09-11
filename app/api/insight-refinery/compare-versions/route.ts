@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { CompareVersionsRequest, ComparisonResponse } from '@/lib/types/insight-refinery'
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createServerSupabaseClient()
     const { originalReportId, evolvedReportId }: CompareVersionsRequest = await request.json()
     
     if (!originalReportId || !evolvedReportId) {

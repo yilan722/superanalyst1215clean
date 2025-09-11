@@ -16,7 +16,7 @@ import { type Locale } from '../../lib/i18n'
 
 import useAuth from '../../lib/useAuth'
 import { canGenerateReport } from '../../lib/supabase-auth'
-import { supabase } from '../../lib/supabase'
+import { supabase } from '../../lib/supabase-client'
 import toast from 'react-hot-toast'
 
 // 导入Insight Refinery组件

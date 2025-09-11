@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { AskQuestionRequest, DiscussionResponse } from '@/lib/types/insight-refinery'
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createServerSupabaseClient()
     const { sessionId, question, context }: AskQuestionRequest = await request.json()
     
     if (!sessionId || !question) {
