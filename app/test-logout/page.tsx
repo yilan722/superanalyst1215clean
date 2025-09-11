@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase-client'
-import useAuth from '../lib/useAuth'
+import { supabase } from '../../lib/supabase-client'
+import useAuth from '../../lib/useAuth'
 
 export default function TestLogoutPage() {
   const [user, setUser] = useState<any>(null)
