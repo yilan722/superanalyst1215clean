@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user already has an active subscription
     // Use the same Supabase client for database operations
+    console.log('Fetching user data for user ID:', user.id)
     
     let userData = null
     const { data: fetchedUserData, error: userError } = await supabase
@@ -77,6 +78,8 @@ export async function POST(request: NextRequest) {
       .select('subscriptionId, subscriptionType, subscriptionEnd')
       .eq('id', user.id)
       .single()
+    
+    console.log('User data fetch result:', { fetchedUserData, userError })
 
     if (userError) {
       console.error('Error fetching user data:', userError)
@@ -118,6 +121,17 @@ export async function POST(request: NextRequest) {
       userData = fetchedUserData
     }
 
+    // Verify userData is set
+    if (!userData) {
+      console.error('userData is null after processing')
+      return NextResponse.json(
+        { error: 'Failed to process user data' },
+        { status: 500 }
+      )
+    }
+    
+    console.log('Final userData:', userData)
+    
     // If user has an active subscription, return error
     if (userData?.subscriptionId && userData?.subscriptionEnd) {
       const subscriptionEnd = new Date(userData.subscriptionEnd)
