@@ -8,7 +8,7 @@ export default function DebugSessionPage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [testResults, setTestResults] = useState<any>({})
+  const [testResults, setTestResults] = useState<{[key: string]: any}>({})
 
   useEffect(() => {
     async function checkSession() {
