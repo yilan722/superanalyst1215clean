@@ -119,7 +119,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     subscriptionId: subscription.id,
     subscriptionType: planId,
     subscriptionStart: new Date().toISOString(),
-    subscriptionEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+    subscriptionEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
     monthlyReportLimit: SUBSCRIPTION_PLANS[planId as keyof typeof SUBSCRIPTION_PLANS]?.reportLimit || 0,
   })
 
@@ -142,7 +142,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
     subscriptionId: subscription.id,
     subscriptionType: planId,
     subscriptionStart: new Date().toISOString(),
-    subscriptionEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+    subscriptionEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
     monthlyReportLimit: SUBSCRIPTION_PLANS[planId as keyof typeof SUBSCRIPTION_PLANS]?.reportLimit || 0,
   })
 
@@ -164,7 +164,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   await updateUserSubscription(userId, {
     subscriptionId: subscription.id,
     subscriptionType: planId,
-    subscriptionEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+    subscriptionEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
     monthlyReportLimit: SUBSCRIPTION_PLANS[planId as keyof typeof SUBSCRIPTION_PLANS]?.reportLimit || 0,
   })
 
@@ -209,7 +209,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     if (userId && planId) {
       // Update subscription end date
       await updateUserSubscription(userId, {
-        subscriptionEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+        subscriptionEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
       })
 
       console.log('Invoice payment succeeded, subscription renewed:', { userId, planId })
