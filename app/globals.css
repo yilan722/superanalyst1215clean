@@ -1,0 +1,300 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import '../styles/report-format.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+} 
+
+/* Custom styles for report content */
+.report-content {
+  @apply text-gray-800 leading-relaxed;
+}
+
+.report-content h2 {
+  @apply text-3xl font-bold text-gray-900 mt-10 mb-6 pb-3 border-b-2 border-blue-300 !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+.report-content h3 {
+  @apply text-xl font-semibold text-gray-800 mt-8 mb-4 !important;
+  color: #1f2937 !important;
+  border-left: 4px solid #3b82f6 !important;
+  padding-left: 12px !important;
+}
+
+.report-content h4 {
+  @apply text-lg font-medium text-gray-700 mt-6 mb-3 !important;
+  color: #374151 !important;
+}
+
+.report-content p {
+  @apply mb-6 text-gray-700 leading-8 !important;
+  font-size: 16px !important;
+  line-height: 1.8 !important;
+}
+
+.report-content ul {
+  @apply mb-4 pl-6;
+}
+
+.report-content li {
+  @apply mb-2 text-gray-700;
+}
+
+/* Table styles - Professional */
+.report-content table {
+  @apply w-full border-collapse mb-8 bg-white rounded-xl shadow-lg overflow-hidden !important;
+  border: 2px solid #e5e7eb !important;
+}
+
+.report-content table.metric-table {
+  @apply border-2 border-gray-300 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.report-content table th {
+  @apply bg-gradient-to-r from-blue-50 to-indigo-50 text-left px-6 py-4 text-sm font-bold text-gray-800 border-b-2 border-blue-200 !important;
+  font-size: 14px !important;
+  letter-spacing: 0.5px !important;
+}
+
+.report-content table td {
+  @apply px-6 py-4 text-sm text-gray-700 border-b border-gray-100 !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+.report-content table tr:nth-child(even) {
+  @apply bg-gray-50 !important;
+}
+
+.report-content table tr:nth-child(odd) {
+  @apply bg-white !important;
+}
+
+.report-content table tr:hover {
+  @apply bg-blue-50 !important;
+  transform: translateY(-1px) !important;
+  transition: all 0.2s ease !important;
+}
+
+.report-content table tr:last-child td {
+  @apply border-b-0 !important;
+}
+
+/* Highlight boxes - Professional */
+.report-content .highlight-box {
+  @apply bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 p-6 mb-6 rounded-r-xl !important;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -1px rgba(59, 130, 246, 0.06) !important;
+}
+
+.report-content .highlight-box h4 {
+  @apply text-blue-900 font-bold mb-3 !important;
+  font-size: 18px !important;
+}
+
+.report-content .highlight-box p {
+  @apply text-blue-800 mb-0 !important;
+  font-size: 15px !important;
+  line-height: 1.7 !important;
+}
+
+/* Data grid - Enhanced */
+.report-content .data-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 !important;
+}
+
+.report-content .data-grid .grid-item {
+  @apply bg-white p-4 rounded-lg border border-gray-200 shadow-sm !important;
+}
+
+/* Color coding for values - Professional */
+.report-content .positive {
+  @apply text-green-600 font-bold !important;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-size: 15px !important;
+}
+
+.report-content .negative {
+  @apply text-red-600 font-bold !important;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-size: 15px !important;
+}
+
+.report-content .neutral {
+  @apply text-blue-600 font-bold !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-size: 15px !important;
+}
+
+/* Progress indicators */
+.report-content .progress-bar {
+  @apply w-full bg-gray-200 rounded-full h-2 mb-2;
+}
+
+.report-content .progress-fill {
+  @apply bg-blue-500 h-2 rounded-full transition-all duration-300;
+}
+
+/* Recommendation boxes - Professional */
+.report-content .recommendation-buy {
+  @apply bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 p-6 rounded-xl mb-6 !important;
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1), 0 2px 4px -1px rgba(16, 185, 129, 0.06) !important;
+}
+
+.report-content .recommendation-sell {
+  @apply bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 p-6 rounded-xl mb-6 !important;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1), 0 2px 4px -1px rgba(239, 68, 68, 0.06) !important;
+}
+
+.report-content .recommendation-hold {
+  @apply bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300 p-6 rounded-xl mb-6 !important;
+  box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.1), 0 2px 4px -1px rgba(245, 158, 11, 0.06) !important;
+}
+
+/* Financial metrics styling */
+.report-content .financial-metric {
+  @apply inline-block bg-gray-100 px-3 py-1 rounded-full text-sm font-medium text-gray-700 mr-2 mb-2;
+}
+
+/* Risk factors */
+.report-content .risk-factor {
+  @apply bg-red-50 border-l-4 border-red-400 p-4 mb-4 rounded-r-lg;
+}
+
+.report-content .risk-factor h4 {
+  @apply text-red-800 font-semibold mb-2;
+}
+
+.report-content .risk-factor p {
+  @apply text-red-700 mb-0;
+}
+
+/* Success factors */
+.report-content .success-factor {
+  @apply bg-green-50 border-l-4 border-green-400 p-4 mb-4 rounded-r-lg;
+}
+
+.report-content .success-factor h4 {
+  @apply text-green-800 font-semibold mb-2;
+}
+
+.report-content .success-factor p {
+  @apply text-green-700 mb-0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .report-content table {
+    @apply text-xs;
+  }
+  
+  .report-content table th,
+  .report-content table td {
+    @apply px-2 py-2;
+  }
+  
+  .report-content .data-grid {
+    @apply grid-cols-1;
+  }
+}
+
+/* Shimmer animation for progress bar */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 修复文本折叠和遮挡问题 */
+.report-content {
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  hyphens: auto !important;
+  overflow-wrap: break-word !important;
+}
+
+.report-content * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.report-content p {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  text-align: justify !important;
+}
+
+/* 移除任何可能的高亮干扰 */
+.report-content *::selection {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+}
+
+.report-content *::-moz-selection {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+}
+
+/* 确保表格内容不被截断 */
+.report-content table {
+  table-layout: auto !important;
+  width: 100% !important;
+}
+
+.report-content td,
+.report-content th {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+} 
