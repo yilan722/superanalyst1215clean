@@ -86,6 +86,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already has an active subscription
+    // Create Supabase client for database operations
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('subscriptionId, subscriptionType, subscriptionEnd')
