@@ -201,8 +201,8 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     return
   }
   
-  if (invoice.subscription) {
-    const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string)
+  if ((invoice as any).subscription) {
+    const subscription = await stripe.subscriptions.retrieve((invoice as any).subscription as string)
     const userId = subscription.metadata?.userId
     const planId = subscription.metadata?.planId
 
@@ -225,8 +225,8 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     return
   }
   
-  if (invoice.subscription) {
-    const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string)
+  if ((invoice as any).subscription) {
+    const subscription = await stripe.subscriptions.retrieve((invoice as any).subscription as string)
     const userId = subscription.metadata?.userId
 
     if (userId) {
