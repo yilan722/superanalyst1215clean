@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import StripeCheckout from './StripeCheckout'
 import { getTranslation } from '../lib/translations'
 import { Locale } from '../lib/i18n'
+import { createBrowserClient } from '@supabase/ssr'
 
 interface SubscriptionPlan {
   id: string
@@ -32,6 +33,12 @@ export default function StripeSubscriptionModal({
   selectedPlan 
 }: StripeSubscriptionModalProps) {
   const [isLoading, setIsLoading] = useState(false)
+  
+  // Create Supabase client
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const handleStripeSuccess = () => {
     toast.success(
@@ -97,6 +104,7 @@ export default function StripeSubscriptionModal({
           planName={selectedPlan.name}
           planPrice={selectedPlan.monthlyFee}
           userId={userId}
+          supabase={supabase}
           onSuccess={handleStripeSuccess}
           onError={handleStripeError}
           onCancel={handleStripeCancel}

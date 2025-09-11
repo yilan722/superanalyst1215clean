@@ -19,6 +19,7 @@ interface StripeCheckoutProps {
   planPrice: number
   userId: string
   locale: 'zh' | 'en'
+  supabase: any
   onSuccess: () => void
   onError: (error: string) => void
   onCancel: () => void
@@ -30,6 +31,7 @@ function CheckoutForm({
   planPrice, 
   userId, 
   locale, 
+  supabase,
   onSuccess, 
   onError, 
   onCancel 
@@ -39,11 +41,8 @@ function CheckoutForm({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
-  // Create Supabase client for getting auth token
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  // Use the same Supabase client instance as the rest of the app
+  // This will be passed as a prop from the parent component
 
   // Debug logging
   console.log('CheckoutForm render:', {
