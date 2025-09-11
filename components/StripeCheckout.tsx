@@ -90,15 +90,15 @@ function CheckoutForm({
         }),
       })
 
-      const session = await response.json()
+      const checkoutSession = await response.json()
 
       if (!response.ok) {
-        throw new Error(session.error || 'Failed to create checkout session')
+        throw new Error(checkoutSession.error || 'Failed to create checkout session')
       }
 
       // Redirect to Stripe Checkout
       const { error: stripeError } = await stripe.redirectToCheckout({
-        sessionId: session.sessionId,
+        sessionId: checkoutSession.sessionId,
       })
 
       if (stripeError) {
