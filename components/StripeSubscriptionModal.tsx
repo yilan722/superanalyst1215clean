@@ -94,6 +94,8 @@ export default function StripeSubscriptionModal({
         {/* Stripe Checkout */}
         <StripeCheckout
           planId={selectedPlan.id}
+          planName={selectedPlan.name}
+          planPrice={selectedPlan.monthlyFee}
           userId={userId}
           onSuccess={handleStripeSuccess}
           onError={handleStripeError}
