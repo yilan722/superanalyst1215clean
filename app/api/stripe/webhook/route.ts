@@ -107,6 +107,11 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   }
 
   // Get subscription details
+  if (!stripe) {
+    console.error('Stripe not initialized in webhook')
+    return
+  }
+  
   const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
   
   // Update user subscription in database
@@ -191,6 +196,11 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   console.log('Processing invoice payment succeeded:', invoice.id)
   
+  if (!stripe) {
+    console.error('Stripe not initialized in handleInvoicePaymentSucceeded')
+    return
+  }
+  
   if (invoice.subscription) {
     const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string)
     const userId = subscription.metadata?.userId
@@ -209,6 +219,11 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   console.log('Processing invoice payment failed:', invoice.id)
+  
+  if (!stripe) {
+    console.error('Stripe not initialized in handleInvoicePaymentFailed')
+    return
+  }
   
   if (invoice.subscription) {
     const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string)
