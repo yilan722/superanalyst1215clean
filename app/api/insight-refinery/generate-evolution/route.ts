@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { GenerateEvolutionRequest, EvolutionResponse } from '@/lib/types/insight-refinery'
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createServerSupabaseClient()
     const { originalReportId, synthesisId, customPrompt }: GenerateEvolutionRequest = await request.json()
     
     if (!originalReportId || !synthesisId) {
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 生成版本号
-    const versionNumber = await getNextVersionNumber(originalReportId)
+    const versionNumber = await getNextVersionNumber(originalReportId, supabase)
     const version = `v${versionNumber}.0`
     
     // 生成标题
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest) {
       .eq('id', originalReport.user_id)
 
     // 更新报告文件夹
-    await updateReportFolder(originalReportId, evolutionId)
+    await updateReportFolder(originalReportId, evolutionId, supabase)
 
     const response: EvolutionResponse = {
       evolutionId,
@@ -208,9 +209,7 @@ export async function POST(request: NextRequest) {
 }
 
 // 获取下一个版本号
-async function getNextVersionNumber(originalReportId: string): Promise<number> {
-  // 使用导入的supabase实例
-  
+async function getNextVersionNumber(originalReportId: string, supabase: any): Promise<number> {
   const { data: evolutions, error } = await supabase
     .from('reports')
     .select('title')
@@ -234,9 +233,7 @@ async function getNextVersionNumber(originalReportId: string): Promise<number> {
 }
 
 // 更新报告文件夹
-async function updateReportFolder(originalReportId: string, evolutionId: string) {
-  // 使用导入的supabase实例
-  
+async function updateReportFolder(originalReportId: string, evolutionId: string, supabase: any) {
   // 查找或创建报告文件夹
   const { data: originalReport } = await supabase
     .from('reports')

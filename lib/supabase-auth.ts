@@ -1,5 +1,136 @@
-import { supabase, authSupabase } from './supabase'
-import type { Database } from './supabase'
+import { supabase } from './supabase-client'
+import { createClient } from '@supabase/supabase-js'
+
+// 创建服务器端Supabase客户端
+const authSupabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
+// Database types
+export interface Database {
+  public: {
+    Tables: {
+      users: {
+        Row: {
+          id: string
+          email: string
+          name: string | null
+          created_at: string
+          updated_at: string
+          free_reports_used: number
+          paid_reports_used: number
+          subscription_id: string | null
+          subscription_type: string | null
+          subscription_start: string | null
+          subscription_end: string | null
+          monthly_report_limit: number
+        }
+        Insert: {
+          id?: string
+          email: string
+          name?: string | null
+          created_at?: string
+          updated_at?: string
+          free_reports_used?: number
+          paid_reports_used?: number
+          subscription_id?: string | null
+          subscription_type?: string | null
+          subscription_start?: string | null
+          subscription_end?: string | null
+          monthly_report_limit?: number
+        }
+        Update: {
+          id?: string
+          email?: string
+          name?: string | null
+          created_at?: string
+          updated_at?: string
+          free_reports_used?: number
+          paid_reports_used?: number
+          subscription_id?: string | null
+          subscription_type?: string | null
+          subscription_start?: string | null
+          subscription_end?: string | null
+          monthly_report_limit?: number
+        }
+      }
+      payments: {
+        Row: {
+          id: string
+          user_id: string
+          amount: number
+          currency: string
+          type: string
+          status: string
+          alipay_trade_no: string | null
+          alipay_order_id: string | null
+          subscription_type: string | null
+          report_limit: number | null
+          report_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          amount: number
+          currency?: string
+          type: string
+          status?: string
+          alipay_trade_no?: string | null
+          alipay_order_id?: string | null
+          subscription_type?: string | null
+          report_limit?: number | null
+          report_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          amount?: number
+          currency?: string
+          type?: string
+          status?: string
+          alipay_trade_no?: string | null
+          alipay_order_id?: string | null
+          subscription_type?: string | null
+          report_limit?: number | null
+          report_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      reports: {
+        Row: {
+          id: string
+          user_id: string
+          stock_symbol: string
+          stock_name: string
+          report_data: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          stock_symbol: string
+          stock_name: string
+          report_data: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          stock_symbol?: string
+          stock_name?: string
+          report_data?: string
+          created_at?: string
+        }
+      }
+    }
+  }
+}
 
 export type User = Database['public']['Tables']['users']['Row']
 

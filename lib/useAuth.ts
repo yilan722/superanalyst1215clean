@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from './supabase'
+import { supabase } from './supabase-client'
 import { setGlobalForceSignOut } from './supabase-auth'
 import type { User } from './supabase-auth'
 
