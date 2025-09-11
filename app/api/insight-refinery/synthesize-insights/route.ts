@@ -152,8 +152,8 @@ ${customInstructions ? `\n额外要求: ${customInstructions}` : ''}
     const evolutionPrompt = `
 基于以下原始研报和讨论洞察，生成一份增强版的研报：
 
-原始研报: ${session.reports.title}
-${session.reports.content.substring(0, 1000)}...
+原始研报: ${report.title}
+${report.content.substring(0, 1000)}...
 
 讨论洞察:
 - 讨论摘要: ${parsedSynthesis.discussionSummary}
