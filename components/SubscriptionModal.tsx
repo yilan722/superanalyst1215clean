@@ -24,6 +24,7 @@ interface SubscriptionPlan {
   icon: React.ReactNode
   buttonText: string
   buttonAction: string
+  description: string
 }
 
 interface SubscriptionModalProps {
@@ -58,7 +59,8 @@ export default function SubscriptionModal({ isOpen, onClose, userId, locale }: S
       ],
       icon: <CreditCard className="h-6 w-6" />,
       buttonText: getTranslation(locale, 'freeStart'),
-      buttonAction: 'free'
+      buttonAction: 'free',
+      description: locale === 'zh' ? '适合个人投资者' : 'Perfect for individual investors'
     },
     {
       id: 'basic',
@@ -76,7 +78,8 @@ export default function SubscriptionModal({ isOpen, onClose, userId, locale }: S
       ],
       icon: <Zap className="h-6 w-6" />,
       buttonText: getTranslation(locale, 'subscribeNow'),
-      buttonAction: 'subscribe'
+      buttonAction: 'subscribe',
+      description: locale === 'zh' ? '适合个人投资者' : 'Perfect for individual investors'
     },
     {
       id: 'professional',
@@ -96,7 +99,8 @@ export default function SubscriptionModal({ isOpen, onClose, userId, locale }: S
       bestValue: true,
       icon: <Star className="h-6 w-6" />,
       buttonText: getTranslation(locale, 'upgradeToPro'),
-      buttonAction: 'subscribe'
+      buttonAction: 'subscribe',
+      description: locale === 'zh' ? '适合活跃交易者和分析师' : 'Ideal for active traders and analysts'
     },
     {
       id: 'business',
@@ -116,7 +120,8 @@ export default function SubscriptionModal({ isOpen, onClose, userId, locale }: S
       ],
       icon: <Crown className="h-6 w-6" />,
       buttonText: getTranslation(locale, 'upgradeToBusiness'),
-      buttonAction: 'subscribe'
+      buttonAction: 'subscribe',
+      description: locale === 'zh' ? '适合团队和机构的综合解决方案' : 'Comprehensive solution for teams and institutions'
     },
     {
       id: 'enterprise',
@@ -137,7 +142,8 @@ export default function SubscriptionModal({ isOpen, onClose, userId, locale }: S
       ],
       icon: <TrendingUp className="h-6 w-6" />,
       buttonText: getTranslation(locale, 'contactUs'),
-      buttonAction: 'contact'
+      buttonAction: 'contact',
+      description: locale === 'zh' ? '企业级定制解决方案' : 'Enterprise custom solutions'
     }
   ]
 
@@ -379,6 +385,7 @@ export default function SubscriptionModal({ isOpen, onClose, userId, locale }: S
             onClose={handleStripeCancel}
             userId={userId}
             locale={locale}
+            selectedPlan={paymentPlan}
           />
         )}
       </div>
