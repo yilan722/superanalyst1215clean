@@ -232,10 +232,14 @@ export default function HomePage({ params }: PageProps) {
 
   const handleLogout = async () => {
     try {
+      console.log('🚪 主页面开始登出...')
       await supabase.auth.signOut()
+      console.log('✅ 主页面登出成功')
       // useAuth hook will handle the user state update
     } catch (error) {
-      console.error('Logout error:', error)
+      console.error('❌ 主页面登出失败:', error)
+      // 即使出错也要强制更新状态
+      useAuthForceSetUser(null as any)
     }
   }
 
