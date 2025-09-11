@@ -67,14 +67,42 @@ function CheckoutForm({
 
     try {
       // Get current session and access token
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      console.log('Attempting to get Supabase session...')
+      let { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
-      if (sessionError || !session) {
-        throw new Error('Authentication required. Please log in again.')
+      console.log('Session error:', sessionError)
+      console.log('Session data:', session)
+      console.log('Auth session found:', !!session)
+      console.log('Access token available:', !!session?.access_token)
+      
+      if (sessionError) {
+        console.error('Session error details:', sessionError)
+        throw new Error(`Session error: ${sessionError.message}`)
       }
       
-      console.log('Auth session found:', !!session)
-      console.log('Access token available:', !!session.access_token)
+      if (!session) {
+        console.log('No session found, trying to get user...')
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        console.log('User error:', userError)
+        console.log('User data:', user)
+        
+        if (userError || !user) {
+          throw new Error('Authentication required. Please log in again.')
+        }
+        
+        // If we have a user but no session, try to refresh
+        console.log('User found but no session, attempting refresh...')
+        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+        console.log('Refresh error:', refreshError)
+        console.log('Refreshed session:', refreshedSession)
+        
+        if (refreshError || !refreshedSession) {
+          throw new Error('Authentication required. Please log in again.')
+        }
+        
+        // Use refreshed session
+        session = refreshedSession
+      }
       
       // Create checkout session
       const response = await fetch('/api/stripe/create-checkout-session', {
