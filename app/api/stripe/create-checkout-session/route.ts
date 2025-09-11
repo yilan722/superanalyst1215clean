@@ -28,29 +28,12 @@ export async function POST(request: NextRequest) {
     let user = null
     let authError = null
     
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      // Use token-based authentication
-      const token = authHeader.substring(7)
-      console.log('Using token-based auth:', token.substring(0, 20) + '...')
-      
-      // Create a simple Supabase client for token verification
-      const { createClient } = await import('@supabase/supabase-js')
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
-      
-      const { data: { user: tokenUser }, error: tokenError } = await supabase.auth.getUser(token)
-      user = tokenUser
-      authError = tokenError
-    } else {
-      // Fallback to cookie-based authentication
-      console.log('Using cookie-based auth')
-      const supabase = createApiSupabaseClient(request)
-      const { data: { user: cookieUser }, error: cookieError } = await supabase.auth.getUser()
-      user = cookieUser
-      authError = cookieError
-    }
+    // Always use cookie-based authentication for consistency
+    console.log('Using cookie-based auth')
+    const supabase = createApiSupabaseClient(request)
+    const { data: { user: cookieUser }, error: cookieError } = await supabase.auth.getUser()
+    user = cookieUser
+    authError = cookieError
     
     console.log('API Auth check - User:', user ? 'Found' : 'Not found')
     console.log('API Auth check - Error:', authError)
@@ -86,12 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already has an active subscription
-    // Create Supabase client for database operations
-    const { createClient } = await import('@supabase/supabase-js')
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    // Use the same Supabase client for database operations
     
     let userData = null
     const { data: fetchedUserData, error: userError } = await supabase

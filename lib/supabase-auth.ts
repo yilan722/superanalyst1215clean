@@ -1,11 +1,7 @@
 import { supabase } from './supabase-client'
-import { createClient } from '@supabase/supabase-js'
 
-// 创建服务器端Supabase客户端
-const authSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// 使用全局客户端实例，避免多实例问题
+const authSupabase = supabase
 
 // Database types
 export interface Database {
