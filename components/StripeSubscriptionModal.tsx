@@ -109,7 +109,7 @@ export default function StripeSubscriptionModal({ isOpen, onClose, userId, local
               {getTranslation(locale, 'choosePlan')}
             </h2>
             <p className="text-slate-600 mt-1">
-              {getTranslation(locale, 'choosePlanDescription')}
+              {getTranslation(locale, 'please_choose_subscription_plan')}
             </p>
           </div>
           <button
