@@ -54,9 +54,10 @@ export default function StripeSubscriptionModal({ isOpen, onClose, userId, local
       return
     }
 
-    // Show agreement modal first
-    setPendingPlanId(planId)
-    setShowAgreement(true)
+    // Directly proceed to payment
+    setPaymentPlan(plan)
+    setShowStripePayment(true)
+    setShowAgreement(false)
   }
 
   const handleAgreementConfirm = async () => {
@@ -237,9 +238,14 @@ export default function StripeSubscriptionModal({ isOpen, onClose, userId, local
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-60">
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-slate-900">
-                  {locale === 'zh' ? '完成支付' : 'Complete Payment'}
-                </h3>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    {locale === 'zh' ? '完成支付' : 'Complete Payment'}
+                  </h3>
+                  <p className="text-sm text-slate-600 mt-1">
+                    {paymentPlan.name} - ${paymentPlan.monthlyFee}/month
+                  </p>
+                </div>
                 <button
                   onClick={handleStripeCancel}
                   className="text-slate-400 hover:text-slate-600"
