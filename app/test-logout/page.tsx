@@ -57,7 +57,7 @@ export default function TestLogoutPage() {
       
     } catch (error) {
       console.error('❌ 测试登出失败:', error)
-      setTestResults(prev => ({ ...prev, error: error.message }))
+      setTestResults(prev => ({ ...prev, error: error instanceof Error ? error.message : String(error) }))
     }
   }
 
@@ -93,7 +93,7 @@ export default function TestLogoutPage() {
       
     } catch (error) {
       console.error('❌ 测试支付失败:', error)
-      setTestResults(prev => ({ ...prev, paymentTest: { error: error.message } }))
+      setTestResults(prev => ({ ...prev, paymentTest: { error: error instanceof Error ? error.message : String(error) } }))
     }
   }
 
