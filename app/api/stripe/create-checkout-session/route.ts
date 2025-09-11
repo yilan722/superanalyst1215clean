@@ -4,8 +4,19 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Creating checkout session...')
+    
     // Validate Stripe configuration
-    validateStripeConfig()
+    try {
+      validateStripeConfig()
+      console.log('Stripe config validation passed')
+    } catch (configError) {
+      console.error('Stripe config validation failed:', configError)
+      return NextResponse.json(
+        { error: `Configuration error: ${configError instanceof Error ? configError.message : 'Unknown error'}` },
+        { status: 500 }
+      )
+    }
 
     const supabase = createServerSupabaseClient()
     
@@ -20,6 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { planId, successUrl, cancelUrl } = await request.json()
+    console.log('Request data:', { planId, successUrl, cancelUrl })
 
     if (!planId) {
       return NextResponse.json(
@@ -30,6 +42,7 @@ export async function POST(request: NextRequest) {
 
     // Get plan details
     const plan = SUBSCRIPTION_PLANS[planId as keyof typeof SUBSCRIPTION_PLANS]
+    console.log('Plan details:', plan)
     if (!plan) {
       return NextResponse.json(
         { error: 'Invalid plan ID' },
@@ -65,12 +78,15 @@ export async function POST(request: NextRequest) {
 
     // Check if Stripe is initialized
     if (!stripe) {
+      console.error('Stripe not initialized')
       return NextResponse.json(
         { error: 'Stripe not initialized' },
         { status: 500 }
       )
     }
 
+    console.log('Creating Stripe checkout session with plan:', plan.stripePriceId)
+    
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -98,6 +114,8 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    console.log('Checkout session created successfully:', session.id)
+    
     return NextResponse.json({
       sessionId: session.id,
       url: session.url,
