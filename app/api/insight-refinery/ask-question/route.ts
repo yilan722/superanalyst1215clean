@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     // 获取会话信息
     const { data: session, error: sessionError } = await supabase
       .from('discussion_sessions')
-      .select('id, report_id, user_id, status')
+      .select('id, report_id, user_id, status, total_questions, key_insights_count')
       .eq('id', sessionId)
       .single()
 
