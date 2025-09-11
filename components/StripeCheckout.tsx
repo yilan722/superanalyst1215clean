@@ -5,6 +5,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { CreditCard, Lock, CheckCircle, AlertCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { createBrowserClient } from '@supabase/ssr'
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -37,6 +38,12 @@ function CheckoutForm({
   const elements = useElements()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // Create Supabase client for getting auth token
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   // Debug logging
   console.log('CheckoutForm render:', {
@@ -59,11 +66,22 @@ function CheckoutForm({
     setError(null)
 
     try {
+      // Get current session and access token
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session) {
+        throw new Error('Authentication required. Please log in again.')
+      }
+      
+      console.log('Auth session found:', !!session)
+      console.log('Access token available:', !!session.access_token)
+      
       // Create checkout session
       const response = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           planId,
