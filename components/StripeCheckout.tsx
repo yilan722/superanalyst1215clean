@@ -5,7 +5,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { CreditCard, Lock, CheckCircle, AlertCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { createBrowserClient } from '@supabase/ssr'
+import { supabase } from '../lib/supabase-client'
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -19,7 +19,6 @@ interface StripeCheckoutProps {
   planPrice: number
   userId: string
   locale: 'zh' | 'en'
-  supabase: any
   onSuccess: () => void
   onError: (error: string) => void
   onCancel: () => void
@@ -31,7 +30,6 @@ function CheckoutForm({
   planPrice, 
   userId, 
   locale, 
-  supabase,
   onSuccess, 
   onError, 
   onCancel 
