@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, SUBSCRIPTION_PLANS, validateStripeConfig } from '@/lib/stripe-config'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createApiSupabaseClient } from '@/lib/supabase-server'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,12 +18,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = createServerSupabaseClient()
+    const supabase = createApiSupabaseClient(request)
     
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
+    console.log('API Auth check - User:', user ? 'Found' : 'Not found')
+    console.log('API Auth check - Error:', authError)
+    
     if (authError || !user) {
+      console.log('Authentication failed in API route')
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
