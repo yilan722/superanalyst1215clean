@@ -226,6 +226,13 @@ export default function useAuth() {
       debugLog('⚠️ 触发事件失败:', error)
     }
     
+    // 强制刷新页面以确保状态完全重置
+    setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        window.location.reload()
+      }
+    }, 100)
+    
     debugLog('✅ 强制登出完成')
   }
   

@@ -33,7 +33,7 @@ export default function HomePage({ params }: PageProps) {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false)
   
   // 使用useAuth hook管理用户状态
-  const { user: useAuthUser, loading: userLoading, forceUpdate: useAuthForceUpdate, resetLoading: useAuthResetLoading, forceSetUser: useAuthForceSetUser } = useAuth()
+  const { user: useAuthUser, loading: userLoading, forceUpdate: useAuthForceUpdate, resetLoading: useAuthResetLoading, forceSetUser: useAuthForceSetUser, forceSignOut: useAuthForceSignOut } = useAuth()
   
   // 添加调试信息 - 只在开发环境和状态变化时打印
   useEffect(() => {
@@ -233,13 +233,18 @@ export default function HomePage({ params }: PageProps) {
   const handleLogout = async () => {
     try {
       console.log('🚪 主页面开始登出...')
+      
+      // 先调用useAuth的forceSignOut确保状态正确更新
+      useAuthForceSignOut()
+      
+      // 然后调用Supabase的signOut
       await supabase.auth.signOut()
+      
       console.log('✅ 主页面登出成功')
-      // useAuth hook will handle the user state update
     } catch (error) {
       console.error('❌ 主页面登出失败:', error)
       // 即使出错也要强制更新状态
-      useAuthForceSetUser(null as any)
+      useAuthForceSignOut()
     }
   }
 

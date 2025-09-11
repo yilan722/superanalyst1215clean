@@ -9,8 +9,8 @@ import { supabase } from '../lib/supabase-client'
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
-const stripePromise = typeof window !== 'undefined' 
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+const stripePromise = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   : null
 
 interface StripeCheckoutProps {
@@ -243,12 +243,22 @@ export default function StripeCheckout(props: StripeCheckoutProps) {
         <p className="text-xs text-slate-500 mt-2">
           Stripe key: {process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? 'Loaded' : 'Missing'}
         </p>
+        <p className="text-xs text-red-500 mt-1">
+          If this persists, please refresh the page
+        </p>
       </div>
     )
   }
 
   return (
-    <Elements stripe={stripePromise}>
+    <Elements 
+      stripe={stripePromise}
+      options={{
+        appearance: {
+          theme: 'stripe',
+        },
+      }}
+    >
       <CheckoutForm {...props} />
     </Elements>
   )
