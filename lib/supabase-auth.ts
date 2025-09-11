@@ -217,7 +217,8 @@ export async function signOut() {
     
     // 执行登出，带超时控制
     const signOutPromise = supabase.auth.signOut()
-    const { error } = await Promise.race([signOutPromise, timeoutPromise]) as any
+    const result = await Promise.race([signOutPromise, timeoutPromise]) as any
+    const { error } = result || {}
     
     if (error) {
       console.error('❌ 登出失败:', error)

@@ -101,10 +101,40 @@ export async function POST(request: NextRequest) {
 
     if (userError) {
       console.error('Error fetching user data:', userError)
-      return NextResponse.json(
-        { error: 'Failed to fetch user data' },
-        { status: 500 }
-      )
+      
+      // If user doesn't exist in database, create them
+      if (userError.code === 'PGRST116') {
+        console.log('User not found in database, creating user record...')
+        const { error: createError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email!,
+            name: user.user_metadata?.name || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            free_reports_used: 0,
+            paid_reports_used: 0,
+            monthly_report_limit: 0
+          })
+        
+        if (createError) {
+          console.error('Error creating user:', createError)
+          return NextResponse.json(
+            { error: 'Failed to create user record' },
+            { status: 500 }
+          )
+        }
+        
+        console.log('User created successfully')
+        // Set userData to empty object since user was just created
+        const userData = { subscriptionId: null, subscriptionType: null, subscriptionEnd: null }
+      } else {
+        return NextResponse.json(
+          { error: 'Failed to fetch user data' },
+          { status: 500 }
+        )
+      }
     }
 
     // If user has an active subscription, return error
