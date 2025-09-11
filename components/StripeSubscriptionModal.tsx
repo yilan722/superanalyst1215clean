@@ -44,7 +44,7 @@ export default function StripeSubscriptionModal({ isOpen, onClose, userId, local
 
   const handleSubscribe = async (planId: string) => {
     if (!userId) {
-      toast.error(getTranslation(locale, 'loginRequired'))
+      toast.error(getTranslation(locale, 'pleaseLoginFirstToast'))
       return
     }
 
