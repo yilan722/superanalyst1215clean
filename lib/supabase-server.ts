@@ -61,9 +61,10 @@ export function createApiSupabaseClient(request: Request) {
   
   // 检查是否有Supabase相关的cookies
   const supabaseCookies = Object.keys(cookies).filter(key => 
-    key.includes('supabase') || key.includes('sb-') || key.includes('auth')
+    key.includes('supabase') || key.includes('sb-') || key.includes('auth') || key.includes('supabase.auth.token')
   )
   console.log('Supabase-related cookies found:', supabaseCookies)
+  console.log('All cookies found:', Object.keys(cookies))
 
   return createServerClient(
     supabaseUrl,

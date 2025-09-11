@@ -18,6 +18,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Debug: Log all request headers
+    console.log('Request headers:', Object.fromEntries(request.headers.entries()))
+    
     const supabase = createApiSupabaseClient(request)
     
     // Get current user
@@ -25,6 +28,8 @@ export async function POST(request: NextRequest) {
     
     console.log('API Auth check - User:', user ? 'Found' : 'Not found')
     console.log('API Auth check - Error:', authError)
+    console.log('API Auth check - User ID:', user?.id)
+    console.log('API Auth check - User Email:', user?.email)
     
     if (authError || !user) {
       console.log('Authentication failed in API route')
