@@ -139,6 +139,12 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('Creating Stripe checkout session with plan:', plan.stripePriceId)
+    console.log('Plan details:', {
+      id: plan.id,
+      name: plan.name,
+      stripeProductId: plan.stripeProductId,
+      stripePriceId: plan.stripePriceId
+    })
     
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
@@ -156,8 +162,8 @@ export async function POST(request: NextRequest) {
         planId: plan.id,
         planName: plan.name,
       },
-      success_url: successUrl || `${process.env.NEXT_PUBLIC_BASE_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || `${process.env.NEXT_PUBLIC_BASE_URL}/payment/cancel`,
+      success_url: successUrl || `${process.env.NEXT_PUBLIC_BASE_URL || 'https://top-analyst-5-axl3ghjzx-yilans-projects.vercel.app'}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelUrl || `${process.env.NEXT_PUBLIC_BASE_URL || 'https://top-analyst-5-axl3ghjzx-yilans-projects.vercel.app'}/payment/cancel`,
       subscription_data: {
         metadata: {
           userId: user.id,
