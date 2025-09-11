@@ -60,11 +60,12 @@ export async function POST(request: NextRequest) {
     ).join('\n')
 
     // 构建原始报告摘要
+    const report = session.reports[0] // 获取第一个报告
     const reportSummary = `
 原始报告信息:
-- 标题: ${session.reports.title}
-- 公司: ${session.reports.company_name} (${session.reports.ticker})
-- 内容摘要: ${session.reports.content.substring(0, 2000)}...
+- 标题: ${report.title}
+- 公司: ${report.company_name} (${report.ticker})
+- 内容摘要: ${report.content.substring(0, 2000)}...
 `
 
     // 调用AI进行洞察合成
