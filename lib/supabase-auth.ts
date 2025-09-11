@@ -201,24 +201,8 @@ export async function signOut() {
   try {
     console.log('🚪 开始登出流程...')
     
-    // 减少超时时间，因为登出应该很快
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('登出超时')), 3000) // 3秒超时
-    })
-    
-    // 清除本地存储
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('supabase.auth.token')
-      sessionStorage.removeItem('supabase.auth.token')
-      localStorage.removeItem('supabase.auth.expires_at')
-      localStorage.removeItem('supabase.auth.refresh_token')
-      console.log('🧹 本地存储已清理')
-    }
-    
-    // 执行登出，带超时控制
-    const signOutPromise = supabase.auth.signOut()
-    const result = await Promise.race([signOutPromise, timeoutPromise]) as any
-    const { error } = result || {}
+    // 直接调用Supabase的signOut
+    const { error } = await supabase.auth.signOut()
     
     if (error) {
       console.error('❌ 登出失败:', error)
@@ -227,36 +211,9 @@ export async function signOut() {
     
     console.log('✅ 登出成功')
   } catch (error) {
-    // 如果是超时错误，这是正常的保护机制，不需要显示为错误
-    if (error instanceof Error && error.message.includes('超时')) {
-      console.log('⏰ 登出超时，启动保护机制...')
-      
-      // 获取全局的forceSignOut函数
-      const globalForceSignOut = getGlobalForceSignOut()
-      console.log('🔍 检查全局forceSignOut函数:', !!globalForceSignOut)
-      
-      // 调用全局的forceSignOut函数
-      if (globalForceSignOut) {
-        console.log('🔄 调用全局forceSignOut...')
-        globalForceSignOut()
-      } else {
-        console.log('⚠️ 全局forceSignOut未设置，使用备用清理方案')
-        // 即使超时，也要强制清理状态
-        if (typeof window !== 'undefined') {
-          localStorage.clear()
-          sessionStorage.clear()
-          console.log('🧹 保护机制：强制清理所有本地存储')
-        }
-      }
-      
-      // 超时不是真正的错误，返回成功
-      console.log('✅ 登出完成（保护机制）')
-      return
-    }
-    
     console.error('💥 登出异常:', error)
     
-    // 其他错误也要强制清理状态
+    // 即使出错也要强制清理状态
     if (typeof window !== 'undefined') {
       localStorage.clear()
       sessionStorage.clear()

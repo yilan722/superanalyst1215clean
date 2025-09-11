@@ -93,7 +93,8 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
     
-    const { data: userData, error: userError } = await supabase
+    let userData = null
+    const { data: fetchedUserData, error: userError } = await supabase
       .from('users')
       .select('subscriptionId, subscriptionType, subscriptionEnd')
       .eq('id', user.id)
@@ -128,13 +129,15 @@ export async function POST(request: NextRequest) {
         
         console.log('User created successfully')
         // Set userData to empty object since user was just created
-        const userData = { subscriptionId: null, subscriptionType: null, subscriptionEnd: null }
+        userData = { subscriptionId: null, subscriptionType: null, subscriptionEnd: null }
       } else {
         return NextResponse.json(
           { error: 'Failed to fetch user data' },
           { status: 500 }
         )
       }
+    } else {
+      userData = fetchedUserData
     }
 
     // If user has an active subscription, return error
