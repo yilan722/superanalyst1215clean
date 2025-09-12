@@ -9,6 +9,7 @@ interface AuthContextType {
   loading: boolean
   signOut: () => Promise<void>
   forceUpdate: () => void
+  refreshUserData: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -20,6 +21,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const forceUpdate = () => {
     setForceUpdateTrigger(prev => prev + 1)
+  }
+
+  const refreshUserData = async () => {
+    console.log('🔄 强制刷新用户数据...')
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession()
+      if (error) {
+        console.error('❌ 刷新会话失败:', error)
+        setUser(null)
+      } else if (session?.user) {
+        console.log('✅ 刷新会话成功:', session.user.id)
+        setUser(session.user as User)
+      } else {
+        console.log('ℹ️ 刷新后没有会话')
+        setUser(null)
+      }
+    } catch (error) {
+      console.error('❌ 刷新用户数据异常:', error)
+      setUser(null)
+    }
   }
 
   useEffect(() => {
@@ -105,7 +126,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     loading,
     signOut,
-    forceUpdate
+    forceUpdate,
+    refreshUserData
   }
 
   return (

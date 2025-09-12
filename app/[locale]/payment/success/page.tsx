@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle, ArrowRight, FileText } from 'lucide-react'
 import { type Locale } from '@/lib/i18n'
 import { getTranslation } from '@/lib/translations'
+import { useAuthContext } from '@/lib/auth-context'
 
 interface SuccessPageProps {
   params: {
@@ -16,6 +17,7 @@ function PaymentSuccessContent({ params }: SuccessPageProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { locale } = params
+  const { refreshUserData } = useAuthContext()
   const [isLoading, setIsLoading] = useState(true)
   const [sessionData, setSessionData] = useState<any>(null)
 
@@ -47,9 +49,17 @@ function PaymentSuccessContent({ params }: SuccessPageProps) {
     }
   }
 
-  const handleContinue = () => {
-    // Refresh the page to update user state
-    window.location.href = `/${locale}`
+  const handleContinue = async () => {
+    // First refresh user data to get latest subscription info
+    console.log('🔄 支付成功，刷新用户数据...')
+    await refreshUserData()
+    
+    // Wait a moment for the refresh to complete
+    setTimeout(() => {
+      // Force a complete page refresh to update user state
+      // This ensures the auth context is reinitialized with updated user data
+      window.location.href = `/${locale}?refresh=${Date.now()}`
+    }, 1000)
   }
 
   const handleViewReports = () => {

@@ -36,7 +36,7 @@ export default function HomePage({ params }: PageProps) {
   const [userData, setUserData] = useState<any>(null)
   
   // 使用认证上下文管理用户状态
-  const { user: useAuthUser, loading: userLoading, signOut: useAuthSignOut, forceUpdate: useAuthForceUpdate } = useAuthContext()
+  const { user: useAuthUser, loading: userLoading, signOut: useAuthSignOut, forceUpdate: useAuthForceUpdate, refreshUserData } = useAuthContext()
   
   // 获取用户数据
   const fetchUserData = async () => {
@@ -79,6 +79,15 @@ export default function HomePage({ params }: PageProps) {
       setUserData(null)
     }
   }, [useAuthUser?.id])
+
+  // 检查URL参数，如果是支付成功后的刷新，强制刷新用户数据
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.has('refresh')) {
+      console.log('🔄 检测到支付成功刷新，强制更新用户数据')
+      refreshUserData()
+    }
+  }, [])
   
   // 强制更新状态
   const [, forceUpdate] = useState({})
