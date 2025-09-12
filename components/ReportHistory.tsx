@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Download, Eye, Calendar, FileText, Trash2, RefreshCw } from 'lucide-react'
 import { supabase } from '../lib/supabase-client'
-import useAuth from '@/lib/useAuth'
+import { useAuthContext } from '@/lib/auth-context'
 
 import type { Locale } from '@/lib/i18n'
 
@@ -24,7 +24,7 @@ export default function ReportHistory({ locale, isOpen, onClose }: ReportHistory
   const [isLoading, setIsLoading] = useState(false)
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const { user } = useAuth()
+  const { user } = useAuthContext()
 
   // 简化的加载报告函数
   const loadReports = useCallback(async () => {

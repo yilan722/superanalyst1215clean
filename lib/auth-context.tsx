@@ -28,7 +28,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 获取初始会话
     const getInitialSession = async () => {
       try {
+        console.log('🔍 正在获取初始会话...')
         const { data: { session }, error } = await supabase.auth.getSession()
+        console.log('🔍 会话获取结果:', { session: !!session, user: session?.user?.id, error })
+        
         if (error) {
           console.error('❌ 获取会话失败:', error)
           setUser(null)
@@ -43,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('❌ 获取会话异常:', error)
         setUser(null)
       } finally {
+        console.log('🔧 设置loading为false')
         setLoading(false)
       }
     }
@@ -52,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 监听认证状态变化
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔄 认证状态变化:', event, session?.user?.id)
+        console.log('🔄 认证状态变化:', event, session?.user?.id, '当前用户状态:', user?.id)
         
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('✅ 用户登录:', session.user.id)
@@ -63,8 +67,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
           console.log('🔄 令牌刷新:', session.user.id)
           setUser(session.user as User)
+        } else if (event === 'INITIAL_SESSION') {
+          console.log('🔄 初始会话事件:', session?.user?.id)
+          if (session?.user) {
+            console.log('✅ 初始会话有用户，设置用户状态')
+            setUser(session.user as User)
+          } else {
+            console.log('ℹ️ 初始会话无用户，清空用户状态')
+            setUser(null)
+          }
         }
         
+        console.log('🔧 设置loading为false')
         setLoading(false)
       }
     )

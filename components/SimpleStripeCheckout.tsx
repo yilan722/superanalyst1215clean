@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { CreditCard, Lock, CheckCircle, AlertCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase-client'
-import useAuth from '../lib/useAuth'
+import { useAuthContext } from '../lib/auth-context'
 import ClientCouponInput from './ClientCouponInput'
 
 interface SimpleStripeCheckoutProps {
@@ -29,14 +29,14 @@ export default function SimpleStripeCheckout({
   onCancel 
 }: SimpleStripeCheckoutProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const { session, user } = useAuth()
+  const { user } = useAuthContext()
   
   // 添加调试信息
-  console.log('🔍 SimpleStripeCheckout useAuth状态:', { session: session ? '存在' : 'null', user: user ? '存在' : 'null' })
+  console.log('🔍 SimpleStripeCheckout 用户状态:', { user: user ? '存在' : 'null' })
   const [error, setError] = useState<string | null>(null)
   
   // 添加调试信息
-  console.log('🔍 SimpleStripeCheckout render - session:', session ? 'exists' : 'null', 'user:', user ? 'exists' : 'null')
+  console.log('🔍 SimpleStripeCheckout render - user:', user ? 'exists' : 'null')
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string
     discountAmount: number

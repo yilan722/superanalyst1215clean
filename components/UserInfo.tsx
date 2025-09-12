@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { User, LogOut, CreditCard, BarChart3, LogIn } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { signOut } from '../lib/supabase-auth'
-import useAuth from '../lib/useAuth'
+import { useAuthContext } from '../lib/auth-context'
 import { getTranslation } from '../lib/translations'
 import { Locale } from '../lib/i18n'
 
@@ -42,7 +42,7 @@ interface UserInfoProps {
 
 export default function UserInfo({ user, onLogout, onRefresh, onLogin, onOpenSubscription, onOpenReportHistory, locale, isCompact = false }: UserInfoProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const { forceSignOut } = useAuth()
+  const { signOut: forceSignOut } = useAuthContext()
 
   const handleLogout = async () => {
     setIsLoading(true)

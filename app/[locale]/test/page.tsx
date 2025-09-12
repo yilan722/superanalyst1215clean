@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { type Locale } from '@/lib/i18n'
-import useAuth from '@/lib/useAuth'
+import { useAuthContext } from '@/lib/auth-context'
 
 interface TestPageProps {
   params: {
@@ -11,7 +11,7 @@ interface TestPageProps {
 }
 
 export default function TestPage({ params }: TestPageProps) {
-  const { user, loading } = useAuth()
+  const { user, loading } = useAuthContext()
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
