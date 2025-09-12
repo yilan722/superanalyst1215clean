@@ -60,6 +60,10 @@ export async function POST(request: NextRequest) {
         await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session)
         break
 
+      case 'checkout.session.expired':
+        await handleCheckoutSessionExpired(event.data.object as Stripe.Checkout.Session)
+        break
+
       case 'customer.subscription.created':
         await handleSubscriptionCreated(event.data.object as Stripe.Subscription)
         break
@@ -78,6 +82,18 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.payment_failed':
         await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice)
+        break
+
+      case 'invoice.payment_action_required':
+        await handleInvoicePaymentActionRequired(event.data.object as Stripe.Invoice)
+        break
+
+      case 'customer.created':
+        await handleCustomerCreated(event.data.object as Stripe.Customer)
+        break
+
+      case 'customer.updated':
+        await handleCustomerUpdated(event.data.object as Stripe.Customer)
         break
 
       default:
@@ -284,4 +300,25 @@ async function updateUserSubscription(
     console.error('Failed to update user subscription:', error)
     throw error
   }
+}
+
+// Additional event handlers
+async function handleCheckoutSessionExpired(session: Stripe.Checkout.Session) {
+  console.log('⏰ Checkout session expired:', session.id)
+  // Optional: Clean up any pending data or send notification
+}
+
+async function handleInvoicePaymentActionRequired(invoice: Stripe.Invoice) {
+  console.log('⚠️ Payment action required for invoice:', invoice.id)
+  // Optional: Send notification to user about required action
+}
+
+async function handleCustomerCreated(customer: Stripe.Customer) {
+  console.log('👤 Customer created:', customer.id, customer.email)
+  // Optional: Log customer creation for analytics
+}
+
+async function handleCustomerUpdated(customer: Stripe.Customer) {
+  console.log('👤 Customer updated:', customer.id, customer.email)
+  // Optional: Sync customer data changes
 }
