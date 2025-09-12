@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       .update({
         subscription_type: 'free',
         subscription_id: null,
-        subscription_end: new Date(subscription.current_period_end * 1000).toISOString(),
+        subscription_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
         monthly_report_limit: 0,
         updated_at: new Date().toISOString()
       })
@@ -66,8 +66,8 @@ export async function POST(request: NextRequest) {
       subscription: {
         id: subscription.id,
         status: subscription.status,
-        current_period_end: subscription.current_period_end,
-        cancel_at_period_end: subscription.cancel_at_period_end
+        current_period_end: (subscription as any).current_period_end,
+        cancel_at_period_end: (subscription as any).cancel_at_period_end
       }
     })
 
