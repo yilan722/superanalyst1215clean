@@ -30,11 +30,15 @@ export default function ReportsPage({ params }: ReportsPageProps) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    console.log('🔍 报告页面认证检查:', { user: authUser?.id, loading: authLoading })
+    
     if (!authLoading) {
       if (!authUser) {
+        console.log('❌ 用户未认证，重定向到主页')
         router.push(`/${locale}`) // Redirect to home if not logged in
         return
       }
+      console.log('✅ 用户已认证，获取报告数据')
       fetchReports()
     }
   }, [authUser, authLoading, locale, router])

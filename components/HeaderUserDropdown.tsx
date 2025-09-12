@@ -72,16 +72,19 @@ export default function HeaderUserDropdown({ userData, locale }: HeaderUserDropd
   const subscriptionStatus = getSubscriptionStatus()
 
   const handleManageSubscription = () => {
+    console.log('🔗 跳转到订阅管理页面')
     setIsOpen(false)
     router.push(`/${locale}/subscription`)
   }
 
   const handleReportHub = () => {
+    console.log('🔗 跳转到报告中心页面')
     setIsOpen(false)
     router.push(`/${locale}/reports`)
   }
 
   const handleAccount = () => {
+    console.log('🔗 跳转到账户页面')
     setIsOpen(false)
     router.push(`/${locale}/account`)
   }

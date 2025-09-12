@@ -36,12 +36,16 @@ export default function AccountPage({ params }: SuccessPageProps) {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
 
   useEffect(() => {
+    console.log('🔍 账户页面认证检查:', { user: user?.id, loading })
+    
     if (!loading && !user) {
+      console.log('❌ 用户未认证，重定向到主页')
       router.push(`/${locale}`)
       return
     }
 
     if (user) {
+      console.log('✅ 用户已认证，获取用户数据')
       fetchUserData()
     }
   }, [user, loading, locale, router])
