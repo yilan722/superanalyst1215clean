@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { type Locale } from '@/lib/i18n'
 import { getTranslation } from '@/lib/translations'
-import useAuth from '@/lib/useAuth'
+import { useAuthContext } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase-client'
 import { CreditCard, Check, X, Loader2, AlertCircle } from 'lucide-react'
 
@@ -17,7 +17,7 @@ interface SubscriptionPageProps {
 export default function SubscriptionPage({ params }: SubscriptionPageProps) {
   const { locale } = params
   const router = useRouter()
-  const { user: authUser, loading: authLoading } = useAuth()
+  const { user: authUser, loading: authLoading } = useAuthContext()
   const [userData, setUserData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

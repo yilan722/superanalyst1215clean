@@ -15,7 +15,7 @@ import Footer from '../../components/Footer'
 import { StockData, ValuationReportData } from '../../types'
 import { type Locale } from '../../lib/i18n'
 
-import useAuth from '../../lib/useAuth'
+import { useAuthContext } from '../../lib/auth-context'
 import { canGenerateReport } from '../../lib/supabase-auth'
 import { supabase } from '../../lib/supabase-client'
 import toast from 'react-hot-toast'
@@ -35,8 +35,8 @@ export default function HomePage({ params }: PageProps) {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false)
   const [userData, setUserData] = useState<any>(null)
   
-  // 使用useAuth hook管理用户状态
-  const { user: useAuthUser, loading: userLoading, forceUpdate: useAuthForceUpdate, resetLoading: useAuthResetLoading, forceSetUser: useAuthForceSetUser, forceSignOut: useAuthForceSignOut } = useAuth()
+  // 使用认证上下文管理用户状态
+  const { user: useAuthUser, loading: userLoading, signOut: useAuthSignOut, forceUpdate: useAuthForceUpdate } = useAuthContext()
   
   // 获取用户数据
   const fetchUserData = async () => {
@@ -275,11 +275,8 @@ export default function HomePage({ params }: PageProps) {
         console.log('🧹 清理本地存储')
       }
       
-      // 调用useAuth的forceSignOut确保状态正确更新
-      useAuthForceSignOut()
-      
-      // 然后调用Supabase的signOut
-      await supabase.auth.signOut()
+      // 使用认证上下文的登出方法
+      await useAuthSignOut()
       
       console.log('✅ 主页面登出成功')
     } catch (error) {

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { User, Crown, FileText, CreditCard, Settings, ArrowLeft, Plus, CheckCircle } from 'lucide-react'
 import { type Locale } from '@/lib/i18n'
 import { getTranslation } from '@/lib/translations'
-import useAuth from '@/lib/useAuth'
+import { useAuthContext } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase-client'
 import toast from 'react-hot-toast'
 
@@ -30,7 +30,7 @@ interface SuccessPageProps {
 export default function AccountPage({ params }: SuccessPageProps) {
   const router = useRouter()
   const { locale } = params
-  const { user, loading } = useAuth()
+  const { user, loading } = useAuthContext()
   const [userData, setUserData] = useState<UserData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)

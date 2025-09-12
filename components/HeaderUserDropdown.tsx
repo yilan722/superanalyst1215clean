@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { User, CreditCard, FileText, LogOut, ChevronDown, Settings, BarChart3 } from 'lucide-react'
-import useAuth from '@/lib/useAuth'
+import { useAuthContext } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase-client'
 
 interface HeaderUserDropdownProps {
@@ -16,7 +16,7 @@ export default function HeaderUserDropdown({ userData, locale }: HeaderUserDropd
   const [isLoading, setIsLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-  const { signOut } = useAuth()
+  const { signOut } = useAuthContext()
 
   // Close dropdown when clicking outside
   useEffect(() => {

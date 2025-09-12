@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { type Locale } from '@/lib/i18n'
-import useAuth from '@/lib/useAuth'
+import { useAuthContext } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase-client'
 import { FileText, Download, Eye, Calendar, Loader2, AlertCircle } from 'lucide-react'
 
@@ -24,7 +24,7 @@ interface Report {
 export default function ReportsPage({ params }: ReportsPageProps) {
   const { locale } = params
   const router = useRouter()
-  const { user: authUser, loading: authLoading } = useAuth()
+  const { user: authUser, loading: authLoading } = useAuthContext()
   const [reports, setReports] = useState<Report[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
