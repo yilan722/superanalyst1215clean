@@ -49,7 +49,7 @@ export default function ClientCouponInput({
         'LIUYILAN45C': { discount_amount: 45, description: 'Premium discount for liuyilan72@outlook.com - $45 off (Coupon C)' }
       }
       
-      const coupon = validCoupons[code.toUpperCase()]
+      const coupon = validCoupons[code.toUpperCase() as keyof typeof validCoupons]
       
       if (!coupon) {
         toast.error('Invalid coupon code')
@@ -96,8 +96,8 @@ export default function ClientCouponInput({
             : `Coupon applied! You save $${result.discount_amount}`
         )
       } else {
-        console.log('❌ Coupon validation failed:', result.error)
-        toast.error(result.error || 'Invalid coupon code')
+        console.log('❌ Coupon validation failed:', result)
+        toast.error('Invalid coupon code')
       }
     } catch (error) {
       console.error('Coupon validation error:', error)

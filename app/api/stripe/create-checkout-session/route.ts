@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
         'LIUYILAN45C': { discount_amount: 45, description: 'Premium discount for liuyilan72@outlook.com - $45 off (Coupon C)' }
       }
       
-      const coupon = validCoupons[couponCode.toUpperCase()]
+      const coupon = validCoupons[couponCode.toUpperCase() as keyof typeof validCoupons]
       
       if (!coupon) {
         return NextResponse.json(

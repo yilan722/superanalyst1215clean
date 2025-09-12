@@ -231,7 +231,7 @@ export default function useAuth() {
             debugLog('🧹 登出时清理本地存储')
           }
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          const currentUserId = user?.id
+          const currentUserId = (user as any)?.id
           const refreshedUserId = session.user.id
           
           if (currentUserId !== refreshedUserId) {
