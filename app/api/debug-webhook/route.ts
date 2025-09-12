@@ -58,8 +58,8 @@ export async function GET(request: NextRequest) {
       customer: sub.customer,
       metadata: sub.metadata,
       status: sub.status,
-      current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+      current_period_start: new Date((sub as any).current_period_start * 1000).toISOString(),
+      current_period_end: new Date((sub as any).current_period_end * 1000).toISOString(),
       created: new Date(sub.created * 1000).toISOString()
     }))
 
