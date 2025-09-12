@@ -4,6 +4,7 @@ import React from 'react'
 import { Home, TrendingUp, Brain, BarChart3, Settings, User } from 'lucide-react'
 import { type Locale } from '../lib/i18n'
 import { getTranslation } from '../lib/translations'
+import UserDropdown from './UserDropdown'
 
 interface SidebarProps {
   locale: Locale
@@ -151,53 +152,17 @@ export default function Sidebar({
       <div className="p-4 border-t border-slate-700">
         {user ? (
           <div className="space-y-3">
-            <div className="flex items-center space-x-3 p-2 rounded-lg bg-slate-800">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
-                  {user.email?.split('@')[0] || 'User'}
-                </p>
-                <p className={`text-xs ${subscriptionStatus.color}`}>
-                  {subscriptionStatus.name}
-                </p>
-                {userData && (
-                  <p className="text-xs text-slate-500">
-                    {getReportsRemaining()} {locale === 'zh' ? '报告剩余' : 'reports left'}
-                  </p>
-                )}
-              </div>
-            </div>
+            {/* User Dropdown */}
+            <UserDropdown userData={userData} locale={locale} />
             
-            <div className="space-y-1">
-              {onOpenAccount && (
-                <button
-                  onClick={onOpenAccount}
-                  className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-                >
-                  👤 {locale === 'zh' ? '我的账户' : 'My Account'}
-                </button>
-              )}
-              <button
-                onClick={onOpenReportHistory}
-                className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-              >
-                📊 {getTranslation(locale, 'reportHistory')}
-              </button>
-              <button
-                onClick={onOpenSubscription}
-                className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-              >
-                💎 {getTranslation(locale, 'subscription')}
-              </button>
-              <button
-                onClick={onLogout}
-                className="w-full text-left px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-colors"
-              >
-                🚪 {getTranslation(locale, 'logout')}
-              </button>
-            </div>
+            {/* Reports Remaining Info */}
+            {userData && (
+              <div className="text-center">
+                <p className="text-xs text-slate-500">
+                  {getReportsRemaining()} {locale === 'zh' ? '报告剩余' : 'reports left'}
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
