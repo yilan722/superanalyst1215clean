@@ -6,11 +6,14 @@ import { Elements, CardElement, useStripe, useElements } from '@stripe/react-str
 import { CreditCard, Lock, CheckCircle, AlertCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase-client'
+import ClientCouponInput from './ClientCouponInput'
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
 const stripePromise = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, {
+      stripeAccount: undefined,
+    })
   : null
 
 interface StripeCheckoutProps {
@@ -38,6 +41,12 @@ function CheckoutForm({
   const elements = useElements()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string
+    discountAmount: number
+    finalAmount: number
+    description: string
+  } | null>(null)
   
   // Use the same Supabase client instance as the rest of the app
   // This will be passed as a prop from the parent component
@@ -112,6 +121,7 @@ function CheckoutForm({
           planId,
           successUrl: `${window.location.origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
           cancelUrl: `${window.location.origin}/payment/cancel`,
+          couponCode: appliedCoupon?.code,
         }),
       })
 
@@ -121,13 +131,11 @@ function CheckoutForm({
         throw new Error(checkoutSession.error || 'Failed to create checkout session')
       }
 
-      // Redirect to Stripe Checkout
-      const { error: stripeError } = await stripe.redirectToCheckout({
-        sessionId: checkoutSession.sessionId,
-      })
-
-      if (stripeError) {
-        throw new Error(stripeError.message)
+      // Redirect to Stripe Checkout using window.location
+      if (checkoutSession.url) {
+        window.location.href = checkoutSession.url
+      } else {
+        throw new Error('No checkout URL received')
       }
 
     } catch (error) {
@@ -153,12 +161,37 @@ function CheckoutForm({
               </p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-slate-900">${planPrice}</div>
-              <div className="text-sm text-slate-600">
-                {locale === 'zh' ? '/月' : '/month'}
-              </div>
+              {appliedCoupon ? (
+                <div>
+                  <div className="text-sm text-slate-500 line-through">${planPrice}</div>
+                  <div className="text-2xl font-bold text-green-600">${appliedCoupon.finalAmount}</div>
+                  <div className="text-xs text-green-600">
+                    {locale === 'zh' ? `节省 $${appliedCoupon.discountAmount}` : `Save $${appliedCoupon.discountAmount}`}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="text-2xl font-bold text-slate-900">${planPrice}</div>
+                  <div className="text-sm text-slate-600">
+                    {locale === 'zh' ? '/月' : '/month'}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
+        </div>
+
+        {/* Coupon Input */}
+        <div>
+          <h4 className="text-sm font-medium text-slate-700 mb-2">
+            {locale === 'zh' ? '优惠券' : 'Coupon Code'}
+          </h4>
+          <ClientCouponInput
+            onCouponApplied={setAppliedCoupon}
+            onCouponRemoved={() => setAppliedCoupon(null)}
+            orderAmount={planPrice}
+            locale={locale}
+          />
         </div>
 
         {/* Error Display */}

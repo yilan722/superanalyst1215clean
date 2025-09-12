@@ -22,7 +22,7 @@ export default function MainLayout({
   onLogout, 
   onLogin, 
   onOpenSubscription, 
-  onOpenReportHistory, 
+  onOpenReportHistory,
   children 
 }: MainLayoutProps) {
   const [activeTab, setActiveTab] = useState<'home' | 'daily-alpha' | 'insight-refinery'>('home')

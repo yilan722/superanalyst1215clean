@@ -7,6 +7,7 @@ import type { User } from './supabase-auth'
 
 export default function useAuth() {
   const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   
   // 调试开关，只在开发环境下启用
@@ -20,6 +21,12 @@ export default function useAuth() {
   }
 
   useEffect(() => {
+    // 防止重复初始化
+    if (user !== null) {
+      debugLog('🔄 useAuth已经初始化，跳过重复初始化')
+      return
+    }
+    
     // 设置全局的forceSignOut函数
     debugLog('🔧 正在设置全局forceSignOut函数...')
     setGlobalForceSignOut(() => {
@@ -65,7 +72,58 @@ export default function useAuth() {
     // 获取当前会话
     const getInitialSession = async () => {
       try {
+        // 先检查localStorage中是否有认证数据
+        const authData = localStorage.getItem('supabase.auth.token')
+        debugLog('🔍 localStorage中的认证数据:', authData ? '存在' : '不存在')
+        
+        // 如果localStorage有数据，先尝试解析
+        if (authData) {
+          try {
+            const parsedAuthData = JSON.parse(authData)
+            debugLog('🔍 解析的认证数据:', parsedAuthData)
+            
+            // 检查是否有有效的access_token
+            if (parsedAuthData.currentSession?.access_token) {
+              debugLog('🔍 发现access_token，尝试设置会话...')
+              
+              // 尝试设置会话
+              const { data: { session }, error: setSessionError } = await supabase.auth.setSession({
+                access_token: parsedAuthData.currentSession.access_token,
+                refresh_token: parsedAuthData.currentSession.refresh_token
+              })
+              
+              if (session?.user && !setSessionError) {
+                debugLog('✅ 成功设置会话，用户:', session.user.id)
+                setSession(session)
+                const userProfile: User = {
+                  id: session.user.id,
+                  email: session.user.email || '',
+                  name: session.user.user_metadata?.name || null,
+                  created_at: session.user.created_at,
+                  updated_at: session.user.updated_at || session.user.created_at,
+                  free_reports_used: 0,
+                  paid_reports_used: 0,
+                  subscription_id: null,
+                  subscription_type: null,
+                  subscription_start: null,
+                  subscription_end: null,
+                  monthly_report_limit: 0
+                }
+                setUser(userProfile)
+                setLoading(false)
+                return
+              } else {
+                debugLog('❌ 设置会话失败:', setSessionError)
+              }
+            }
+          } catch (parseError) {
+            debugLog('❌ 解析认证数据失败:', parseError)
+          }
+        }
+        
+        // 如果上面的方法失败，尝试标准方法
         const { data: { session }, error } = await supabase.auth.getSession()
+        debugLog('🔍 Supabase session检查:', { session: session ? '存在' : '不存在', error })
         
         if (error) {
           console.error('❌ 获取初始会话失败:', error)
@@ -75,6 +133,7 @@ export default function useAuth() {
         
         if (session?.user) {
           debugLog('🔐 找到现有会话，用户:', session.user.id)
+          setSession(session)
           // 创建符合User类型的用户对象
           const userProfile: User = {
             id: session.user.id,
@@ -93,6 +152,36 @@ export default function useAuth() {
           setUser(userProfile)
         } else {
           debugLog('🔍 未找到现有会话')
+          // 如果localStorage有数据但session为null，尝试刷新
+          if (authData) {
+            debugLog('🔄 尝试刷新会话...')
+            try {
+              const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+              if (refreshedSession?.user && !refreshError) {
+                debugLog('✅ 会话刷新成功:', refreshedSession.user.id)
+                setSession(refreshedSession)
+                const userProfile: User = {
+                  id: refreshedSession.user.id,
+                  email: refreshedSession.user.email || '',
+                  name: refreshedSession.user.user_metadata?.name || null,
+                  created_at: refreshedSession.user.created_at,
+                  updated_at: refreshedSession.user.updated_at || refreshedSession.user.created_at,
+                  free_reports_used: 0,
+                  paid_reports_used: 0,
+                  subscription_id: null,
+                  subscription_type: null,
+                  subscription_start: null,
+                  subscription_end: null,
+                  monthly_report_limit: 0
+                }
+                setUser(userProfile)
+              } else {
+                debugLog('❌ 会话刷新失败:', refreshError)
+              }
+            } catch (refreshError) {
+              debugLog('❌ 会话刷新异常:', refreshError)
+            }
+          }
         }
         
         setLoading(false)
@@ -111,35 +200,35 @@ export default function useAuth() {
         
         // 只在状态真正变化时更新
         if (event === 'SIGNED_IN' && session?.user) {
-          // 使用更精确的比较来避免重复更新
-          const currentUserId = user?.id
-          const newUserId = session.user.id
-          
-          if (currentUserId !== newUserId) {
-            debugLog(`✅ 用户登录: ${newUserId}`)
-            // 创建符合User类型的用户对象
-            const userProfile: User = {
-              id: session.user.id,
-              email: session.user.email || '',
-              name: session.user.user_metadata?.name || null,
-              created_at: session.user.created_at,
-              updated_at: session.user.updated_at || session.user.created_at,
-              free_reports_used: 0,
-              paid_reports_used: 0,
-              subscription_id: null,
-              subscription_type: null,
-              subscription_start: null,
-              subscription_end: null,
-              monthly_report_limit: 0
-            }
-            setUser(userProfile)
-          } else {
-            debugLog(`🔄 相同用户状态，跳过更新: ${newUserId}`)
+          debugLog(`✅ 用户登录事件触发: ${session.user.id}`)
+          setSession(session)
+          // 创建符合User类型的用户对象
+          const userProfile: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.name || null,
+            created_at: session.user.created_at,
+            updated_at: session.user.updated_at || session.user.created_at,
+            free_reports_used: 0,
+            paid_reports_used: 0,
+            subscription_id: null,
+            subscription_type: null,
+            subscription_start: null,
+            subscription_end: null,
+            monthly_report_limit: 0
           }
+          setUser(userProfile)
         } else if (event === 'SIGNED_OUT') {
-          if (user !== null) {
-            debugLog('🚪 用户登出')
-            setUser(null)
+          debugLog('🚪 用户登出事件触发')
+          setSession(null)
+          setUser(null)
+          setLoading(false)
+          
+          // 清理本地存储
+          if (typeof window !== 'undefined') {
+            localStorage.clear()
+            sessionStorage.clear()
+            debugLog('🧹 登出时清理本地存储')
           }
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
           const currentUserId = user?.id
@@ -147,6 +236,7 @@ export default function useAuth() {
           
           if (currentUserId !== refreshedUserId) {
             debugLog(`🔄 令牌刷新，用户: ${session.user.id}`)
+            setSession(session)
             // 创建符合User类型的用户对象
             const userProfile: User = {
               id: session.user.id,
@@ -192,6 +282,7 @@ export default function useAuth() {
     debugLog('🚪 强制登出...')
     
     // 立即清理状态
+    setSession(null)
     setUser(null)
     setLoading(false)
     
@@ -225,13 +316,6 @@ export default function useAuth() {
     } catch (error) {
       debugLog('⚠️ 触发事件失败:', error)
     }
-    
-    // 强制刷新页面以确保状态完全重置
-    setTimeout(() => {
-      if (typeof window !== 'undefined') {
-        window.location.reload()
-      }
-    }, 100)
     
     debugLog('✅ 强制登出完成')
   }
@@ -273,18 +357,31 @@ export default function useAuth() {
   const signOut = async () => {
     try {
       debugLog('🚪 用户登出中...')
+      
+      // 先清理本地存储
+      if (typeof window !== 'undefined') {
+        localStorage.clear()
+        sessionStorage.clear()
+        debugLog('🧹 清理本地存储')
+      }
+      
+      // 调用Supabase的signOut
       await supabase.auth.signOut()
+      
+      // 清理状态
+      setSession(null)
       setUser(null)
       setLoading(false)
       debugLog('✅ 用户登出成功')
     } catch (error) {
       console.error('❌ 登出失败:', error)
       // 即使失败也要强制清理状态
+      setSession(null)
       setUser(null)
       setLoading(false)
       debugLog('🧹 强制清理用户状态')
     }
   }
   
-  return { user, loading, forceUpdate, resetLoading, forceSetUser, signOut, forceSignOut }
+  return { user, session, loading, forceUpdate, resetLoading, forceSetUser, signOut, forceSignOut }
 } 

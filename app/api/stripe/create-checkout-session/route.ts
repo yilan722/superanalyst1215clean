@@ -28,12 +28,27 @@ export async function POST(request: NextRequest) {
     let user = null
     let authError = null
     
-    // Always use cookie-based authentication for consistency
-    console.log('Using cookie-based auth')
+    // Try both cookie-based and header-based authentication
     const supabase = createApiSupabaseClient(request)
+    
+    // First try cookie-based auth
     const { data: { user: cookieUser }, error: cookieError } = await supabase.auth.getUser()
-    user = cookieUser
-    authError = cookieError
+    
+    if (cookieUser && !cookieError) {
+      console.log('Using cookie-based auth')
+      user = cookieUser
+      authError = cookieError
+    } else if (authHeader && authHeader.startsWith('Bearer ')) {
+      console.log('Using header-based auth')
+      // Try to get user from the access token
+      const { data: { user: headerUser }, error: headerError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
+      user = headerUser
+      authError = headerError
+    } else {
+      console.log('No valid authentication method found')
+      user = null
+      authError = new Error('No authentication provided')
+    }
     
     console.log('API Auth check - User:', user ? 'Found' : 'Not found')
     console.log('API Auth check - Error:', authError)
@@ -48,8 +63,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { planId, successUrl, cancelUrl } = await request.json()
-    console.log('Request data:', { planId, successUrl, cancelUrl })
+    const { planId, successUrl, cancelUrl, couponCode } = await request.json()
+    console.log('Request data:', { planId, successUrl, cancelUrl, couponCode })
 
     if (!planId) {
       return NextResponse.json(
@@ -75,7 +90,7 @@ export async function POST(request: NextRequest) {
     let userData = null
     const { data: fetchedUserData, error: userError } = await supabase
       .from('users')
-      .select('subscriptionId, subscriptionType, subscriptionEnd')
+      .select('subscription_id, subscription_type, subscription_end')
       .eq('id', user.id)
       .single()
     
@@ -110,7 +125,7 @@ export async function POST(request: NextRequest) {
         
         console.log('User created successfully')
         // Set userData to empty object since user was just created
-        userData = { subscriptionId: null, subscriptionType: null, subscriptionEnd: null }
+        userData = { subscription_id: null, subscription_type: null, subscription_end: null }
       } else {
         return NextResponse.json(
           { error: 'Failed to fetch user data' },
@@ -133,14 +148,61 @@ export async function POST(request: NextRequest) {
     console.log('Final userData:', userData)
     
     // If user has an active subscription, return error
-    if (userData?.subscriptionId && userData?.subscriptionEnd) {
-      const subscriptionEnd = new Date(userData.subscriptionEnd)
+    if (userData?.subscription_id && userData?.subscription_end) {
+      const subscriptionEnd = new Date(userData.subscription_end)
       if (subscriptionEnd > new Date()) {
         return NextResponse.json(
           { error: 'User already has an active subscription' },
           { status: 400 }
         )
       }
+    }
+
+    // Validate coupon if provided
+    let couponValidation = null
+    if (couponCode) {
+      console.log('Validating coupon:', couponCode)
+      
+      // 简化的coupon验证逻辑
+      const validCoupons = {
+        'WELCOME20': { discount_amount: 20, description: 'Welcome discount - $20 off' },
+        'LIUYILAN20': { discount_amount: 20, description: 'Special discount for liuyilan72@outlook.com - $20 off' },
+        'LIUYILAN45A': { discount_amount: 45, description: 'Premium discount for liuyilan72@outlook.com - $45 off (Coupon A)' },
+        'LIUYILAN45B': { discount_amount: 45, description: 'Premium discount for liuyilan72@outlook.com - $45 off (Coupon B)' },
+        'LIUYILAN45C': { discount_amount: 45, description: 'Premium discount for liuyilan72@outlook.com - $45 off (Coupon C)' }
+      }
+      
+      const coupon = validCoupons[couponCode.toUpperCase()]
+      
+      if (!coupon) {
+        return NextResponse.json(
+          { error: 'Invalid coupon code' },
+          { status: 400 }
+        )
+      }
+      
+      // 检查最低订单金额
+      if (plan.price < 49) {
+        return NextResponse.json(
+          { error: 'Order amount is below minimum requirement' },
+          { status: 400 }
+        )
+      }
+      
+      // 计算最终金额
+      const finalAmount = Math.max(0, plan.price - coupon.discount_amount)
+      
+      couponValidation = {
+        valid: true,
+        code: couponCode.toUpperCase(),
+        description: coupon.description,
+        discount_amount: coupon.discount_amount,
+        final_amount: finalAmount,
+        coupon_id: couponCode.toUpperCase(),
+        discount_type: 'fixed_amount' // 添加discount_type字段
+      }
+      
+      console.log('Coupon validation successful:', couponValidation)
     }
 
     // Check if Stripe is initialized
@@ -160,8 +222,8 @@ export async function POST(request: NextRequest) {
       stripePriceId: plan.stripePriceId
     })
     
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
+    // Prepare checkout session data
+    const sessionData: any = {
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [
@@ -185,7 +247,43 @@ export async function POST(request: NextRequest) {
           planName: plan.name,
         },
       },
-    })
+    }
+    
+    // Add coupon if validated
+    if (couponValidation) {
+      console.log('🎯 Applying coupon to Stripe session:', couponValidation)
+      sessionData.metadata.couponCode = couponCode
+      sessionData.metadata.couponId = couponValidation.coupon_id
+      sessionData.metadata.discountAmount = couponValidation.discount_amount
+      sessionData.metadata.finalAmount = couponValidation.final_amount
+      
+      // For fixed amount discounts, we need to create a custom price
+      if (couponValidation.discount_type === 'fixed_amount') {
+        console.log('🎯 Creating custom Stripe price with discount...')
+        console.log('Original price:', plan.price, 'Discount:', couponValidation.discount_amount, 'Final:', couponValidation.final_amount)
+        
+        // Create a custom price with discount
+        const customPrice = await stripe.prices.create({
+          unit_amount: Math.round(couponValidation.final_amount * 100), // Convert to cents
+          currency: 'usd',
+          product: plan.stripeProductId,
+          recurring: {
+            interval: 'month',
+          },
+          metadata: {
+            original_price_id: plan.stripePriceId,
+            coupon_code: couponCode,
+            discount_amount: couponValidation.discount_amount.toString(),
+          },
+        })
+        
+        sessionData.line_items[0].price = customPrice.id
+        console.log('✅ Created custom price with discount:', customPrice.id, 'Amount:', customPrice.unit_amount)
+      }
+    }
+    
+    // Create Stripe checkout session
+    const session = await stripe.checkout.sessions.create(sessionData)
 
     console.log('Checkout session created successfully:', session.id)
     

@@ -24,7 +24,7 @@ export default function Sidebar({
   onLogout, 
   onLogin, 
   onOpenSubscription, 
-  onOpenReportHistory 
+  onOpenReportHistory
 }: SidebarProps) {
   const navigationItems = [
     {

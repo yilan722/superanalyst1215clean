@@ -21,7 +21,7 @@ export const STRIPE_CONFIG = {
 // Initialize Stripe (only on server side)
 export const stripe = typeof window === 'undefined' && STRIPE_CONFIG.secretKey 
   ? new Stripe(STRIPE_CONFIG.secretKey, {
-      apiVersion: '2025-08-27.basil',
+      apiVersion: '2024-06-20',
       typescript: true,
     })
   : null

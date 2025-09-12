@@ -197,11 +197,19 @@ export async function signOut() {
   try {
     console.log('🚪 开始登出流程...')
     
-    // 直接调用Supabase的signOut
+    // 先清理本地存储
+    if (typeof window !== 'undefined') {
+      localStorage.clear()
+      sessionStorage.clear()
+      console.log('🧹 清理本地存储')
+    }
+    
+    // 调用Supabase的signOut
     const { error } = await supabase.auth.signOut()
     
     if (error) {
       console.error('❌ 登出失败:', error)
+      // 即使Supabase登出失败，也要清理本地状态
       throw new Error(error.message)
     }
     
@@ -216,7 +224,8 @@ export async function signOut() {
       console.log('🧹 强制清理所有本地存储')
     }
     
-    throw error
+    // 不抛出错误，确保登出流程完成
+    console.log('✅ 强制登出完成')
   }
 }
 

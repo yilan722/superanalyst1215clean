@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { X } from 'lucide-react'
 import toast from 'react-hot-toast'
-import StripeCheckout from './StripeCheckout'
+import SimpleStripeCheckout from './SimpleStripeCheckout'
 import { getTranslation } from '../lib/translations'
 import { Locale } from '../lib/i18n'
 import { supabase } from '../lib/supabase-client'
@@ -51,6 +51,7 @@ export default function StripeSubscriptionModal({
     onClose()
   }
 
+
   if (!isOpen || !selectedPlan) return null
 
   return (
@@ -93,15 +94,15 @@ export default function StripeSubscriptionModal({
         </div>
 
         {/* Stripe Checkout */}
-        <StripeCheckout
+        <SimpleStripeCheckout
           planId={selectedPlan.id}
           planName={selectedPlan.name}
           planPrice={selectedPlan.monthlyFee}
           userId={userId}
+          locale={locale}
           onSuccess={handleStripeSuccess}
           onError={handleStripeError}
           onCancel={handleStripeCancel}
-          locale={locale}
         />
 
         <div className="mt-6 text-xs text-slate-500 text-center">

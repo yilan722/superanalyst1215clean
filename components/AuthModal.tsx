@@ -78,7 +78,15 @@ export default function AuthModal({ isOpen, onClose, onSuccess, locale }: AuthMo
     setPassword('')
     setName('')
     setShowPassword(false)
+    setIsLoading(false)
   }
+
+  // 当模态框关闭时重置表单
+  React.useEffect(() => {
+    if (!isOpen) {
+      resetForm()
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 

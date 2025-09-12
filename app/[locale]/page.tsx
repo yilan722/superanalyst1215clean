@@ -35,6 +35,7 @@ export default function HomePage({ params }: PageProps) {
   // 使用useAuth hook管理用户状态
   const { user: useAuthUser, loading: userLoading, forceUpdate: useAuthForceUpdate, resetLoading: useAuthResetLoading, forceSetUser: useAuthForceSetUser, forceSignOut: useAuthForceSignOut } = useAuth()
   
+  
   // 添加调试信息 - 只在开发环境和状态变化时打印
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
@@ -234,7 +235,14 @@ export default function HomePage({ params }: PageProps) {
     try {
       console.log('🚪 主页面开始登出...')
       
-      // 先调用useAuth的forceSignOut确保状态正确更新
+      // 先清理本地存储
+      if (typeof window !== 'undefined') {
+        localStorage.clear()
+        sessionStorage.clear()
+        console.log('🧹 清理本地存储')
+      }
+      
+      // 调用useAuth的forceSignOut确保状态正确更新
       useAuthForceSignOut()
       
       // 然后调用Supabase的signOut

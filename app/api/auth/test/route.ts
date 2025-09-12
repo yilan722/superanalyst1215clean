@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '../../../../lib/supabase-server'
+import { createApiSupabaseClient } from '../../../../lib/supabase-server'
 
 // 强制动态渲染，因为使用了cookies
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createApiSupabaseClient(request)
     
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
