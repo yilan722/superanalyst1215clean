@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import Sidebar from './Sidebar'
 import DailyAlphaBrief from './DailyAlphaBrief'
 import ReportHub from './InsightRefinery/ReportHub'
+import HeaderUserDropdown from './HeaderUserDropdown'
 import { type Locale } from '../lib/i18n'
 
 interface MainLayoutProps {
@@ -105,19 +106,9 @@ export default function MainLayout({
               </p>
             </div>
             
-            {/* User Info in Top Bar */}
+            {/* User Dropdown in Top Bar */}
             {user && (
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  <p className="text-sm font-medium text-slate-900">{user.email?.split('@')[0] || 'User'}</p>
-                  <p className="text-xs text-slate-500">Pro Member</p>
-                </div>
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">
-                    {user.email?.charAt(0).toUpperCase() || 'U'}
-                  </span>
-                </div>
-              </div>
+              <HeaderUserDropdown userData={userData} locale={locale} />
             )}
           </div>
         </div>
