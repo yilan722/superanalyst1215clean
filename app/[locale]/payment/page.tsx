@@ -324,6 +324,8 @@ export default function PaymentPage({ params }: PaymentPageProps) {
                 planId={selectedPlan}
                 planName={plan.name}
                 planPrice={plan.price}
+                userId={authUser?.id || ''}
+                locale={locale}
                 onSuccess={handlePaymentSuccess}
                 onError={handlePaymentError}
                 onCancel={handlePaymentCancel}
