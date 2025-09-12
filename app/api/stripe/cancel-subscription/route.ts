@@ -37,7 +37,10 @@ export async function POST(request: NextRequest) {
       cancel_at_period_end: true
     })
 
-    console.log('Subscription cancelled at period end:', subscriptionResponse.id)
+    // Extract the actual subscription object from the response
+    const subscription = subscriptionResponse.data || subscriptionResponse
+
+    console.log('Subscription cancelled at period end:', subscription.id)
 
     // Update user subscription in database
     const { error: updateError } = await supabase
@@ -45,7 +48,7 @@ export async function POST(request: NextRequest) {
       .update({
         subscription_type: 'free',
         subscription_id: null,
-        subscription_end: new Date(subscriptionResponse.current_period_end * 1000).toISOString(),
+        subscription_end: new Date(subscription.current_period_end * 1000).toISOString(),
         monthly_report_limit: 0,
         updated_at: new Date().toISOString()
       })
@@ -63,10 +66,10 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Subscription cancelled successfully',
       subscription: {
-        id: subscriptionResponse.id,
-        status: subscriptionResponse.status,
-        current_period_end: subscriptionResponse.current_period_end,
-        cancel_at_period_end: subscriptionResponse.cancel_at_period_end
+        id: subscription.id,
+        status: subscription.status,
+        current_period_end: subscription.current_period_end,
+        cancel_at_period_end: subscription.cancel_at_period_end
       }
     })
 
