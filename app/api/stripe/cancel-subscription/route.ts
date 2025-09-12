@@ -33,12 +33,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Cancel the subscription in Stripe
-    const subscriptionResponse = await stripe.subscriptions.update(subscriptionId, {
+    const subscription = await stripe.subscriptions.update(subscriptionId, {
       cancel_at_period_end: true
     })
-
-    // Extract the actual subscription object from the response
-    const subscription = subscriptionResponse.data || subscriptionResponse
 
     console.log('Subscription cancelled at period end:', subscription.id)
 
