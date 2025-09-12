@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { type Locale } from '@/lib/i18n'
 import { useAuthContext } from '@/lib/auth-context'
@@ -14,7 +14,7 @@ interface PaymentPageProps {
   }
 }
 
-export default function PaymentPage({ params }: PaymentPageProps) {
+function PaymentPageContent({ params }: PaymentPageProps) {
   const { locale } = params
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -335,5 +335,18 @@ export default function PaymentPage({ params }: PaymentPageProps) {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PaymentPage({ params }: PaymentPageProps) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="animate-spin text-amber-500 h-8 w-8" />
+        <p className="ml-3 text-slate-700">Loading...</p>
+      </div>
+    }>
+      <PaymentPageContent params={params} />
+    </Suspense>
   )
 }
