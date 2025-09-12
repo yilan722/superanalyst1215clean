@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Toaster } from 'react-hot-toast'
 import MainLayout from '../../components/MainLayout'
 import SearchForm from '../../components/SearchForm'
@@ -27,6 +28,7 @@ interface PageProps {
 }
 
 export default function HomePage({ params }: PageProps) {
+  const router = useRouter()
   const [stockData, setStockData] = useState<StockData | null>(null)
   const [reportData, setReportData] = useState<ValuationReportData | null>(null)
   const [isLoading, setIsLoading] = useState(false)
