@@ -74,19 +74,28 @@ export default function HeaderUserDropdown({ userData, locale }: HeaderUserDropd
   const handleManageSubscription = () => {
     console.log('🔗 跳转到订阅管理页面')
     setIsOpen(false)
-    router.push(`/${locale}/subscription`)
+    // 添加小延迟让认证状态同步
+    setTimeout(() => {
+      router.push(`/${locale}/subscription`)
+    }, 100)
   }
 
   const handleReportHub = () => {
     console.log('🔗 跳转到报告中心页面')
     setIsOpen(false)
-    router.push(`/${locale}/reports`)
+    // 添加小延迟让认证状态同步
+    setTimeout(() => {
+      router.push(`/${locale}/reports`)
+    }, 100)
   }
 
   const handleAccount = () => {
     console.log('🔗 跳转到账户页面')
     setIsOpen(false)
-    router.push(`/${locale}/account`)
+    // 添加小延迟让认证状态同步
+    setTimeout(() => {
+      router.push(`/${locale}/account`)
+    }, 100)
   }
 
   const handleLogout = async () => {

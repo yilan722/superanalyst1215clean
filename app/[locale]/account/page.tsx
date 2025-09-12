@@ -38,16 +38,22 @@ export default function AccountPage({ params }: SuccessPageProps) {
   useEffect(() => {
     console.log('🔍 账户页面认证检查:', { user: user?.id, loading })
     
-    if (!loading && !user) {
+    // 如果还在加载中，等待
+    if (loading) {
+      console.log('⏳ 认证状态加载中，等待...')
+      return
+    }
+    
+    // 如果加载完成但没有用户，重定向
+    if (!user) {
       console.log('❌ 用户未认证，重定向到主页')
       router.push(`/${locale}`)
       return
     }
-
-    if (user) {
-      console.log('✅ 用户已认证，获取用户数据')
-      fetchUserData()
-    }
+    
+    // 用户已认证，获取数据
+    console.log('✅ 用户已认证，获取用户数据')
+    fetchUserData()
   }, [user, loading, locale, router])
 
   const fetchUserData = async () => {

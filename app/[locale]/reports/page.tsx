@@ -32,15 +32,22 @@ export default function ReportsPage({ params }: ReportsPageProps) {
   useEffect(() => {
     console.log('🔍 报告页面认证检查:', { user: authUser?.id, loading: authLoading })
     
-    if (!authLoading) {
-      if (!authUser) {
-        console.log('❌ 用户未认证，重定向到主页')
-        router.push(`/${locale}`) // Redirect to home if not logged in
-        return
-      }
-      console.log('✅ 用户已认证，获取报告数据')
-      fetchReports()
+    // 如果还在加载中，等待
+    if (authLoading) {
+      console.log('⏳ 认证状态加载中，等待...')
+      return
     }
+    
+    // 如果加载完成但没有用户，重定向
+    if (!authUser) {
+      console.log('❌ 用户未认证，重定向到主页')
+      router.push(`/${locale}`)
+      return
+    }
+    
+    // 用户已认证，获取数据
+    console.log('✅ 用户已认证，获取报告数据')
+    fetchReports()
   }, [authUser, authLoading, locale, router])
 
   const fetchReports = async () => {
