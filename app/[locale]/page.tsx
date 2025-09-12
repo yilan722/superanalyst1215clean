@@ -83,12 +83,7 @@ export default function HomePage({ params }: PageProps) {
   // 强制更新状态
   const [, forceUpdate] = useState({})
   
-  // 移除重复的认证监听，只使用useAuth hook
-  // useEffect(() => {
-  //   // 这个监听器已被移除，避免与useAuth hook冲突
-  // }, [])
-  
-  // 只使用useAuth hook的用户状态
+  // 使用认证上下文的用户状态
   const currentUser = useAuthUser
   
   // 检查是否还在加载中 - 修复逻辑
@@ -114,13 +109,7 @@ export default function HomePage({ params }: PageProps) {
   const [showGenerationModal, setShowGenerationModal] = useState(false)
 
 
-  // 如果检测到loading状态异常，强制重置
-  useEffect(() => {
-    if (useAuthUser && userLoading) {
-      console.log('⚠️ 检测到loading状态异常，强制重置')
-      useAuthResetLoading()
-    }
-  }, [useAuthUser, userLoading, useAuthResetLoading])
+  // 认证状态已由全局上下文管理，无需额外处理
 
   // 监听用户状态变化，自动关闭登录模态框
   useEffect(() => {
@@ -281,14 +270,14 @@ export default function HomePage({ params }: PageProps) {
       console.log('✅ 主页面登出成功')
     } catch (error) {
       console.error('❌ 主页面登出失败:', error)
-      // 即使出错也要强制更新状态
-      useAuthForceSignOut()
+      // 即使出错也要清理状态
+      setUserData(null)
     }
   }
 
   const handleAuthSuccess = () => {
     setShowAuthModal(false)
-    // useAuth hook will handle the user state update
+    // 认证上下文会自动处理用户状态更新
   }
 
   const handleOpenSubscription = () => {
