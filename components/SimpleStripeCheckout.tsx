@@ -85,11 +85,24 @@ export default function SimpleStripeCheckout({
       }
       console.log('🎯 发送到API的数据:', requestData)
 
-      // Create checkout session using cookies only (no Authorization header needed)
+      // Try to get session for fallback authentication
+      let sessionToken = null
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.access_token) {
+          sessionToken = session.access_token
+          console.log('🔑 Got session token for API call')
+        }
+      } catch (error) {
+        console.log('⚠️ Could not get session token:', error)
+      }
+
+      // Create checkout session with both cookies and optional token
       const response = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(sessionToken && { 'Authorization': `Bearer ${sessionToken}` }),
         },
         credentials: 'include', // 确保cookies被发送
         body: JSON.stringify(requestData),

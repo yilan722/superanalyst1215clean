@@ -25,6 +25,10 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get('authorization')
     console.log('Authorization header:', authHeader)
     
+    // Check for cookies
+    const cookieHeader = request.headers.get('cookie')
+    console.log('Cookie header:', cookieHeader)
+    
     let user = null
     let authError = null
     
@@ -33,6 +37,7 @@ export async function POST(request: NextRequest) {
     
     // First try cookie-based auth
     const { data: { user: cookieUser }, error: cookieError } = await supabase.auth.getUser()
+    console.log('Cookie auth result:', { cookieUser: cookieUser?.id, cookieError })
     
     if (cookieUser && !cookieError) {
       console.log('Using cookie-based auth')
@@ -42,10 +47,12 @@ export async function POST(request: NextRequest) {
       console.log('Using header-based auth')
       // Try to get user from the access token
       const { data: { user: headerUser }, error: headerError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
+      console.log('Header auth result:', { headerUser: headerUser?.id, headerError })
       user = headerUser
       authError = headerError
     } else {
       console.log('No valid authentication method found')
+      console.log('Cookie error details:', cookieError)
       user = null
       authError = new Error('No authentication provided')
     }
