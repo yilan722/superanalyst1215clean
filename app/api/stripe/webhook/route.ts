@@ -285,19 +285,53 @@ async function updateUserSubscription(
   }
 ) {
   try {
-    const { error } = await supabase
+    console.log('🔄 Updating user subscription:', { userId, updates })
+    
+    // First, get current user data
+    const { data: currentUser, error: fetchError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single()
+
+    if (fetchError) {
+      console.error('❌ Error fetching current user data:', fetchError)
+      throw fetchError
+    }
+
+    console.log('📋 Current user data:', currentUser)
+
+    // Update user subscription
+    const { data: updatedUser, error: updateError } = await supabase
       .from('users')
       .update(updates)
       .eq('id', userId)
+      .select()
+      .single()
 
-    if (error) {
-      console.error('Error updating user subscription:', error)
-      throw error
+    if (updateError) {
+      console.error('❌ Error updating user subscription:', updateError)
+      throw updateError
     }
 
-    console.log('User subscription updated successfully:', { userId, updates })
+    console.log('✅ User subscription updated successfully:', { 
+      userId, 
+      updates,
+      before: {
+        subscription_type: currentUser.subscription_type,
+        subscription_id: currentUser.subscription_id,
+        monthly_report_limit: currentUser.monthly_report_limit
+      },
+      after: {
+        subscription_type: updatedUser.subscription_type,
+        subscription_id: updatedUser.subscription_id,
+        monthly_report_limit: updatedUser.monthly_report_limit
+      }
+    })
+
+    return updatedUser
   } catch (error) {
-    console.error('Failed to update user subscription:', error)
+    console.error('❌ Failed to update user subscription:', error)
     throw error
   }
 }
