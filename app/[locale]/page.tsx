@@ -31,10 +31,32 @@ export default function HomePage({ params }: PageProps) {
   const [reportData, setReportData] = useState<ValuationReportData | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isGeneratingReport, setIsGeneratingReport] = useState(false)
+  const [userData, setUserData] = useState<any>(null)
   
   // 使用useAuth hook管理用户状态
   const { user: useAuthUser, loading: userLoading, forceUpdate: useAuthForceUpdate, resetLoading: useAuthResetLoading, forceSetUser: useAuthForceSetUser, forceSignOut: useAuthForceSignOut } = useAuth()
   
+  // 获取用户数据
+  const fetchUserData = async () => {
+    if (!useAuthUser?.id) return
+    
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', useAuthUser.id)
+        .single()
+
+      if (error) {
+        console.error('Error fetching user data:', error)
+        return
+      }
+
+      setUserData(data)
+    } catch (error) {
+      console.error('Error fetching user data:', error)
+    }
+  }
   
   // 添加调试信息 - 只在开发环境和状态变化时打印
   useEffect(() => {
@@ -46,6 +68,15 @@ export default function HomePage({ params }: PageProps) {
       })
     }
   }, [useAuthUser?.id, userLoading]) // 只在关键状态变化时触发
+
+  // 当用户登录时获取用户数据
+  useEffect(() => {
+    if (useAuthUser?.id) {
+      fetchUserData()
+    } else {
+      setUserData(null)
+    }
+  }, [useAuthUser?.id])
   
   // 强制更新状态
   const [, forceUpdate] = useState({})
@@ -269,15 +300,21 @@ export default function HomePage({ params }: PageProps) {
     setShowReportHistory(true)
   }
 
+  const handleOpenAccount = () => {
+    router.push(`/${params.locale}/account`)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <MainLayout
         locale={params.locale}
         user={currentUser}
+        userData={userData}
         onLogout={handleLogout}
         onLogin={handleLogin}
         onOpenSubscription={handleOpenSubscription}
         onOpenReportHistory={handleOpenReportHistory}
+        onOpenAccount={handleOpenAccount}
       >
         <div className="space-y-6">
           {/* Search Form and Stock Data Display */}

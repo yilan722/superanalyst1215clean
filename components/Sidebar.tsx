@@ -10,10 +10,17 @@ interface SidebarProps {
   activeTab: 'home' | 'daily-alpha' | 'insight-refinery'
   onTabChange: (tab: 'home' | 'daily-alpha' | 'insight-refinery') => void
   user: any
+  userData?: {
+    subscription_type: string | null
+    monthly_report_limit: number
+    paid_reports_used: number
+    free_reports_used: number
+  } | null
   onLogout: () => void
   onLogin: () => void
   onOpenSubscription: () => void
   onOpenReportHistory: () => void
+  onOpenAccount?: () => void
 }
 
 export default function Sidebar({ 
@@ -21,11 +28,53 @@ export default function Sidebar({
   activeTab, 
   onTabChange, 
   user, 
+  userData,
   onLogout, 
   onLogin, 
   onOpenSubscription, 
-  onOpenReportHistory
+  onOpenReportHistory,
+  onOpenAccount
 }: SidebarProps) {
+  const getSubscriptionStatus = () => {
+    if (!userData?.subscription_type) {
+      return {
+        name: locale === 'zh' ? '免费用户' : 'Free User',
+        color: 'text-slate-400'
+      }
+    }
+
+    switch (userData.subscription_type) {
+      case 'basic':
+        return {
+          name: locale === 'zh' ? '基础会员' : 'Basic Member',
+          color: 'text-blue-400'
+        }
+      case 'professional':
+        return {
+          name: locale === 'zh' ? '专业会员' : 'Professional Member',
+          color: 'text-purple-400'
+        }
+      case 'business':
+        return {
+          name: locale === 'zh' ? '企业会员' : 'Business Member',
+          color: 'text-amber-400'
+        }
+      default:
+        return {
+          name: locale === 'zh' ? '会员' : 'Member',
+          color: 'text-slate-400'
+        }
+    }
+  }
+
+  const getReportsRemaining = () => {
+    if (!userData) return 0
+    const used = (userData.paid_reports_used || 0) + (userData.free_reports_used || 0)
+    return Math.max(0, (userData.monthly_report_limit || 0) - used)
+  }
+
+  const subscriptionStatus = getSubscriptionStatus()
+
   const navigationItems = [
     {
       id: 'home' as const,
@@ -110,11 +159,26 @@ export default function Sidebar({
                 <p className="text-sm font-medium text-white truncate">
                   {user.email?.split('@')[0] || 'User'}
                 </p>
-                <p className="text-xs text-slate-400">Pro Member</p>
+                <p className={`text-xs ${subscriptionStatus.color}`}>
+                  {subscriptionStatus.name}
+                </p>
+                {userData && (
+                  <p className="text-xs text-slate-500">
+                    {getReportsRemaining()} {locale === 'zh' ? '报告剩余' : 'reports left'}
+                  </p>
+                )}
               </div>
             </div>
             
             <div className="space-y-1">
+              {onOpenAccount && (
+                <button
+                  onClick={onOpenAccount}
+                  className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                >
+                  👤 {locale === 'zh' ? '我的账户' : 'My Account'}
+                </button>
+              )}
               <button
                 onClick={onOpenReportHistory}
                 className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"

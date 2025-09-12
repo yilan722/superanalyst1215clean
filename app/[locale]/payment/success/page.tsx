@@ -48,7 +48,8 @@ function PaymentSuccessContent({ params }: SuccessPageProps) {
   }
 
   const handleContinue = () => {
-    router.push(`/${locale}`)
+    // Refresh the page to update user state
+    window.location.href = `/${locale}`
   }
 
   const handleViewReports = () => {

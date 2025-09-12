@@ -9,20 +9,29 @@ import { type Locale } from '../lib/i18n'
 interface MainLayoutProps {
   locale: Locale
   user: any
+  userData?: {
+    subscription_type: string | null
+    monthly_report_limit: number
+    paid_reports_used: number
+    free_reports_used: number
+  } | null
   onLogout: () => void
   onLogin: () => void
   onOpenSubscription: () => void
   onOpenReportHistory: () => void
+  onOpenAccount?: () => void
   children: React.ReactNode
 }
 
 export default function MainLayout({ 
   locale, 
   user, 
+  userData,
   onLogout, 
   onLogin, 
   onOpenSubscription, 
   onOpenReportHistory,
+  onOpenAccount,
   children 
 }: MainLayoutProps) {
   const [activeTab, setActiveTab] = useState<'home' | 'daily-alpha' | 'insight-refinery'>('home')
@@ -70,10 +79,12 @@ export default function MainLayout({
         activeTab={activeTab}
         onTabChange={handleTabChange}
         user={user}
+        userData={userData}
         onLogout={onLogout}
         onLogin={onLogin}
         onOpenSubscription={onOpenSubscription}
         onOpenReportHistory={onOpenReportHistory}
+        onOpenAccount={onOpenAccount}
       />
       
       {/* Main Content */}
