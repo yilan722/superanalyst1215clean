@@ -96,34 +96,53 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
-  console.log('Processing checkout session completed:', session.id)
+  console.log('🔄 Processing checkout session completed:', session.id)
+  console.log('📧 Customer email:', session.customer_details?.email)
+  console.log('📋 Session metadata:', session.metadata)
   
   const userId = session.metadata?.userId
   const planId = session.metadata?.planId
+  const userEmail = session.metadata?.userEmail || session.customer_details?.email
 
   if (!userId || !planId) {
-    console.error('Missing metadata in checkout session:', { userId, planId })
+    console.error('❌ Missing metadata in checkout session:', { 
+      userId, 
+      planId, 
+      userEmail,
+      allMetadata: session.metadata 
+    })
     return
   }
 
   // Get subscription details
   if (!stripe) {
-    console.error('Stripe not initialized in webhook')
+    console.error('❌ Stripe not initialized in webhook')
     return
   }
   
-  const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
-  
-  // Update user subscription in database
-  await updateUserSubscription(userId, {
-    subscriptionId: subscription.id,
-    subscriptionType: planId,
-    subscriptionStart: new Date().toISOString(),
-    subscriptionEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
-    monthlyReportLimit: SUBSCRIPTION_PLANS[planId as keyof typeof SUBSCRIPTION_PLANS]?.reportLimit || 0,
-  })
+  try {
+    const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
+    console.log('📊 Retrieved subscription:', subscription.id)
+    
+    // Update user subscription in database
+    const updateResult = await updateUserSubscription(userId, {
+      subscriptionId: subscription.id,
+      subscriptionType: planId,
+      subscriptionStart: new Date().toISOString(),
+      subscriptionEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
+      monthlyReportLimit: SUBSCRIPTION_PLANS[planId as keyof typeof SUBSCRIPTION_PLANS]?.reportLimit || 0,
+    })
 
-  console.log('User subscription updated:', { userId, planId })
+    console.log('✅ User subscription updated successfully:', { 
+      userId, 
+      planId, 
+      userEmail,
+      updateResult 
+    })
+  } catch (error) {
+    console.error('❌ Error processing checkout session:', error)
+    throw error
+  }
 }
 
 async function handleSubscriptionCreated(subscription: Stripe.Subscription) {

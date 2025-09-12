@@ -229,6 +229,37 @@ export async function POST(request: NextRequest) {
       stripePriceId: plan.stripePriceId
     })
     
+    // Create or retrieve Stripe customer
+    let customer
+    try {
+      // First, try to find existing customer by email
+      const existingCustomers = await stripe.customers.list({
+        email: user.email,
+        limit: 1
+      })
+      
+      if (existingCustomers.data.length > 0) {
+        customer = existingCustomers.data[0]
+        console.log('Found existing customer:', customer.id)
+      } else {
+        // Create new customer
+        customer = await stripe.customers.create({
+          email: user.email,
+          name: (user as any).name || user.email,
+          metadata: {
+            userId: user.id,
+          }
+        })
+        console.log('Created new customer:', customer.id)
+      }
+    } catch (error) {
+      console.error('Error creating/finding customer:', error)
+      return NextResponse.json(
+        { error: 'Failed to create customer' },
+        { status: 500 }
+      )
+    }
+
     // Prepare checkout session data
     const sessionData: any = {
       mode: 'subscription',
@@ -239,9 +270,10 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
-      customer_email: user.email,
+      customer: customer.id, // Use customer ID instead of customer_email
       metadata: {
         userId: user.id,
+        userEmail: user.email, // Store email in metadata as backup
         planId: plan.id,
         planName: plan.name,
       },
@@ -250,6 +282,7 @@ export async function POST(request: NextRequest) {
       subscription_data: {
         metadata: {
           userId: user.id,
+          userEmail: user.email,
           planId: plan.id,
           planName: plan.name,
         },
