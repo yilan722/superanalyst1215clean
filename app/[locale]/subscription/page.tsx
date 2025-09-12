@@ -6,7 +6,7 @@ import { type Locale } from '@/lib/i18n'
 import { getTranslation } from '@/lib/translations'
 import { useAuthContext } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase-client'
-import { CreditCard, Check, X, Loader2, AlertCircle } from 'lucide-react'
+import { CreditCard, Check, X, Loader2, AlertCircle, Zap, Star, Crown, TrendingUp, FileText, Clock, Headphones, Users, Wrench } from 'lucide-react'
 
 interface SubscriptionPageProps {
   params: {
@@ -185,163 +185,347 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
     )
   }
 
+  const plans = [
+    {
+      id: 'free',
+      name: 'Free Trial',
+      icon: FileText,
+      price: 'Free',
+      reportsPerMonth: 1,
+      reportsPerDay: 0.03,
+      totalReports: 1,
+      averageCost: null,
+      additionalCost: null,
+      features: [
+        'AI-Driven Deep Analysis',
+        'Real-time Market Data'
+      ],
+      isCurrent: userData?.subscription_type === 'free' || !userData?.subscription_type,
+      color: 'slate'
+    },
+    {
+      id: 'basic',
+      name: 'Basic',
+      icon: Zap,
+      price: '$49',
+      period: '/month',
+      reportsPerMonth: 8,
+      reportsPerDay: 0.3,
+      totalReports: 8,
+      averageCost: '$6.13',
+      additionalCost: '$8.13',
+      features: [
+        'AI-Driven Deep Analysis',
+        'Real-time Market Data'
+      ],
+      isCurrent: userData?.subscription_type === 'basic',
+      color: 'blue'
+    },
+    {
+      id: 'professional',
+      name: 'Professional',
+      icon: Star,
+      price: '$299',
+      period: '/month',
+      reportsPerMonth: 60,
+      reportsPerDay: 2,
+      totalReports: 60,
+      averageCost: '$4.98',
+      additionalCost: '$6.98',
+      features: [
+        'AI-Driven Deep Analysis',
+        'Real-time Market Data',
+        'Priority Customer Support'
+      ],
+      isCurrent: userData?.subscription_type === 'professional',
+      color: 'purple',
+      isBestValue: true
+    },
+    {
+      id: 'business',
+      name: 'Business',
+      icon: Crown,
+      price: '$599',
+      period: '/month',
+      reportsPerMonth: 140,
+      reportsPerDay: 4.7,
+      totalReports: 140,
+      averageCost: '$4.28',
+      additionalCost: '$6.28',
+      features: [
+        'AI-Driven Deep Analysis',
+        'Real-time Market Data',
+        'Priority Customer Support',
+        'API Access / Dedicated Account Manager'
+      ],
+      isCurrent: userData?.subscription_type === 'business',
+      color: 'amber'
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise',
+      icon: TrendingUp,
+      price: 'Free',
+      period: '',
+      reportsPerMonth: null,
+      reportsPerDay: null,
+      totalReports: null,
+      averageCost: null,
+      additionalCost: null,
+      features: [
+        'AI-Driven Deep Analysis',
+        'Real-time Market Data',
+        'Priority Customer Support',
+        'API Access / Dedicated Account Manager',
+        'Technical Analysis VIP Consulting'
+      ],
+      isCurrent: userData?.subscription_type === 'enterprise',
+      color: 'emerald',
+      isCustom: true
+    }
+  ]
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-slate-800 mb-8">
-          {locale === 'zh' ? '订阅管理' : 'Subscription Management'}
-        </h1>
-
-        {/* Current Subscription Status */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold text-slate-700 mb-4">
-            {locale === 'zh' ? '当前订阅状态' : 'Current Subscription Status'}
-          </h2>
-          
-          <div className="flex items-center space-x-4 mb-6">
-            <div className={`px-4 py-2 rounded-full ${subscriptionStatus.bgColor}`}>
-              <span className={`font-semibold ${subscriptionStatus.color}`}>
-                {subscriptionStatus.name}
-              </span>
-            </div>
-            <p className="text-slate-600">{subscriptionStatus.description}</p>
-          </div>
-
-          {/* Report Usage */}
-          <div className="bg-gray-100 rounded-lg p-4">
-            <div className="flex justify-between items-center mb-2">
-              <p className="text-sm text-slate-600">
-                {locale === 'zh' ? '已使用报告' : 'Reports Used'}:{' '}
-                <span className="font-semibold">{totalReportsUsed}</span> /{' '}
-                <span className="font-semibold">{monthlyReportLimit === 0 ? '∞' : monthlyReportLimit}</span>
-              </p>
-              <p className="text-sm font-semibold text-slate-700">
-                {reportsRemaining} {locale === 'zh' ? '剩余' : 'left'}
-              </p>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div
-                className="bg-amber-500 h-2.5 rounded-full"
-                style={{ width: `${Math.min(100, reportUsagePercentage)}%` }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Cancel Subscription Button */}
-          {userData?.subscription_type && userData?.subscription_type !== 'free' && (
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <button
-                onClick={handleCancelSubscription}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                {locale === 'zh' ? '取消订阅' : 'Cancel Subscription'}
-              </button>
-            </div>
-          )}
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-slate-800 mb-4">
+            SuperAnalyst - AI-Powered Pro Equity Research
+          </h1>
+          <p className="text-xl text-slate-600">
+            Choose the perfect plan for your investment research needs
+          </p>
         </div>
 
-        {/* Available Plans */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Free Plan */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-semibold text-slate-800 mb-2">
-              {locale === 'zh' ? '免费计划' : 'Free Plan'}
-            </h3>
-            <div className="text-3xl font-bold text-slate-800 mb-4">$0</div>
-            <ul className="space-y-2 mb-6">
-              <li className="flex items-center text-slate-600">
-                <Check className="w-5 h-5 text-green-500 mr-2" />
-                {locale === 'zh' ? '3个免费报告/月' : '3 free reports/month'}
-              </li>
-              <li className="flex items-center text-slate-600">
-                <Check className="w-5 h-5 text-green-500 mr-2" />
-                {locale === 'zh' ? '基础分析功能' : 'Basic analysis features'}
-              </li>
-              <li className="flex items-center text-slate-600">
-                <X className="w-5 h-5 text-red-500 mr-2" />
-                {locale === 'zh' ? '无高级功能' : 'No advanced features'}
-              </li>
-            </ul>
-            {userData?.subscription_type === 'free' ? (
-              <div className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-center">
-                {locale === 'zh' ? '当前计划' : 'Current Plan'}
+        {/* Current Subscription Status */}
+        {userData && (
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h2 className="text-xl font-semibold text-slate-700 mb-4">
+              {locale === 'zh' ? '当前订阅状态' : 'Current Subscription Status'}
+            </h2>
+            
+            <div className="flex items-center space-x-4 mb-6">
+              <div className={`px-4 py-2 rounded-full ${subscriptionStatus.bgColor}`}>
+                <span className={`font-semibold ${subscriptionStatus.color}`}>
+                  {subscriptionStatus.name}
+                </span>
               </div>
-            ) : (
-              <button
-                onClick={() => handleUpgrade('free')}
-                className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                {locale === 'zh' ? '降级到免费' : 'Downgrade to Free'}
-              </button>
+              <p className="text-slate-600">{subscriptionStatus.description}</p>
+            </div>
+
+            {/* Report Usage */}
+            <div className="bg-gray-100 rounded-lg p-4">
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-sm text-slate-600">
+                  {locale === 'zh' ? '已使用报告' : 'Reports Used'}:{' '}
+                  <span className="font-semibold">{totalReportsUsed}</span> /{' '}
+                  <span className="font-semibold">{monthlyReportLimit === 0 ? '∞' : monthlyReportLimit}</span>
+                </p>
+                <p className="text-sm font-semibold text-slate-700">
+                  {reportsRemaining} {locale === 'zh' ? '剩余' : 'left'}
+                </p>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                  className="bg-amber-500 h-2.5 rounded-full"
+                  style={{ width: `${Math.min(100, reportUsagePercentage)}%` }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Cancel Subscription Button */}
+            {userData?.subscription_type && userData?.subscription_type !== 'free' && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <button
+                  onClick={handleCancelSubscription}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  {locale === 'zh' ? '取消订阅' : 'Cancel Subscription'}
+                </button>
+              </div>
             )}
           </div>
+        )}
 
-          {/* Basic Plan */}
-          <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-blue-200">
-            <h3 className="text-xl font-semibold text-slate-800 mb-2">
-              {locale === 'zh' ? '基础计划' : 'Basic Plan'}
-            </h3>
-            <div className="text-3xl font-bold text-slate-800 mb-4">$4<span className="text-lg text-slate-500">/月</span></div>
-            <ul className="space-y-2 mb-6">
-              <li className="flex items-center text-slate-600">
-                <Check className="w-5 h-5 text-green-500 mr-2" />
-                {locale === 'zh' ? '8个报告/月' : '8 reports/month'}
-              </li>
-              <li className="flex items-center text-slate-600">
-                <Check className="w-5 h-5 text-green-500 mr-2" />
-                {locale === 'zh' ? '基础分析功能' : 'Basic analysis features'}
-              </li>
-              <li className="flex items-center text-slate-600">
-                <Check className="w-5 h-5 text-green-500 mr-2" />
-                {locale === 'zh' ? '邮件支持' : 'Email support'}
-              </li>
-            </ul>
-            {userData?.subscription_type === 'basic' ? (
-              <div className="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg text-center">
-                {locale === 'zh' ? '当前计划' : 'Current Plan'}
-              </div>
-            ) : (
-              <button
-                onClick={() => handleUpgrade('basic')}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                {locale === 'zh' ? '升级到基础' : 'Upgrade to Basic'}
-              </button>
-            )}
-          </div>
+        {/* Subscription Plans Table */}
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    Plan
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    Free Trial
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    Basic
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    Professional
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    Business
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    Enterprise
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {/* Plan Names and Icons */}
+                <tr>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Plan Details
+                  </td>
+                  {plans.map((plan) => {
+                    const IconComponent = plan.icon
+                    return (
+                      <td key={plan.id} className="px-6 py-4 text-center">
+                        <div className="flex flex-col items-center">
+                          <IconComponent className="w-8 h-8 text-gray-600 mb-2" />
+                          <div className="text-lg font-semibold text-gray-900">{plan.name}</div>
+                          {plan.isBestValue && (
+                            <span className="inline-block px-2 py-1 text-xs font-semibold text-purple-600 bg-purple-100 rounded-full mt-1">
+                              Best Value
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    )
+                  })}
+                </tr>
 
-          {/* Professional Plan */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-semibold text-slate-800 mb-2">
-              {locale === 'zh' ? '专业计划' : 'Professional Plan'}
-            </h3>
-            <div className="text-3xl font-bold text-slate-800 mb-4">$10<span className="text-lg text-slate-500">/月</span></div>
-            <ul className="space-y-2 mb-6">
-              <li className="flex items-center text-slate-600">
-                <Check className="w-5 h-5 text-green-500 mr-2" />
-                {locale === 'zh' ? '20个报告/月' : '20 reports/month'}
-              </li>
-              <li className="flex items-center text-slate-600">
-                <Check className="w-5 h-5 text-green-500 mr-2" />
-                {locale === 'zh' ? '高级分析功能' : 'Advanced analysis features'}
-              </li>
-              <li className="flex items-center text-slate-600">
-                <Check className="w-5 h-5 text-green-500 mr-2" />
-                {locale === 'zh' ? '优先支持' : 'Priority support'}
-              </li>
-            </ul>
-            {userData?.subscription_type === 'professional' ? (
-              <div className="px-4 py-2 bg-purple-100 text-purple-600 rounded-lg text-center">
-                {locale === 'zh' ? '当前计划' : 'Current Plan'}
-              </div>
-            ) : (
-              <button
-                onClick={() => handleUpgrade('professional')}
-                className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                {locale === 'zh' ? '升级到专业' : 'Upgrade to Professional'}
-              </button>
-            )}
+                {/* Pricing */}
+                <tr className="bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Price
+                  </td>
+                  {plans.map((plan) => (
+                    <td key={plan.id} className="px-6 py-4 text-center">
+                      <div className="text-2xl font-bold text-gray-900">
+                        {plan.price}
+                        {plan.period && <span className="text-sm text-gray-500">{plan.period}</span>}
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Reports per Month */}
+                <tr>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Reports per Month
+                  </td>
+                  {plans.map((plan) => (
+                    <td key={plan.id} className="px-6 py-4 text-center">
+                      <div className="text-lg font-semibold text-gray-900">
+                        {plan.reportsPerMonth ? `${plan.reportsPerMonth} Reports per Month` : 'Custom'}
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Reports per Day */}
+                <tr className="bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Reports per Day
+                  </td>
+                  {plans.map((plan) => (
+                    <td key={plan.id} className="px-6 py-4 text-center">
+                      <div className="text-sm text-gray-600">
+                        {plan.reportsPerDay ? `${plan.reportsPerDay} | Total: ${plan.totalReports}` : 'Custom'}
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Average Cost */}
+                <tr>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Average Cost
+                  </td>
+                  {plans.map((plan) => (
+                    <td key={plan.id} className="px-6 py-4 text-center">
+                      <div className="text-sm text-gray-600">
+                        {plan.averageCost ? `Average Cost: ${plan.averageCost}/篇` : '-'}
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Additional Purchase */}
+                <tr className="bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Additional Purchase
+                  </td>
+                  {plans.map((plan) => (
+                    <td key={plan.id} className="px-6 py-4 text-center">
+                      <div className="text-sm text-gray-600">
+                        {plan.additionalCost ? `Additional Purchase: ${plan.additionalCost}/篇` : '-'}
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Features */}
+                <tr>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Features
+                  </td>
+                  {plans.map((plan) => (
+                    <td key={plan.id} className="px-6 py-4 text-center">
+                      <div className="space-y-1">
+                        {plan.features.map((feature, index) => (
+                          <div key={index} className="flex items-center justify-center text-sm text-gray-600">
+                            <Check className="w-4 h-4 text-green-500 mr-1" />
+                            {feature}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Action Buttons */}
+                <tr className="bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    Action
+                  </td>
+                  {plans.map((plan) => (
+                    <td key={plan.id} className="px-6 py-4 text-center">
+                      {plan.isCurrent ? (
+                        <div className="px-4 py-2 bg-green-100 text-green-600 rounded-lg text-center text-sm font-semibold">
+                          Current Plan
+                        </div>
+                      ) : plan.isCustom ? (
+                        <button
+                          onClick={() => handleUpgrade(plan.id)}
+                          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-semibold"
+                        >
+                          Contact Sales
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleUpgrade(plan.id)}
+                          className={`px-4 py-2 rounded-lg transition-colors text-sm font-semibold ${
+                            plan.color === 'blue'
+                              ? 'bg-blue-600 text-white hover:bg-blue-700'
+                              : plan.color === 'purple'
+                              ? 'bg-purple-600 text-white hover:bg-purple-700'
+                              : plan.color === 'amber'
+                              ? 'bg-amber-600 text-white hover:bg-amber-700'
+                              : 'bg-gray-600 text-white hover:bg-gray-700'
+                          }`}
+                        >
+                          {plan.price === 'Free' ? 'Get Started' : 'Upgrade'}
+                        </button>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
