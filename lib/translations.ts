@@ -359,7 +359,7 @@ export const translations: Record<Locale, TranslationKeys> = {
     dailyAlphaBrief: 'Daily Alpha Brief',
     dailyAlphaDescription: 'Daily Hot Stock Research',
     insightRefinery: 'Insight Refinery',
-    insightRefineryDescription: 'AI Discussion & Report Evolution',
+    insightRefineryDescription: 'Enrich AI Reports with Your Data & Insights',
     
     // Daily Alpha Brief
     dailyAlphaSubtitle: 'Daily Hot Stock Fundamental Research Report',

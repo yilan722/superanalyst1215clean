@@ -357,7 +357,7 @@ export default function ReportDemo({ locale }: ReportDemoProps) {
         revenueGrowth: 15
       },
       {
-        company: "PayPal",
+        company: "Stripe",
         peRatio: 19.5,
         evEbitda: 12.1,
         psRatio: 2.8,

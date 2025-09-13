@@ -493,7 +493,7 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
                 </div>
                 <div className="bg-slate-700 rounded-lg p-4">
                   <p className="text-sm text-slate-400">P/E Ratio</p>
-                  <p className="text-2xl font-bold text-white">{selectedStock.peRatio}</p>
+                  <p className="text-2xl font-bold text-white">{Number(selectedStock.peRatio).toFixed(2)}</p>
                 </div>
               </div>
 

@@ -48,8 +48,7 @@ model Payment {
   alipayTradeNo String?
   alipayOrderId String?
   
-  // PayPal specific fields
-  paypalOrderId String?
+  // PayPal 已移除，只使用 Stripe
   
   // Subscription details for subscription payments
   subscriptionType String?

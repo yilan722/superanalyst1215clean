@@ -366,9 +366,9 @@ valuationAnalysis (估值分析) - 必须包含以下内容：
 - 链接应该指向原始数据源，如：公司官网投资者关系页面、SEC EDGAR数据库、财报PDF、权威新闻网站等
 - 在表格中，每行数据都应该包含相应的数据来源链接
 
-📊 专业格式要求（参考Opendoor Technologies Inc. (OPEN) - 股票估值分析报告.pdf）：
+📊 专业格式要求（参考300053_valuation_report_2025-09-03.pdf）：
 - 使用专业的HTML样式，严格按照以下类名：'report-title', 'section-title', 'subsection-title', 'metric-table', 'highlight-box', 'positive', 'negative', 'neutral', 'recommendation-buy', 'recommendation-sell', 'recommendation-hold'
-- 报告标题使用大标题格式：<h1>公司名称 (股票代码) - 深度公司档案</h1>
+- 报告标题使用大标题格式：<h1>公司名称 (股票代码) 估值分析报告</h1>
 - 重要：不要在每个部分开头添加主要章节标题（如"1. 基本面分析"），这些标题会在PDF模板中自动添加
 - 子部分使用三级标题：<h3>1.1 公司概况</h3>
 - 重要：英文版本中不要包含任何中文标题，所有标题都使用英文
@@ -376,20 +376,6 @@ valuationAnalysis (估值分析) - 必须包含以下内容：
 - 重要数据使用高亮框突出显示
 - 百分比和趋势使用颜色编码（绿色=正面，红色=负面，灰色=中性）
 - 估值综合使用客观分析语言，避免投资建议标签
-
-⚠️ 法律风险规避要求（估值分析部分）：
-- 禁止使用"买入/持有/卖出"等直接投资建议词汇
-- 禁止对"投资者"直接喊话或提供投资建议
-- 禁止使用"回报"、"吸引力"等暗示收益的词汇
-- 将"目标价格"替换为"内在价值估算"等安全词汇
-- 避免"上涨空间"、"潜力"等预测性词语，改为客观比较（如"比...高X%"）
-- 使用"我们的分析得出..."、"模型产生..."等强调过程的客观表述
-- 估值综合部分标题使用"估值综合与关键发现"而非"投资建议"
-- 具体示例：
-  * 错误："我们建议买入该股票，目标价格$150，上涨空间20%"
-  * 正确："我们的DCF模型显示内在价值估算为$150，当前价格比内在价值低20%"
-  * 错误："该股票具有投资吸引力，预期回报率15%"
-  * 正确："基于历史数据和行业对比，该公司的估值水平处于合理区间"
 
 📋 内容结构要求：
 - 确保 JSON 格式正确且有效
@@ -463,9 +449,9 @@ valuationAnalysis (Valuation Analysis) - Must include:
 - Links should point to original data sources such as: company investor relations pages, SEC EDGAR database, earnings report PDFs, authoritative news websites, etc.
 - In tables, each row of data should include corresponding data source links
 
-📊 Professional Format Requirements (Reference: Opendoor Technologies Inc. (OPEN) - 股票估值分析报告.pdf):
+📊 Professional Format Requirements (Reference: 300053_valuation_report_2025-09-03.pdf):
 - Use professional HTML styling with these exact class names: 'report-title', 'section-title', 'subsection-title', 'metric-table', 'highlight-box', 'positive', 'negative', 'neutral', 'recommendation-buy', 'recommendation-sell', 'recommendation-hold'
-- Report title format: <h1>Company Name (Ticker) - In-Depth Company Profile</h1>
+- Report title format: <h1>Company Name (Ticker) Valuation Analysis Report</h1>
 - IMPORTANT: Do NOT include main section titles (like "1. Fundamental Analysis") at the beginning of each section, as these will be automatically added by the PDF template
 - Subsections use h3: <h3>1.1 Company Overview</h3>
 - CRITICAL: Do NOT include any Chinese titles or text in the English version. All content must be in English only.
@@ -473,20 +459,6 @@ valuationAnalysis (Valuation Analysis) - Must include:
 - Important data highlighted in boxes
 - Percentages and trends color-coded (green=positive, red=negative, gray=neutral)
 - Valuation synthesis uses objective analytical language, avoid investment recommendation labels
-
-⚠️ Legal Risk Avoidance Requirements (Valuation Analysis Section):
-- Prohibited: "Buy/Hold/Sell" and other direct investment recommendation terms
-- Prohibited: Direct addressing of "investors" or providing investment advice
-- Prohibited: Terms like "returns", "attractiveness" that imply investment benefits
-- Replace "Target Price" with "Intrinsic Value Estimate" or other safe terminology
-- Avoid predictive terms like "Upside" or "Potential", use objective comparisons (e.g., "is X% higher than")
-- Use process-focused language: "Our analysis yields...", "The model generates..." to emphasize objective output
-- Valuation synthesis section title: "Valuation Synthesis and Key Findings" instead of "Investment Recommendation"
-- Specific examples:
-  * Wrong: "We recommend buying this stock, target price $150, upside potential 20%"
-  * Correct: "Our DCF model shows intrinsic value estimate of $150, current price is 20% below intrinsic value"
-  * Wrong: "This stock offers attractive investment returns, expected return 15%"
-  * Correct: "Based on historical data and industry comparison, the company's valuation level is within reasonable range"
 
 📋 Content Structure Requirements:
 - Ensure correct and valid JSON format

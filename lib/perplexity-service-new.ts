@@ -122,7 +122,7 @@ export class PerplexityService {
 [包含增长因子表格、市场机会分析表]
 
 ## 4. 估值分析
-[包含估值方法对比表、目标价分析表]
+[包含估值方法对比表、内在价值分析表、估值综合表]
 
 确保每个部分都包含具体的数据表格和专业分析。`
     } else {
@@ -152,7 +152,7 @@ Strictly follow this format with rich table data in each section:
 [Include growth factor tables, market opportunity analysis tables]
 
 ## 4. Valuation Analysis
-[Include valuation method comparison tables, target price analysis tables]
+[Include valuation method comparison tables, intrinsic value analysis tables, valuation synthesis tables]
 
 Ensure each section contains specific data tables and professional analysis.`
     }

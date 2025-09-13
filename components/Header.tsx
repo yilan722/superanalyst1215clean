@@ -19,10 +19,10 @@ function SuperAnalystLogo() {
               stroke="currentColor"
               strokeWidth="2"
             >
-              {/* Simple magnifying glass circle */}
+              {/* Magnifying glass circle */}
               <circle cx="9" cy="9" r="7"/>
               
-              {/* Simple magnifying glass handle */}
+              {/* Magnifying glass handle */}
               <path d="M15 15 L20 20" strokeLinecap="round"/>
             </svg>
           </div>

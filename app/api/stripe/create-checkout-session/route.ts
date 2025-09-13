@@ -155,14 +155,30 @@ export async function POST(request: NextRequest) {
     console.log('Final userData:', userData)
     
     // If user has an active subscription, return error
+    console.log('🔍 订阅检查详情:')
+    console.log('  - subscription_id:', userData?.subscription_id)
+    console.log('  - subscription_end:', userData?.subscription_end)
+    console.log('  - subscription_type:', userData?.subscription_type)
+    
     if (userData?.subscription_id && userData?.subscription_end) {
+      console.log('❌ 用户有订阅ID和结束时间，检查是否有效')
       const subscriptionEnd = new Date(userData.subscription_end)
+      const now = new Date()
+      console.log('  - 订阅结束时间:', subscriptionEnd.toISOString())
+      console.log('  - 当前时间:', now.toISOString())
+      console.log('  - 订阅是否有效:', subscriptionEnd > now)
+      
       if (subscriptionEnd > new Date()) {
+        console.log('❌ 订阅有效，阻止重复订阅')
         return NextResponse.json(
           { error: 'User already has an active subscription' },
           { status: 400 }
         )
+      } else {
+        console.log('✅ 订阅已过期，允许重新订阅')
       }
+    } else {
+      console.log('✅ 用户没有订阅，允许订阅')
     }
 
     // Validate coupon if provided
@@ -277,8 +293,8 @@ export async function POST(request: NextRequest) {
         planId: plan.id,
         planName: plan.name,
       },
-      success_url: successUrl || `${process.env.NEXT_PUBLIC_BASE_URL || 'https://top-analyst-5-axl3ghjzx-yilans-projects.vercel.app'}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || `${process.env.NEXT_PUBLIC_BASE_URL || 'https://top-analyst-5-axl3ghjzx-yilans-projects.vercel.app'}/payment/cancel`,
+      success_url: successUrl || `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3002'}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: cancelUrl || `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3002'}/payment/cancel`,
       subscription_data: {
         metadata: {
           userId: user.id,

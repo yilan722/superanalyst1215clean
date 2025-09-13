@@ -87,7 +87,13 @@ export class GeminiService {
 - Never generate content based on assumptions or incomplete information
 
 **OUTPUT FORMAT:**
-Return ONLY a valid JSON object with these four sections as HTML strings. Each section must contain high-quality, accurate, and professional content.
+Return ONLY a valid JSON object with these four sections as HTML strings: fundamentalAnalysis, businessSegments, growthCatalysts, valuationAnalysis. Each section must contain high-quality, accurate, and professional content.
+
+**VALUATION ANALYSIS REQUIREMENTS:**
+- Must include intrinsic value estimation using multiple methods (DCF, relative valuation, asset value)
+- Must include valuation synthesis and key findings (avoid direct investment recommendations)
+- Must include comprehensive risk analysis and mitigation strategies
+- Must use objective analytical language and professional terminology
 
 请确保所有数据都是最新的，并且包含可验证的来源链接。如果无法获取足够的最新数据，请明确说明原因，不要生成低质量的分析内容。`
           },

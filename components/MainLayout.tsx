@@ -94,15 +94,15 @@ export default function MainLayout({
         <div className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold text-slate-900">
+              <h1 className="text-sm font-semibold text-gray-600">
                 {activeTab === 'home' && (locale === 'zh' ? '专业AI驱动股票研究平台' : 'Professional AI-driven Equity Research Platform')}
                 {activeTab === 'daily-alpha' && (locale === 'zh' ? '每日热门股票' : 'Daily Alpha Brief')}
                 {activeTab === 'insight-refinery' && (locale === 'zh' ? '洞察精炼器' : 'Insight Refinery')}
               </h1>
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
                 {activeTab === 'home' && (locale === 'zh' ? 'SuperAnalyst处理80%的繁琐研究工作，让您100%专注于分析、策略和形成独特见解' : 'SuperAnalyst handles 80% of research that\'s grunt work, so you can spend 100% of your brainpower on analysis, strategy, and forming your own unique thesis')}
                 {activeTab === 'daily-alpha' && (locale === 'zh' ? '每日热门股票基本面研究报告' : 'Daily Hot Stock Fundamental Research Report')}
-                {activeTab === 'insight-refinery' && (locale === 'zh' ? 'AI深度讨论与报告进化' : 'AI Discussion & Report Evolution')}
+                {activeTab === 'insight-refinery' && (locale === 'zh' ? 'AI深度讨论与报告进化' : 'Enrich AI Reports with Your Data & Insights')}
               </p>
             </div>
             

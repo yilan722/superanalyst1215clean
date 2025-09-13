@@ -74,10 +74,7 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# PayPal (optional)
-PAYPAL_CLIENT_ID=your_paypal_client_id
-PAYPAL_CLIENT_SECRET=your_paypal_client_secret
-NEXT_PUBLIC_PAYPAL_CLIENT_ID=your_public_paypal_client_id
+# PayPal 已移除，只使用 Stripe 支付
 ```
 
 **Important**: 
@@ -172,11 +169,7 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# PayPal (Optional - for payment features)
-PAYPAL_CLIENT_ID=your_paypal_client_id
-PAYPAL_CLIENT_SECRET=your_paypal_client_secret
-NEXT_PUBLIC_PAYPAL_CLIENT_ID=your_public_paypal_client_id
-PAYPAL_WEBHOOK_ID=your_webhook_id
+# PayPal 已移除，只使用 Stripe 支付
 
 # App Configuration
 NEXT_PUBLIC_BASE_URL=http://localhost:3000

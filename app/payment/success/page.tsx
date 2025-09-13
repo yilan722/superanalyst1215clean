@@ -12,12 +12,26 @@ function PaymentSuccessContent() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    const sessionId = searchParams.get('session_id')
     const orderID = searchParams.get('token')
     const PayerID = searchParams.get('PayerID')
     
-    if (orderID) {
-      // You can fetch order details here if needed
-      setOrderDetails({ orderID, PayerID })
+    console.log('🔍 支付成功页面参数:', { sessionId, orderID, PayerID })
+    
+    if (sessionId) {
+      // Stripe支付成功
+      console.log('✅ Stripe支付成功，session_id:', sessionId)
+      setOrderDetails({ sessionId, type: 'stripe' })
+      
+      // 触发页面刷新以更新用户订阅状态
+      setTimeout(() => {
+        console.log('🔄 触发页面刷新以更新订阅状态')
+        window.location.href = '/en/account'
+      }, 3000)
+    } else if (orderID) {
+      // PayPal支付成功
+      console.log('✅ PayPal支付成功，orderID:', orderID)
+      setOrderDetails({ orderID, PayerID, type: 'paypal' })
     }
     
     setIsLoading(false)
@@ -54,11 +68,17 @@ function PaymentSuccessContent() {
         {/* Order Details */}
         {orderDetails && (
           <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
-            <h3 className="font-medium text-gray-900 mb-2">Order Details</h3>
+            <h3 className="font-medium text-gray-900 mb-2">Payment Details</h3>
             <div className="text-sm text-gray-600 space-y-1">
-              <p><span className="font-medium">Order ID:</span> {orderDetails.orderID}</p>
-              {orderDetails.PayerID && (
-                <p><span className="font-medium">Payer ID:</span> {orderDetails.PayerID}</p>
+              {orderDetails.type === 'stripe' ? (
+                <p><span className="font-medium">Session ID:</span> {orderDetails.sessionId}</p>
+              ) : (
+                <>
+                  <p><span className="font-medium">Order ID:</span> {orderDetails.orderID}</p>
+                  {orderDetails.PayerID && (
+                    <p><span className="font-medium">Payer ID:</span> {orderDetails.PayerID}</p>
+                  )}
+                </>
               )}
             </div>
           </div>

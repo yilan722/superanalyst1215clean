@@ -36,12 +36,12 @@ export const SUBSCRIPTION_PLANS = {
     currency: 'usd',
     interval: 'month',
     features: [
-      '5 reports per month',
+      '8 reports per month',
       'Basic analysis features',
       'Email support',
       'Standard data access'
     ],
-    reportLimit: 5,
+    reportLimit: 8,
     stripeProductId: process.env.STRIPE_BASIC_PRODUCT_ID || 'prod_T1gZyugkH04dyS',
     stripePriceId: process.env.STRIPE_BASIC_PRICE_ID || 'price_1S5dCKKLGxHQJ0LDACeVCNU7',
   },

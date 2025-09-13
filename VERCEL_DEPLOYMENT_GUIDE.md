@@ -30,10 +30,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 #### 可选功能
 ```bash
-# PayPal 支付 (可选)
-PAYPAL_CLIENT_ID=your_paypal_client_id
-PAYPAL_CLIENT_SECRET=your_paypal_client_secret
-NEXT_PUBLIC_PAYPAL_CLIENT_ID=your_public_paypal_client_id
+# PayPal 已移除，只使用 Stripe 支付
 
 # Google Analytics (可选)
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-HS935K4G8C

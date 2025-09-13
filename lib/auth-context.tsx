@@ -27,6 +27,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('🔄 强制刷新用户数据...')
     try {
       const { data: { session }, error } = await supabase.auth.getSession()
+      console.log('🔍 刷新会话结果:', { session: !!session, user: session?.user?.id, error })
+      
       if (error) {
         console.error('❌ 刷新会话失败:', error)
         setUser(null)
@@ -34,7 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('✅ 刷新会话成功:', session.user.id)
         setUser(session.user as User)
       } else {
-        console.log('ℹ️ 刷新后没有会话')
+        console.log('ℹ️ 刷新后没有会话，清空用户状态')
         setUser(null)
       }
     } catch (error) {
@@ -82,12 +84,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('✅ 用户登录:', session.user.id)
           setUser(session.user as User)
+          setLoading(false)
         } else if (event === 'SIGNED_OUT') {
           console.log('🚪 用户登出')
           setUser(null)
+          setLoading(false)
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
           console.log('🔄 令牌刷新:', session.user.id)
           setUser(session.user as User)
+          setLoading(false)
         } else if (event === 'INITIAL_SESSION') {
           console.log('🔄 初始会话事件:', session?.user?.id)
           if (session?.user) {
@@ -97,10 +102,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log('ℹ️ 初始会话无用户，清空用户状态')
             setUser(null)
           }
+          setLoading(false)
         }
-        
-        console.log('🔧 设置loading为false')
-        setLoading(false)
       }
     )
 
@@ -129,6 +132,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     forceUpdate,
     refreshUserData
   }
+
+  // 在组件挂载时强制刷新认证状态
+  useEffect(() => {
+    console.log('🔧 AuthProvider: 组件挂载，强制刷新认证状态')
+    refreshUserData()
+  }, [])
 
   return (
     <AuthContext.Provider value={value}>

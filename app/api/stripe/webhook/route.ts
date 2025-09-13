@@ -301,10 +301,20 @@ async function updateUserSubscription(
 
     console.log('📋 Current user data:', currentUser)
 
+    // Convert camelCase to snake_case for database fields
+    const dbUpdates: any = {}
+    if (updates.subscriptionId !== undefined) dbUpdates.subscription_id = updates.subscriptionId
+    if (updates.subscriptionType !== undefined) dbUpdates.subscription_type = updates.subscriptionType
+    if (updates.subscriptionStart !== undefined) dbUpdates.subscription_start = updates.subscriptionStart
+    if (updates.subscriptionEnd !== undefined) dbUpdates.subscription_end = updates.subscriptionEnd
+    if (updates.monthlyReportLimit !== undefined) dbUpdates.monthly_report_limit = updates.monthlyReportLimit
+
+    console.log('🔄 Database updates:', dbUpdates)
+
     // Update user subscription
     const { data: updatedUser, error: updateError } = await supabase
       .from('users')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', userId)
       .select()
       .single()
@@ -317,6 +327,7 @@ async function updateUserSubscription(
     console.log('✅ User subscription updated successfully:', { 
       userId, 
       updates,
+      dbUpdates,
       before: {
         subscription_type: currentUser.subscription_type,
         subscription_id: currentUser.subscription_id,

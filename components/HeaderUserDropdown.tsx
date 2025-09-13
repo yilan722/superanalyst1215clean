@@ -223,28 +223,6 @@ export default function HeaderUserDropdown({ userData, locale }: HeaderUserDropd
               {locale === 'zh' ? '报告中心' : 'Report Hub'}
             </button>
 
-            <button
-              onClick={handleReportHub}
-              className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              <FileText className="w-4 h-4 mr-3" />
-              {locale === 'zh' ? '报告历史' : 'Report History'}
-            </button>
-
-            {/* Cancel Subscription (only if user has active subscription) */}
-            {userData?.subscription_type && userData?.subscription_type !== 'free' && (
-              <button
-                onClick={handleCancelSubscription}
-                className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                disabled={isLoading}
-              >
-                <LogOut className="w-4 h-4 mr-3" />
-                {isLoading 
-                  ? (locale === 'zh' ? '取消中...' : 'Cancelling...')
-                  : (locale === 'zh' ? '取消订阅' : 'Cancel Subscription')
-                }
-              </button>
-            )}
 
             <div className="border-t border-gray-100 my-2"></div>
 

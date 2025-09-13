@@ -577,22 +577,31 @@ export async function updatePaymentStatus(paymentId: string, status: string, ali
 }
 
 export async function updateUserSubscription(userId: string, subscriptionData: {
+  subscriptionId?: string
   subscriptionType: string
-  reportLimit: number
+  subscriptionStart?: string
   subscriptionEnd: string
+  monthlyReportLimit?: number
+  reportLimit?: number
 }) {
   const { error } = await supabase
     .from('users')
     .update({
+      subscription_id: subscriptionData.subscriptionId,
       subscription_type: subscriptionData.subscriptionType,
-      subscription_start: new Date().toISOString(),
+      subscription_start: subscriptionData.subscriptionStart || new Date().toISOString(),
       subscription_end: subscriptionData.subscriptionEnd,
-      monthly_report_limit: subscriptionData.reportLimit,
+      monthly_report_limit: subscriptionData.monthlyReportLimit || subscriptionData.reportLimit || 0,
       paid_reports_used: 0
     })
     .eq('id', userId)
 
   if (error) {
+    console.error('❌ 更新用户订阅失败:', error)
     throw new Error(error.message)
   }
-} 
+
+  console.log('✅ 用户订阅更新成功:', { userId, subscriptionData })
+}
+
+// PayPal 相关函数已移除，只使用 Stripe 支付 

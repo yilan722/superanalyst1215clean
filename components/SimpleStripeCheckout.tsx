@@ -66,16 +66,75 @@ export default function SimpleStripeCheckout({
       console.log('🎯 当前appliedCoupon状态:', appliedCoupon)
       console.log('🎯 最终价格:', finalPrice)
       
-      // 直接使用传入的userId，不依赖session检查
-      console.log('🔄 使用传入的userId进行支付:', userId)
+      // 验证用户认证状态
+      console.log('🔄 验证用户认证状态...')
       
-      if (!userId) {
-        console.error('❌ 认证失败: 没有用户ID')
-        throw new Error('Authentication required. Please log in again.')
+      // 调试localStorage
+      console.log('🔍 检查localStorage:')
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key?.includes('supabase') || key?.includes('auth')) {
+          console.log(`  ${key}:`, localStorage.getItem(key))
+        }
       }
       
-      console.log('✅ 使用用户ID进行支付:', userId)
+      // 等待一下让session同步
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // 强制刷新认证状态
+      const { data: { session } } = await supabase.auth.getSession()
+      console.log('🔍 当前session状态:', { session: !!session, user: session?.user?.id })
+      
+      if (!session?.user) {
+        console.error('❌ 用户未认证，session无效')
+        console.log('🔄 尝试强制刷新session...')
+        
+        // 尝试强制刷新session
+        const { data: { session: refreshedSession } } = await supabase.auth.refreshSession()
+        console.log('🔍 刷新后的session状态:', { session: !!refreshedSession, user: refreshedSession?.user?.id })
+        
+        if (!refreshedSession?.user) {
+          console.log('🔄 尝试强制重新登录...')
+          
+          // 尝试强制重新登录
+          const { data: { user: currentUser } } = await supabase.auth.getUser()
+          console.log('🔍 当前用户状态:', { user: !!currentUser, userId: currentUser?.id })
+          
+          if (!currentUser) {
+            throw new Error('Authentication required. Please log in again.')
+          }
+          
+          // 使用当前用户信息
+          if (!userId || userId !== currentUser.id) {
+            console.error('❌ 用户ID不匹配:', { userId, currentUserId: currentUser.id })
+            throw new Error('User ID mismatch. Please refresh the page.')
+          }
+          
+          console.log('✅ 用户认证验证通过 (强制登录):', userId)
+        } else {
+          // 使用刷新后的session
+          if (!userId || userId !== refreshedSession.user.id) {
+            console.error('❌ 用户ID不匹配:', { userId, sessionUserId: refreshedSession.user.id })
+            throw new Error('User ID mismatch. Please refresh the page.')
+          }
+          
+          console.log('✅ 用户认证验证通过 (刷新后):', userId)
+        }
+      } else {
+        // 使用session中的用户ID，而不是传入的userId
+        const actualUserId = session.user.id
+        console.log('🔍 使用session中的用户ID:', { 
+          passedUserId: userId, 
+          sessionUserId: actualUserId,
+          sessionUserEmail: session.user.email 
+        })
+        
+        console.log('✅ 用户认证验证通过:', actualUserId)
+      }
 
+      // 获取实际用户ID
+      const actualUserId = session?.user?.id || refreshedSession?.user?.id
+      
       // 准备请求数据
       const requestData = {
         planId,
@@ -89,12 +148,28 @@ export default function SimpleStripeCheckout({
       let sessionToken = null
       try {
         const { data: { session } } = await supabase.auth.getSession()
+        console.log('🔍 检查session状态:', { session: !!session, user: session?.user?.id })
+        
         if (session?.access_token) {
           sessionToken = session.access_token
           console.log('🔑 Got session token for API call')
+        } else {
+          console.log('❌ 没有有效的session token，尝试刷新session...')
+          
+          // 尝试刷新session
+          const { data: { session: refreshedSession } } = await supabase.auth.refreshSession()
+          console.log('🔍 刷新后的session状态:', { session: !!refreshedSession, user: refreshedSession?.user?.id })
+          
+          if (refreshedSession?.access_token) {
+            sessionToken = refreshedSession.access_token
+            console.log('🔑 Got refreshed session token for API call')
+          } else {
+            throw new Error('No valid session found after refresh')
+          }
         }
       } catch (error) {
         console.log('⚠️ Could not get session token:', error)
+        throw new Error('Authentication required')
       }
 
       // Create checkout session with both cookies and optional token
@@ -105,7 +180,10 @@ export default function SimpleStripeCheckout({
           ...(sessionToken && { 'Authorization': `Bearer ${sessionToken}` }),
         },
         credentials: 'include', // 确保cookies被发送
-        body: JSON.stringify(requestData),
+        body: JSON.stringify({
+          ...requestData,
+          userId: session?.user?.id || refreshedSession?.user?.id, // 使用session中的用户ID
+        }),
       })
 
       console.log('🎯 API响应状态:', response.status)

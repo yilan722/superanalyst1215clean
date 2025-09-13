@@ -365,7 +365,7 @@ export default function HomePage({ params }: PageProps) {
                       </div>
                     </div>
                     <p className="text-xs sm:text-sm text-blue-200 mb-1 font-inter">P/E Ratio</p>
-                    <p className="text-lg sm:text-2xl font-bold text-white font-inter">{stockData.peRatio}</p>
+                    <p className="text-lg sm:text-2xl font-bold text-white font-inter">{Number(stockData.peRatio).toFixed(2)}</p>
                   </div>
                   
                   <div className="text-center">

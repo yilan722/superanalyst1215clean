@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       optional: {
         tushare: process.env.TUSHARE_TOKEN ? '✅ 已设置' : '⚠️ 未设置 (可选)',
         alphaVantage: process.env.ALPHA_VANTAGE_API_KEY ? '✅ 已设置' : '⚠️ 未设置 (可选)',
-        paypal: process.env.PAYPAL_CLIENT_ID ? '✅ 已设置' : '⚠️ 未设置 (可选)',
+        paypal: '❌ 已移除 (只使用 Stripe)',
       }
     }
     

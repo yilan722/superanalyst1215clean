@@ -155,7 +155,7 @@ export default function ValuationReport({ stockData, reportData, isLoading, loca
             <span className="text-sm font-medium text-gray-600">{getTranslation(locale, 'peRatio')}</span>
           </div>
           <p className="text-lg font-semibold text-gray-900">
-            {stockData.peRatio.toFixed(2)}
+            {Number(stockData.peRatio).toFixed(2)}
           </p>
         </div>
 
