@@ -182,7 +182,7 @@ export default function SimpleStripeCheckout({
         credentials: 'include', // 确保cookies被发送
         body: JSON.stringify({
           ...requestData,
-          userId: session?.user?.id || refreshedSession?.user?.id, // 使用session中的用户ID
+          userId: session?.user?.id, // 使用session中的用户ID
         }),
       })
 
