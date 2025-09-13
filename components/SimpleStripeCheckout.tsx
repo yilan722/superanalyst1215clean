@@ -133,7 +133,7 @@ export default function SimpleStripeCheckout({
       }
 
       // 获取实际用户ID
-      const actualUserId = session?.user?.id || refreshedSession?.user?.id
+      const actualUserId = session?.user?.id
       
       // 准备请求数据
       const requestData = {
