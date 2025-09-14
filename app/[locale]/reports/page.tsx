@@ -19,6 +19,7 @@ interface Report {
   created_at: string
   status?: string
   file_path?: string
+  report_data?: string
 }
 
 export default function ReportsPage({ params }: ReportsPageProps) {
@@ -122,23 +123,88 @@ export default function ReportsPage({ params }: ReportsPageProps) {
     if (report.file_path) {
       // Open report in new tab
       window.open(report.file_path, '_blank')
+    } else if (report.report_data) {
+      // If no file_path but has report_data, create a temporary HTML file
+      const reportHtml = generateReportHtml(report)
+      const blob = new Blob([reportHtml], { type: 'text/html' })
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank')
+      // Clean up the URL after a delay
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
     } else {
-      alert(locale === 'zh' ? '报告文件不存在' : 'Report file not found')
+      alert(locale === 'zh' ? '报告数据不存在' : 'Report data not found')
     }
   }
 
   const handleDownloadReport = (report: Report) => {
     if (report.file_path) {
-      // Create download link
+      // Create download link for existing file
       const link = document.createElement('a')
       link.href = report.file_path
       link.download = `${report.title}.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
+    } else if (report.report_data) {
+      // Generate HTML file for download
+      const reportHtml = generateReportHtml(report)
+      const blob = new Blob([reportHtml], { type: 'text/html' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${report.title}.html`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
     } else {
-      alert(locale === 'zh' ? '报告文件不存在' : 'Report file not found')
+      alert(locale === 'zh' ? '报告数据不存在' : 'Report data not found')
     }
+  }
+
+  const generateReportHtml = (report: Report) => {
+    let reportData
+    try {
+      reportData = typeof report.report_data === 'string' 
+        ? JSON.parse(report.report_data) 
+        : report.report_data
+    } catch (error) {
+      console.error('Error parsing report data:', error)
+      return `<html><body><h1>Error parsing report data</h1></body></html>`
+    }
+
+    const html = `
+<!DOCTYPE html>
+<html lang="${locale}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${report.title}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        .fundamental-analysis, .business-segments, .growth-catalysts, .valuation-analysis { margin-bottom: 30px; }
+        .metric-table table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .metric-table th, .metric-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .metric-table th { background-color: #f2f2f2; }
+        .highlight-box { background-color: #f8f9fa; border-left: 4px solid #007bff; padding: 15px; margin: 15px 0; }
+        .positive { color: #28a745; }
+        .negative { color: #dc3545; }
+        .neutral { color: #6c757d; }
+        .recommendation-buy { background-color: #d4edda; border: 1px solid #c3e6cb; padding: 20px; border-radius: 5px; }
+        h1, h2, h3, h4, h5 { color: #333; }
+    </style>
+</head>
+<body>
+    <h1>${report.title}</h1>
+    <p><strong>${locale === 'zh' ? '生成时间' : 'Generated'}:</strong> ${formatDate(report.created_at)}</p>
+    <hr>
+    ${reportData.fundamentalAnalysis || ''}
+    ${reportData.businessSegments || ''}
+    ${reportData.growthCatalysts || ''}
+    ${reportData.valuationAnalysis || ''}
+</body>
+</html>`
+    return html
   }
 
   if (isLoading) {
