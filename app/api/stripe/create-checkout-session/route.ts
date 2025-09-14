@@ -18,16 +18,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Debug: Log all request headers
-    console.log('Request headers:', Object.fromEntries(request.headers.entries()))
+    // 安全日志：只记录必要的调试信息
+    console.log('🔐 开始认证检查...')
     
     // Check for Authorization header first
     const authHeader = request.headers.get('authorization')
-    console.log('Authorization header:', authHeader)
+    console.log('Authorization header present:', !!authHeader)
     
     // Check for cookies
     const cookieHeader = request.headers.get('cookie')
-    console.log('Cookie header:', cookieHeader)
+    console.log('Cookie header present:', !!cookieHeader)
     
     let user = null
     let authError = null
@@ -58,9 +58,9 @@ export async function POST(request: NextRequest) {
     }
     
     console.log('API Auth check - User:', user ? 'Found' : 'Not found')
-    console.log('API Auth check - Error:', authError)
-    console.log('API Auth check - User ID:', user?.id)
-    console.log('API Auth check - User Email:', user?.email)
+    console.log('API Auth check - Error:', authError ? 'Present' : 'None')
+    console.log('API Auth check - User ID:', user?.id ? 'Present' : 'Missing')
+    console.log('API Auth check - User Email:', user?.email ? 'Present' : 'Missing')
     
     if (authError || !user) {
       console.log('Authentication failed in API route')

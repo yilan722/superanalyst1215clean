@@ -22,7 +22,10 @@ export class GeminiService {
 
   constructor() {
     // 使用Nuwa API Key调用Gemini Pro 2.5模型
-    this.apiKey = process.env.NEXT_PUBLIC_OPUS4_API_KEY || 'sk-88seMXjnLEzEYYD3ABw8G0Z70f7zoWbXXNhGRwu5jslCzFIR'
+    this.apiKey = process.env.NEXT_PUBLIC_OPUS4_API_KEY || process.env.OPUS4_API_KEY || ''
+    if (!this.apiKey) {
+      throw new Error('OPUS4_API_KEY environment variable is required')
+    }
     this.baseUrl = 'https://api.nuwaapi.com/v1/chat/completions'
     
     // 完全禁用初始化日志，减少控制台噪音
