@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { type Locale } from '@/lib/i18n'
 import { useAuthContext } from '@/lib/auth-context'
-import { supabase } from '@/lib/supabase-client'
+import { createClient } from '@/lib/supabase-server'
 import { FileText, Download, Eye, Calendar, Loader2, AlertCircle } from 'lucide-react'
 
 interface ReportsPageProps {
@@ -55,18 +55,21 @@ export default function ReportsPage({ params }: ReportsPageProps) {
     setIsLoading(true)
     setError(null)
     try {
-      const { data, error } = await supabase
-        .from('reports')
-        .select('*')
-        .eq('user_id', authUser?.id)
-        .order('created_at', { ascending: false })
+      console.log('🔍 开始获取报告，用户ID:', authUser?.id)
+      
+      // 使用API路由来获取报告，确保正确的认证
+      const response = await fetch(`/api/reports?userId=${authUser?.id}`)
+      const result = await response.json()
+      
+      console.log('📊 API响应结果:', result)
 
-      if (error) {
-        setError(error.message)
-        console.error('Error fetching reports:', error)
+      if (result.error) {
+        setError(result.error)
+        console.error('Error fetching reports:', result.error)
         setReports([])
       } else {
-        setReports(data || [])
+        console.log('✅ 成功获取报告，数量:', result.data?.length || 0)
+        setReports(result.data || [])
       }
     } catch (err) {
       setError(locale === 'zh' ? '加载报告失败' : 'Failed to load reports')
