@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { type Locale } from '@/lib/i18n'
 import { useAuthContext } from '@/lib/auth-context'
-import { createClient } from '@/lib/supabase-server'
+import { supabase } from '@/lib/supabase-client'
 import { FileText, Download, Eye, Calendar, Loader2, AlertCircle } from 'lucide-react'
 
 interface ReportsPageProps {
