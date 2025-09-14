@@ -15,7 +15,9 @@ interface ReportsPageProps {
 
 interface Report {
   id: string
-  title: string
+  title?: string
+  stock_name: string
+  stock_symbol: string
   created_at: string
   status?: string
   file_path?: string
@@ -145,7 +147,7 @@ export default function ReportsPage({ params }: ReportsPageProps) {
       // Create download link for existing file
       const link = document.createElement('a')
       link.href = report.file_path
-      link.download = `${report.title}.pdf`
+      link.download = `${report.stock_name}_${report.stock_symbol}_分析报告.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -156,7 +158,7 @@ export default function ReportsPage({ params }: ReportsPageProps) {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `${report.title}.html`
+      link.download = `${report.stock_name}_${report.stock_symbol}_分析报告.html`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -199,7 +201,7 @@ export default function ReportsPage({ params }: ReportsPageProps) {
     </style>
 </head>
 <body>
-    <h1>${report.title}</h1>
+    <h1>${report.stock_name} (${report.stock_symbol}) 分析报告</h1>
     <p><strong>${locale === 'zh' ? '生成时间' : 'Generated'}:</strong> ${formatDate(report.created_at)}</p>
     <hr>
     ${reportData.fundamentalAnalysis || ''}
@@ -263,7 +265,7 @@ export default function ReportsPage({ params }: ReportsPageProps) {
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg font-medium text-gray-900 truncate">
-                        {report.title}
+                        {report.stock_name} ({report.stock_symbol})
                       </h3>
                       <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
                         <div className="flex items-center">
