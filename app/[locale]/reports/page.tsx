@@ -17,7 +17,7 @@ interface Report {
   id: string
   title: string
   created_at: string
-  status: string
+  status?: string
   file_path?: string
 }
 
@@ -86,7 +86,7 @@ export default function ReportsPage({ params }: ReportsPageProps) {
     })
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | undefined) => {
     switch (status) {
       case 'completed':
         return 'text-green-600 bg-green-100'
@@ -94,12 +94,15 @@ export default function ReportsPage({ params }: ReportsPageProps) {
         return 'text-blue-600 bg-blue-100'
       case 'failed':
         return 'text-red-600 bg-red-100'
+      case undefined:
+      case null:
+        return 'text-green-600 bg-green-100' // 默认显示为已完成状态
       default:
-        return 'text-gray-600 bg-gray-100'
+        return 'text-green-600 bg-green-100' // 其他情况也显示为已完成状态
     }
   }
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: string | undefined) => {
     switch (status) {
       case 'completed':
         return locale === 'zh' ? '已完成' : 'Completed'
@@ -107,8 +110,11 @@ export default function ReportsPage({ params }: ReportsPageProps) {
         return locale === 'zh' ? '处理中' : 'Processing'
       case 'failed':
         return locale === 'zh' ? '失败' : 'Failed'
+      case undefined:
+      case null:
+        return locale === 'zh' ? '已完成' : 'Completed' // 默认显示为已完成
       default:
-        return locale === 'zh' ? '未知' : 'Unknown'
+        return locale === 'zh' ? '已完成' : 'Completed' // 其他情况也显示为已完成
     }
   }
 

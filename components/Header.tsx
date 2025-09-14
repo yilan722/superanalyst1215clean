@@ -9,22 +9,14 @@ import { getTranslation } from '../lib/translations'
 function SuperAnalystLogo() {
   return (
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-amber-600 rounded-xl flex items-center justify-center">
-            <svg 
-              width="24" 
-              height="24" 
-              viewBox="0 0 24 24" 
-              className="text-white"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              {/* Magnifying glass circle */}
-              <circle cx="9" cy="9" r="7"/>
-              
-              {/* Magnifying glass handle */}
-              <path d="M15 15 L20 20" strokeLinecap="round"/>
-            </svg>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden">
+            <img 
+              src="/logo.png?v=1"
+              alt="SuperAnalyst Logo"
+              className="w-full h-full object-contain"
+              onLoad={() => console.log('✅ Logo loaded successfully')}
+              onError={(e) => console.error('❌ Logo failed to load:', e)}
+            />
           </div>
           <div>
             <span className="text-xl font-bold text-white block">

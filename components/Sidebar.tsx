@@ -100,15 +100,15 @@ export default function Sidebar({
   return (
     <div className="w-64 bg-slate-900 border-r border-slate-700 min-h-screen flex flex-col">
       {/* Logo Section */}
-      <div className="p-6 border-b border-slate-700">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-white">SuperAnalyst</h1>
-            <p className="text-xs text-slate-400">Pro Equity Research</p>
-          </div>
+      <div className="p-2 border-b border-slate-700">
+        <div className="flex items-center justify-center">
+          <img 
+            src="/logo.png?v=10"
+            alt="SuperAnalyst Logo"
+            className="w-24 h-24 object-contain scale-[2.5]"
+            onLoad={() => console.log('✅ Sidebar Logo loaded successfully')}
+            onError={(e) => console.error('❌ Sidebar Logo failed to load:', e)}
+          />
         </div>
       </div>
 
@@ -170,12 +170,9 @@ export default function Sidebar({
               <p className="text-sm text-slate-400 mb-3">
                 {getTranslation(locale, 'loginPrompt')}
               </p>
-              <button
-                onClick={onLogin}
-                className="w-full px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium"
-              >
-                {getTranslation(locale, 'login')}
-              </button>
+              <p className="text-xs text-slate-500">
+                {locale === 'zh' ? '请使用右上角登录按钮' : 'Please use the login button in the top right'}
+              </p>
             </div>
           </div>
         )}
