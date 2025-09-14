@@ -56,6 +56,7 @@ export default function ReportsPage({ params }: ReportsPageProps) {
     setError(null)
     try {
       console.log('🔍 开始获取报告，用户ID:', authUser?.id)
+      console.log('🚀 使用API路由获取报告数据 - 最新版本')
       
       // 使用API路由来获取报告，确保正确的认证
       const response = await fetch(`/api/reports?userId=${authUser?.id}`)
