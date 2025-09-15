@@ -84,6 +84,35 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { title, company, symbol, summary, pdfPath } = body
     
+    const reportsDir = path.join(process.cwd(), 'reference-reports')
+    const todaysConfigPath = path.join(reportsDir, 'todays-report.json')
+    const historicalConfigPath = path.join(reportsDir, 'historical-reports.json')
+    
+    // 确保目录存在
+    if (!fs.existsSync(reportsDir)) {
+      fs.mkdirSync(reportsDir, { recursive: true })
+    }
+    
+    // 1. 将当前的今日报告移到历史记录中
+    if (fs.existsSync(todaysConfigPath)) {
+      const currentReportData = fs.readFileSync(todaysConfigPath, 'utf-8')
+      const currentReport = JSON.parse(currentReportData)
+      
+      // 读取历史报告
+      let historicalReports: TodaysReport[] = []
+      if (fs.existsSync(historicalConfigPath)) {
+        const historicalData = fs.readFileSync(historicalConfigPath, 'utf-8')
+        historicalReports = JSON.parse(historicalData)
+      }
+      
+      // 将当前报告添加到历史记录开头
+      historicalReports.unshift(currentReport)
+      
+      // 保存历史报告
+      fs.writeFileSync(historicalConfigPath, JSON.stringify(historicalReports, null, 2))
+    }
+    
+    // 2. 创建新的今日报告
     const todaysReport: TodaysReport = {
       id: `${symbol.toLowerCase()}-${new Date().toISOString().split('T')[0]}`,
       title,
@@ -95,16 +124,8 @@ export async function POST(request: NextRequest) {
       isPublic: true
     }
     
-    // 保存到配置文件
-    const reportsDir = path.join(process.cwd(), 'reference-reports')
-    const configPath = path.join(reportsDir, 'todays-report.json')
-    
-    // 确保目录存在
-    if (!fs.existsSync(reportsDir)) {
-      fs.mkdirSync(reportsDir, { recursive: true })
-    }
-    
-    fs.writeFileSync(configPath, JSON.stringify(todaysReport, null, 2))
+    // 3. 保存新的今日报告
+    fs.writeFileSync(todaysConfigPath, JSON.stringify(todaysReport, null, 2))
     
     return NextResponse.json({ success: true, data: todaysReport })
     

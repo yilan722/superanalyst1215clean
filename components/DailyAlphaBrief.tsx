@@ -35,6 +35,19 @@ interface TodaysReport {
   message?: string
 }
 
+interface HistoricalReport {
+  id: string
+  title: string
+  company: string
+  symbol: string
+  date: string
+  summary: string
+  pdfPath: string
+  isPublic: boolean
+  isPublicVersion?: boolean
+  message?: string
+}
+
 interface DailyAlphaBriefProps {
   locale: Locale
   user: any
@@ -46,10 +59,13 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
   const [selectedStock, setSelectedStock] = useState<HotStock | null>(null)
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [todaysReport, setTodaysReport] = useState<TodaysReport | null>(null)
+  const [historicalReports, setHistoricalReports] = useState<HistoricalReport[]>([])
   const [isLoadingReport, setIsLoadingReport] = useState(false)
+  const [isLoadingHistorical, setIsLoadingHistorical] = useState(false)
   const [showReportModal, setShowReportModal] = useState(false)
   const [showShareTool, setShowShareTool] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
+  const [showHistoricalReports, setShowHistoricalReports] = useState(false)
 
   // 模拟热门股票数据
   const mockHotStocks: HotStock[] = [
@@ -160,9 +176,29 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
     }
   }
 
+  // 获取历史报告
+  const fetchHistoricalReports = async () => {
+    setIsLoadingHistorical(true)
+    try {
+      const response = await fetch('/api/historical-reports')
+      const data = await response.json()
+      
+      if (data.success) {
+        setHistoricalReports(data.data)
+      } else {
+        console.error('Failed to fetch historical reports:', data.error)
+      }
+    } catch (error) {
+      console.error('Error fetching historical reports:', error)
+    } finally {
+      setIsLoadingHistorical(false)
+    }
+  }
+
   useEffect(() => {
     fetchHotStocks()
     fetchTodaysReport()
+    fetchHistoricalReports()
   }, [])
 
   const handleStockClick = (stock: HotStock) => {
@@ -369,6 +405,99 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Historical Reports */}
+      {historicalReports.length > 0 && (
+        <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800/50 dark:to-gray-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-gray-600 rounded-lg flex items-center justify-center">
+                <FileText className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                  {locale === 'zh' ? '历史研究报告' : 'Historical Research Reports'}
+                </h2>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  {locale === 'zh' ? '按时间顺序排列的过往报告' : 'Past reports in chronological order'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowHistoricalReports(!showHistoricalReports)}
+              className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm font-medium"
+            >
+              {showHistoricalReports 
+                ? (locale === 'zh' ? '收起' : 'Collapse') 
+                : (locale === 'zh' ? '展开' : 'Expand')
+              }
+            </button>
+          </div>
+          
+          {showHistoricalReports && (
+            <div className="space-y-3">
+              {historicalReports.map((report, index) => (
+                <div
+                  key={report.id}
+                  className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors cursor-pointer group"
+                  onClick={() => {
+                    // 下载历史报告
+                    const link = document.createElement('a')
+                    link.href = `/reference-reports/${report.pdfPath}`
+                    link.download = report.pdfPath
+                    document.body.appendChild(link)
+                    link.click()
+                    document.body.removeChild(link)
+                  }}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
+                        {report.title}
+                      </h3>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        {report.company} ({report.symbol})
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
+                      <Calendar className="w-3 h-3" />
+                      <span>{new Date(report.date).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}</span>
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
+                    {report.summary}
+                  </p>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
+                      <FileText className="w-3 h-3" />
+                      <span>PDF Report</span>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const link = document.createElement('a')
+                          link.href = `/reference-reports/${report.pdfPath}`
+                          link.download = report.pdfPath
+                          document.body.appendChild(link)
+                          link.click()
+                          document.body.removeChild(link)
+                        }}
+                        className="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm font-medium"
+                      >
+                        {locale === 'zh' ? '下载' : 'Download'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
