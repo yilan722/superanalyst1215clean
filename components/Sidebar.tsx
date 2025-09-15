@@ -100,12 +100,12 @@ export default function Sidebar({
   return (
     <div className="w-64 bg-slate-900 border-r border-slate-700 min-h-screen flex flex-col">
       {/* Logo Section */}
-      <div className="p-2 border-b border-slate-700">
+      <div className="p-4 border-b border-slate-700">
         <div className="flex items-center justify-center">
           <img 
-            src="/logo.png?v=10"
+            src="/logo.png?v=11"
             alt="SuperAnalyst Logo"
-            className="w-16 h-16 object-contain scale-[1.5]"
+            className="w-32 h-16 object-contain"
             onLoad={() => console.log('✅ Sidebar Logo loaded successfully')}
             onError={(e) => console.error('❌ Sidebar Logo failed to load:', e)}
           />
