@@ -180,16 +180,20 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
   const fetchHistoricalReports = async () => {
     setIsLoadingHistorical(true)
     try {
+      console.log('🔍 开始获取历史报告...')
       const response = await fetch('/api/historical-reports')
       const data = await response.json()
       
+      console.log('📊 历史报告API响应:', data)
+      
       if (data.success) {
         setHistoricalReports(data.data)
+        console.log('✅ 历史报告设置成功:', data.data)
       } else {
-        console.error('Failed to fetch historical reports:', data.error)
+        console.error('❌ 获取历史报告失败:', data.error)
       }
     } catch (error) {
-      console.error('Error fetching historical reports:', error)
+      console.error('❌ 获取历史报告错误:', error)
     } finally {
       setIsLoadingHistorical(false)
     }
@@ -409,6 +413,14 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
       )}
 
       {/* Historical Reports */}
+      {console.log('Historical reports:', historicalReports, 'Length:', historicalReports.length)}
+      {/* 调试信息 */}
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800 mb-4">
+        <p className="text-sm text-yellow-800 dark:text-yellow-200">
+          调试信息: 历史报告数量 = {historicalReports.length}, 加载状态 = {isLoadingHistorical ? '加载中' : '已完成'}
+        </p>
+      </div>
+      
       {historicalReports.length > 0 && (
         <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800/50 dark:to-gray-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between mb-4">
