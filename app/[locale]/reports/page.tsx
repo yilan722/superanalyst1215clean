@@ -236,9 +236,23 @@ export default function ReportsPage({ params }: ReportsPageProps) {
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-slate-800 mb-8">
-          {locale === 'zh' ? '报告中心' : 'Report Center'}
-        </h1>
+        {/* 返回按钮和标题 */}
+        <div className="flex items-center mb-8">
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center space-x-2 px-4 py-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors mr-4"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="text-sm font-medium">
+              {locale === 'zh' ? '返回' : 'Back'}
+            </span>
+          </button>
+          <h1 className="text-3xl font-bold text-slate-800">
+            {locale === 'zh' ? '报告中心' : 'Report Center'}
+          </h1>
+        </div>
 
         {/* Reports List */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">

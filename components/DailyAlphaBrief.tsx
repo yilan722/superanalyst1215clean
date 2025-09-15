@@ -66,6 +66,8 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
   const [showShareTool, setShowShareTool] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [showHistoricalReports, setShowHistoricalReports] = useState(false)
+  const [selectedHistoricalReport, setSelectedHistoricalReport] = useState<HistoricalReport | null>(null)
+  const [showHistoricalReportModal, setShowHistoricalReportModal] = useState(false)
 
   // 模拟热门股票数据
   const mockHotStocks: HotStock[] = [
@@ -219,6 +221,11 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
     if (todaysReport) {
       setShowReportModal(true)
     }
+  }
+
+  const handleHistoricalReportClick = (report: HistoricalReport) => {
+    setSelectedHistoricalReport(report)
+    setShowHistoricalReportModal(true)
   }
 
   const handleDownloadReport = async () => {
@@ -418,12 +425,6 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
       )}
 
       {/* Historical Reports */}
-      {/* 调试信息 */}
-      <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800 mb-4">
-        <p className="text-sm text-yellow-800 dark:text-yellow-200">
-          调试信息: 历史报告数量 = {historicalReports.length}, 加载状态 = {isLoadingHistorical ? '加载中' : '已完成'}
-        </p>
-      </div>
       
       {historicalReports.length > 0 && (
         <div className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800/50 dark:to-gray-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
@@ -458,15 +459,7 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
                 <div
                   key={report.id}
                   className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors cursor-pointer group"
-                  onClick={() => {
-                    // 下载历史报告
-                    const link = document.createElement('a')
-                    link.href = `/reference-reports/${report.pdfPath}`
-                    link.download = report.pdfPath
-                    document.body.appendChild(link)
-                    link.click()
-                    document.body.removeChild(link)
-                  }}
+                  onClick={() => handleHistoricalReportClick(report)}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
@@ -745,6 +738,147 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
                     </h3>
                     <button
                       onClick={handleDownloadReport}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span>{locale === 'zh' ? '下载完整版' : 'Download Full Report'}</span>
+                    </button>
+                  </div>
+                  
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 text-green-700 dark:text-green-300">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span className="font-medium">
+                        {locale === 'zh' ? '您已注册，可以查看完整报告内容' : 'You are registered and can view the full report content'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Historical Report Modal */}
+      {showHistoricalReportModal && selectedHistoricalReport && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Modal Header */}
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-gray-600 rounded-lg flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                      {selectedHistoricalReport.title}
+                    </h2>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      {selectedHistoricalReport.company} ({selectedHistoricalReport.symbol}) • {new Date(selectedHistoricalReport.date).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setShowShareTool(!showShareTool)}
+                    className="flex items-center space-x-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      {locale === 'zh' ? '分享' : 'Share'}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setShowAnalytics(!showAnalytics)}
+                    className="flex items-center space-x-1 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-md hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+                  >
+                    <BarChart3 className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      {locale === 'zh' ? '统计' : 'Analytics'}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setShowHistoricalReportModal(false)}
+                    className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Report Summary */}
+              <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 mb-6">
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                  {selectedHistoricalReport.summary}
+                </p>
+              </div>
+
+              {/* Access Control */}
+              {!user && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6">
+                  <div className="flex items-start space-x-3">
+                    <Lock className="w-6 h-6 text-amber-600 dark:text-amber-400 mt-1" />
+                    <div>
+                      <h4 className="text-lg font-semibold text-amber-900 dark:text-amber-100 mb-2">
+                        {locale === 'zh' ? '注册查看完整报告' : 'Register to View Full Report'}
+                      </h4>
+                      <p className="text-amber-700 dark:text-amber-300 mb-4">
+                        {locale === 'zh' 
+                          ? '完整报告包含详细的估值分析、投资建议和风险提示。注册后即可查看完整内容。'
+                          : 'Full report includes detailed valuation analysis, investment recommendations, and risk assessments. Register to access complete content.'
+                        }
+                      </p>
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => {
+                            // 这里可以添加注册逻辑
+                            toast.success(locale === 'zh' ? '请注册以查看完整报告' : 'Please register to view full report')
+                          }}
+                          className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                        >
+                          {locale === 'zh' ? '立即注册' : 'Register Now'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            const link = document.createElement('a')
+                            link.href = `/reference-reports/${selectedHistoricalReport.pdfPath}`
+                            link.download = selectedHistoricalReport.pdfPath
+                            document.body.appendChild(link)
+                            link.click()
+                            document.body.removeChild(link)
+                          }}
+                          className="px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
+                        >
+                          {locale === 'zh' ? '下载预览版' : 'Download Preview'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Full Access for Registered Users */}
+              {user && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                      {locale === 'zh' ? '完整报告' : 'Full Report'}
+                    </h3>
+                    <button
+                      onClick={() => {
+                        const link = document.createElement('a')
+                        link.href = `/reference-reports/${selectedHistoricalReport.pdfPath}`
+                        link.download = selectedHistoricalReport.pdfPath
+                        document.body.appendChild(link)
+                        link.click()
+                        document.body.removeChild(link)
+                      }}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
                     >
                       <FileText className="w-4 h-4" />
