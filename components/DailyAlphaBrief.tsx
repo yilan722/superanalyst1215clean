@@ -205,6 +205,11 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
     fetchHistoricalReports()
   }, [])
 
+  // 调试历史报告状态
+  useEffect(() => {
+    console.log('Historical reports updated:', historicalReports, 'Length:', historicalReports.length)
+  }, [historicalReports])
+
   const handleStockClick = (stock: HotStock) => {
     setSelectedStock(stock)
     setShowAnalysis(true)
@@ -413,7 +418,6 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
       )}
 
       {/* Historical Reports */}
-      {console.log('Historical reports:', historicalReports, 'Length:', historicalReports.length)}
       {/* 调试信息 */}
       <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800 mb-4">
         <p className="text-sm text-yellow-800 dark:text-yellow-200">
