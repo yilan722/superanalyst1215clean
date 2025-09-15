@@ -847,7 +847,7 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
                         <button
                           onClick={() => {
                             const link = document.createElement('a')
-                            link.href = `/reference-reports/${selectedHistoricalReport.pdfPath}`
+                            link.href = `/api/reference-reports/${selectedHistoricalReport.pdfPath}`
                             link.download = selectedHistoricalReport.pdfPath
                             document.body.appendChild(link)
                             link.click()
@@ -873,7 +873,7 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
                     <button
                       onClick={() => {
                         const link = document.createElement('a')
-                        link.href = `/reference-reports/${selectedHistoricalReport.pdfPath}`
+                        link.href = `/api/reference-reports/${selectedHistoricalReport.pdfPath}`
                         link.download = selectedHistoricalReport.pdfPath
                         document.body.appendChild(link)
                         link.click()

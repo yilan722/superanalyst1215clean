@@ -105,7 +105,7 @@ export default function Sidebar({
           <img 
             src="/logo.png?v=10"
             alt="SuperAnalyst Logo"
-            className="w-24 h-24 object-contain scale-[2.5]"
+            className="w-16 h-16 object-contain scale-[1.5]"
             onLoad={() => console.log('✅ Sidebar Logo loaded successfully')}
             onError={(e) => console.error('❌ Sidebar Logo failed to load:', e)}
           />
