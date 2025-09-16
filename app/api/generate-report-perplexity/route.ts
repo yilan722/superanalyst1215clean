@@ -371,10 +371,41 @@ function validateReportFormat(reportContent: any): any {
     } else {
       // 清理每个部分的内容
       reportContent[section] = cleanThinkingProcess(reportContent[section])
+      
+      // 确保每个部分只包含相关内容
+      reportContent[section] = ensureSectionContentIsolation(reportContent[section], section)
     }
   }
   
   return reportContent
+}
+
+// 确保每个部分内容隔离的函数
+function ensureSectionContentIsolation(content: string, sectionKey: string): string {
+  // 移除不属于当前部分的内容
+  const sectionKeywords = {
+    fundamentalAnalysis: ['基本面', '财务指标', 'ROE', 'ROA', 'P/E', 'P/B', '现金流', '营收', '净利润'],
+    businessSegments: ['业务板块', '收入结构', '区域分布', '市场份额', '产品线', '服务线'],
+    growthCatalysts: ['增长催化剂', '增长驱动', '市场机遇', '战略举措', '新产品', '市场扩张'],
+    valuationAnalysis: ['估值分析', 'DCF', '内在价值', '可比公司', '估值方法', '折现率']
+  }
+  
+  const keywords = sectionKeywords[sectionKey as keyof typeof sectionKeywords] || []
+  
+  // 如果内容过短或明显包含其他部分内容，进行清理
+  if (content.length < 200) {
+    console.warn(`⚠️ ${sectionKey} 内容过短，可能有问题`)
+  }
+  
+  // 移除明显的其他部分标题
+  const otherSections = ['Company Overview', 'Business Model', 'Data Center', 'Gaming Segment', 'Regional Revenue', 'Blackwell Platform']
+  for (const otherSection of otherSections) {
+    if (sectionKey !== 'fundamentalAnalysis' && content.includes(otherSection)) {
+      console.warn(`⚠️ ${sectionKey} 包含其他部分内容: ${otherSection}`)
+    }
+  }
+  
+  return content
 }
 
 function buildSystemPrompt(locale: string): string {
@@ -468,6 +499,21 @@ valuationAnalysis (估值分析) - 必须包含以下内容：
 - 绝对不要显示"Let me first analyze"等分析步骤
 - 绝对不要显示任何英文思考过程或推理步骤
 - 绝对不要显示任务分解过程或元信息
+
+**CRITICAL JSON FORMAT REQUIREMENT**:
+- 必须严格按照以下JSON格式返回，不能有任何其他文本：
+{
+  "fundamentalAnalysis": "HTML格式的基本面分析内容，只包含基本面相关内容...",
+  "businessSegments": "HTML格式的业务板块分析内容，只包含业务板块相关内容...",
+  "growthCatalysts": "HTML格式的增长催化剂内容，只包含增长驱动因素相关内容...",
+  "valuationAnalysis": "HTML格式的估值分析内容，只包含估值方法和DCF分析相关内容..."
+}
+
+**严格禁止**：
+- 不要在JSON外添加任何解释文字
+- 不要在每个部分中包含其他部分的内容
+- 不要显示思考过程或分析步骤
+- 确保每个部分内容独立且专业
 
 - 仅返回一个包含这四个部分的有效 JSON 对象，内容为 HTML 字符串。`
   } else {
