@@ -1,34 +1,9 @@
 import LanguageSwitcher from './LanguageSwitcher'
 import UserInfo from './UserInfo'
 import InsightRefineryButton from './InsightRefinery/InsightRefineryButton'
+import SuperAnalystLogo from './SuperAnalystLogo'
 import { type Locale } from '../lib/i18n'
 import { getTranslation } from '../lib/translations'
-
-
-// SuperAnalyst Logo Component
-function SuperAnalystLogo() {
-  return (
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden">
-            <img 
-              src="/logo.png?v=1"
-              alt="SuperAnalyst Logo"
-              className="w-full h-full object-contain"
-              onLoad={() => console.log('✅ Logo loaded successfully')}
-              onError={(e) => console.error('❌ Logo failed to load:', e)}
-            />
-          </div>
-          <div>
-            <span className="text-xl font-bold text-white block">
-              SuperAnalyst
-            </span>
-            <span className="text-sm text-gray-300 block">
-              Pro Equity Research
-            </span>
-          </div>
-        </div>
-  )
-}
 
 interface HeaderProps {
   locale: Locale
@@ -48,7 +23,7 @@ export default function Header({ locale, user, onLogout, onRefresh, onLogin, onO
         <div className="flex justify-between items-center py-4 h-16">
           {/* Left side - Logo */}
           <div className="flex items-center">
-            <SuperAnalystLogo />
+            <SuperAnalystLogo size="md" showSubtitle={true} />
           </div>
           
           {/* Right side - User actions */}

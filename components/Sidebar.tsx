@@ -4,6 +4,7 @@ import React from 'react'
 import { Home, TrendingUp, Brain, BarChart3, Settings, User } from 'lucide-react'
 import { type Locale } from '../lib/i18n'
 import { getTranslation } from '../lib/translations'
+import SuperAnalystLogo from './SuperAnalystLogo'
 import UserDropdown from './UserDropdown'
 
 interface SidebarProps {
@@ -102,13 +103,7 @@ export default function Sidebar({
       {/* Logo Section */}
       <div className="p-4 border-b border-slate-700">
         <div className="flex items-center justify-center">
-          <img 
-            src="/logo.png?v=11"
-            alt="SuperAnalyst Logo"
-            className="w-32 h-16 object-contain"
-            onLoad={() => console.log('✅ Sidebar Logo loaded successfully')}
-            onError={(e) => console.error('❌ Sidebar Logo failed to load:', e)}
-          />
+          <SuperAnalystLogo size="lg" showSubtitle={true} />
         </div>
       </div>
 
