@@ -6,6 +6,9 @@
   "functions": {
     "app/api/generate-report-perplexity/route.ts": {
       "maxDuration": 800
+    },
+    "app/api/generate-report-external/route.ts": {
+      "maxDuration": 300
     }
   },
   "headers": [
