@@ -234,22 +234,28 @@ export async function POST(request: NextRequest) {
         // 尝试解析JSON响应
         const responseText = data.choices?.[0]?.message?.content || data.text || data.content || ''
         
+        // 首先清理响应文本，移除思考过程
+        const cleanedResponse = cleanThinkingProcess(responseText)
+        
         // 首先尝试直接解析
         try {
-          reportContent = JSON.parse(responseText)
+          reportContent = JSON.parse(cleanedResponse)
+          // 验证报告内容格式
+          reportContent = validateReportFormat(reportContent)
         } catch (parseError) {
           // 如果直接解析失败，尝试提取JSON部分
-          const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+          const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/)
           if (jsonMatch) {
             try {
               reportContent = JSON.parse(jsonMatch[0])
+              reportContent = validateReportFormat(reportContent)
             } catch (secondParseError) {
               // 如果还是失败，使用自然语言解析
-              reportContent = parseNaturalLanguageReport(responseText, locale)
+              reportContent = parseNaturalLanguageReport(cleanedResponse, locale)
             }
           } else {
             // 如果没有找到JSON，使用自然语言解析
-            reportContent = parseNaturalLanguageReport(responseText, locale)
+            reportContent = parseNaturalLanguageReport(cleanedResponse, locale)
           }
         }
       } catch (parseError) {
@@ -257,7 +263,8 @@ export async function POST(request: NextRequest) {
         
         // 最后的备选方案：使用自然语言解析
         const responseText = data.choices?.[0]?.message?.content || data.text || data.content || ''
-        reportContent = parseNaturalLanguageReport(responseText, locale)
+        const cleanedResponse = cleanThinkingProcess(responseText)
+        reportContent = parseNaturalLanguageReport(cleanedResponse, locale)
       }
 
       console.log('✅ 报告生成成功!')
@@ -310,6 +317,64 @@ export async function POST(request: NextRequest) {
       responseTime: Date.now() - startTime
     }, { status: 500 })
   }
+}
+
+// 清理思考过程的函数
+function cleanThinkingProcess(content: string): string {
+  return content
+    // 移除常见的思考过程模式
+    .replace(/Each section needs:[\s\S]*?(?=\n|$)/g, '')
+    .replace(/Let me plan each section:[\s\S]*?(?=\n|$)/g, '')
+    .replace(/Looking at the comprehensive search results[\s\S]*?(?=\n|$)/g, '')
+    .replace(/The next thinking provides[\s\S]*?(?=\n|$)/g, '')
+    .replace(/I need to create a comprehensive valuation report[\s\S]*?(?=\n|$)/g, '')
+    .replace(/Let me first analyze[\s\S]*?(?=\n|$)/g, '')
+    .replace(/I'll incorporate these insights[\s\S]*?(?=\n|$)/g, '')
+    .replace(/Let me break down this analysis[\s\S]*?(?=\n|$)/g, '')
+    .replace(/I'll focus on[\s\S]*?(?=\n|$)/g, '')
+    .replace(/Based on the search results[\s\S]*?(?=\n|$)/g, '')
+    .replace(/From the search results[\s\S]*?(?=\n|$)/g, '')
+    .replace(/I can see that[\s\S]*?(?=\n|$)/g, '')
+    .replace(/Let me start with[\s\S]*?(?=\n|$)/g, '')
+    .replace(/I'll begin by[\s\S]*?(?=\n|$)/g, '')
+    .replace(/Now I'll[\s\S]*?(?=\n|$)/g, '')
+    .replace(/Next, I'll[\s\S]*?(?=\n|$)/g, '')
+    .replace(/Finally, I'll[\s\S]*?(?=\n|$)/g, '')
+    .replace(/^[\s]*Each section needs:[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*Let me plan[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*Looking at[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*I need to[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*Let me first[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*I'll incorporate[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*Let me break down[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*I'll focus on[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*Based on[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*From the[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*I can see[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*Let me start[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*I'll begin[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*Now I'll[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*Next, I'll[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*Finally, I'll[\s\S]*?(?=\n|$)/gm, '')
+    .trim()
+}
+
+// 验证报告格式的函数
+function validateReportFormat(reportContent: any): any {
+  const requiredSections = ['fundamentalAnalysis', 'businessSegments', 'growthCatalysts', 'valuationAnalysis']
+  
+  // 确保所有必需的部分都存在
+  for (const section of requiredSections) {
+    if (!reportContent[section] || typeof reportContent[section] !== 'string') {
+      console.warn(`⚠️ 缺少必需的部分: ${section}`)
+      reportContent[section] = `<h3>${section.replace(/([A-Z])/g, ' $1').trim()}</h3><p>此部分内容暂时无法获取，请稍后重试。</p>`
+    } else {
+      // 清理每个部分的内容
+      reportContent[section] = cleanThinkingProcess(reportContent[section])
+    }
+  }
+  
+  return reportContent
 }
 
 function buildSystemPrompt(locale: string): string {
@@ -396,6 +461,13 @@ valuationAnalysis (估值分析) - 必须包含以下内容：
 - 增长催化剂部分内容过于简单（必须详细分析增长驱动因素）
 - 估值分析部分内容过多（控制在合理范围内）
 - 任何部分内容为空或过于简短
+- 绝对不要显示任何思考过程或规划内容，如"Each section needs:"、"Let me plan each section:"等
+- 绝对不要显示"Looking at the comprehensive search results"等分析过程
+- 绝对不要显示"The next thinking provides"等思考内容
+- 绝对不要显示"I need to create a comprehensive valuation report"等任务描述
+- 绝对不要显示"Let me first analyze"等分析步骤
+- 绝对不要显示任何英文思考过程或推理步骤
+- 绝对不要显示任务分解过程或元信息
 
 - 仅返回一个包含这四个部分的有效 JSON 对象，内容为 HTML 字符串。`
   } else {
@@ -542,12 +614,26 @@ function parseNaturalLanguageReport(content: string, locale: string): any {
     .replace(/基于搜索结果和市场数据[\s\S]*?(?=```|$)/g, '')
     .replace(/我将重点关注BC技术的发展潜力[\s\S]*?(?=\n|$)/g, '')
     .replace(/通过分析搜索结果中的最新财务数据[\s\S]*?(?=\n|$)/g, '')
+    // 移除新的思考过程模式
+    .replace(/Each section needs:[\s\S]*?(?=\n|$)/g, '')
+    .replace(/Let me plan each section:[\s\S]*?(?=\n|$)/g, '')
+    .replace(/Looking at the comprehensive search results[\s\S]*?(?=\n|$)/g, '')
+    .replace(/The next thinking provides[\s\S]*?(?=\n|$)/g, '')
+    .replace(/I need to create a comprehensive valuation report[\s\S]*?(?=\n|$)/g, '')
+    .replace(/Let me first analyze[\s\S]*?(?=\n|$)/g, '')
+    .replace(/I'll incorporate these insights[\s\S]*?(?=\n|$)/g, '')
+    .replace(/Let me break down this analysis[\s\S]*?(?=\n|$)/g, '')
     // 移除思考内容开头的段落
     .replace(/^估值分析：[\s\S]*?(?=\n|$)/gm, '')
     .replace(/^[\s]*估值分析：[\s\S]*?(?=\n|$)/gm, '')
     .replace(/^[\s]*-[\s\S]*?(?=\n|$)/gm, '')
     .replace(/^[\s]*我将重点关注[\s\S]*?(?=\n|$)/gm, '')
     .replace(/^[\s]*通过分析搜索结果[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*Each section needs:[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*Let me plan[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*Looking at[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*I need to[\s\S]*?(?=\n|$)/gm, '')
+    .replace(/^[\s]*Let me first[\s\S]*?(?=\n|$)/gm, '')
     // 移除错误的JSON符号和格式
     .replace(/```json\s*\{/g, '')
     .replace(/^"[,\s]*$/gm, '')
@@ -678,6 +764,14 @@ function parseNaturalLanguageReport(content: string, locale: string): any {
             .replace(/^[\s]*基于搜索结果和市场数据[\s\S]*?(?=\n|$)/gm, '')
             .replace(/^[\s]*以下是基于最新数据的全面分析[\s\S]*?(?=\n|$)/gm, '')
             .replace(/^[\s]*重点关注公司的基本面改善[\s\S]*?(?=\n|$)/gm, '')
+            .replace(/^[\s]*Each section needs:[\s\S]*?(?=\n|$)/gm, '')
+            .replace(/^[\s]*Let me plan[\s\S]*?(?=\n|$)/gm, '')
+            .replace(/^[\s]*Looking at[\s\S]*?(?=\n|$)/gm, '')
+            .replace(/^[\s]*I need to[\s\S]*?(?=\n|$)/gm, '')
+            .replace(/^[\s]*Let me first[\s\S]*?(?=\n|$)/gm, '')
+            .replace(/^[\s]*The next thinking[\s\S]*?(?=\n|$)/gm, '')
+            .replace(/^[\s]*I'll incorporate[\s\S]*?(?=\n|$)/gm, '')
+            .replace(/^[\s]*Let me break down[\s\S]*?(?=\n|$)/gm, '')
             .trim()
         }
         

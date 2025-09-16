@@ -118,6 +118,11 @@ export async function POST(request: NextRequest) {
 - 所有估值数据基于真实计算，不使用模板数据
 - 每个表格必须包含完整的真实数据，不能有空行或缺失数据
 - 绝对不要显示<think>标签或任何思考过程
+- 绝对不要显示任何思考过程或规划内容，如"Each section needs:"、"Let me plan each section:"等
+- 绝对不要显示"Looking at the comprehensive search results"等分析过程
+- 绝对不要显示"The next thinking provides"等思考内容
+- 绝对不要显示"I need to create a comprehensive valuation report"等任务描述
+- 绝对不要显示"Let me first analyze"等分析步骤
 
 **CRITICAL**: 你必须直接返回一个有效的JSON对象，格式如下：
 {
