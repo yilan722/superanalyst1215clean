@@ -235,7 +235,19 @@ export async function POST(request: NextRequest) {
         const responseText = data.choices?.[0]?.message?.content || data.text || data.content || ''
         
         // 首先清理响应文本，移除思考过程
-        const cleanedResponse = cleanThinkingProcess(responseText)
+        let cleanedResponse = cleanThinkingProcess(responseText)
+        
+        // 强制检查JSON格式
+        if (!cleanedResponse.trim().startsWith('{') || !cleanedResponse.trim().endsWith('}')) {
+          console.warn('⚠️ 响应不是有效的JSON格式，尝试修复...')
+          // 尝试提取JSON部分
+          const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/)
+          if (jsonMatch) {
+            cleanedResponse = jsonMatch[0]
+          } else {
+            throw new Error('无法提取有效的JSON格式')
+          }
+        }
         
         // 首先尝试直接解析
         try {
@@ -462,7 +474,7 @@ valuationAnalysis (估值分析) - 必须包含以下内容：
 - 链接应该指向原始数据源，如：公司官网投资者关系页面、SEC EDGAR数据库、财报PDF、权威新闻网站等
 - 在表格中，每行数据都应该包含相应的数据来源链接
 
-📊 专业格式要求（参考300053_valuation_report_2025-09-03.pdf）：
+📊 专业格式要求（参考/Users/yilanliu/opus4modelvaluation/reference-reports/CoreWeave, Inc. (CRWV) - In-Depth Company Profile.pdf）
 - 使用专业的HTML样式，严格按照以下类名：'report-title', 'section-title', 'subsection-title', 'metric-table', 'highlight-box', 'positive', 'negative', 'neutral', 'recommendation-buy', 'recommendation-sell', 'recommendation-hold'
 - 报告标题使用大标题格式：<h1>公司名称 (股票代码) 估值分析报告</h1>
 - 重要：不要在每个部分开头添加主要章节标题（如"1. 基本面分析"），这些标题会在PDF模板中自动添加
@@ -509,11 +521,21 @@ valuationAnalysis (估值分析) - 必须包含以下内容：
   "valuationAnalysis": "HTML格式的估值分析内容，只包含估值方法和DCF分析相关内容..."
 }
 
+**MANDATORY REQUIREMENTS**:
+- 每个部分必须包含至少500字的内容
+- 每个部分必须包含2-3个专业数据表格
+- 每个部分内容必须独立，不能重复其他部分的内容
+- 基本面分析：只包含公司概览、财务指标、业绩分析
+- 业务板块：只包含收入结构、区域分布、市场份额分析
+- 增长催化剂：只包含增长驱动因素、战略举措、市场机会
+- 估值分析：只包含DCF分析、可比公司分析、估值方法
+
 **严格禁止**：
 - 不要在JSON外添加任何解释文字
 - 不要在每个部分中包含其他部分的内容
 - 不要显示思考过程或分析步骤
-- 确保每个部分内容独立且专业
+- 绝对不要把所有内容都放在最后一个部分
+- 不要生成混合内容的报告
 
 - 仅返回一个包含这四个部分的有效 JSON 对象，内容为 HTML 字符串。`
   } else {
@@ -643,7 +665,7 @@ function parseNaturalLanguageReport(content: string, locale: string): any {
     if (jsonContent.startsWith('{')) {
       const parsed = JSON.parse(jsonContent)
       console.log('✅ 成功解析JSON格式')
-      return parsed
+      return validateReportFormat(parsed)
     }
   } catch (error) {
     console.log('⚠️ JSON解析失败，尝试自然语言解析')
