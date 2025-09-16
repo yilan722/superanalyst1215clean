@@ -409,23 +409,33 @@ export async function canGenerateReport(userId: string): Promise<{ canGenerate: 
     if (profile.subscription_type && profile.subscription_end) {
       const endDate = new Date(profile.subscription_end)
       if (endDate > new Date()) {
-        const reportsUsedThisMonth = profile.paid_reports_used
-        if (reportsUsedThisMonth < profile.monthly_report_limit) {
-          console.log('✅ 订阅报告可用')
+        const reportsUsedThisMonth = profile.paid_reports_used || 0
+        const monthlyLimit = profile.monthly_report_limit || 0
+        const remainingReports = monthlyLimit - reportsUsedThisMonth
+        
+        console.log('📊 订阅状态检查:', {
+          monthlyLimit,
+          reportsUsedThisMonth,
+          remainingReports,
+          subscriptionType: profile.subscription_type
+        })
+        
+        if (reportsUsedThisMonth < monthlyLimit) {
+          console.log('✅ 订阅报告可用，剩余:', remainingReports)
           return { 
-          canGenerate: true, 
-          reason: '订阅报告可用',
-          remainingReports: profile.monthly_report_limit - reportsUsedThisMonth,
-          needsSubscription: false
-        }
+            canGenerate: true, 
+            reason: '订阅报告可用',
+            remainingReports: remainingReports,
+            needsSubscription: false
+          }
         } else {
           console.log('❌ 月度报告限额已用完')
           return { 
-          canGenerate: false, 
-          reason: '月度报告限额已用完，请等待下月重置或升级订阅',
-          remainingReports: 0,
-          needsSubscription: true
-        }
+            canGenerate: false, 
+            reason: '月度报告限额已用完，请等待下月重置或升级订阅',
+            remainingReports: 0,
+            needsSubscription: true
+          }
         }
       }
     }

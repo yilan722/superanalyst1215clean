@@ -161,9 +161,9 @@ export async function POST(request: NextRequest) {
     
     console.log('📤 发送完整Perplexity API请求...')
     
-    // 使用较短的超时时间，但通过外部服务处理
+    // 使用较长的超时时间，确保报告生成完成
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 8000) // 8秒超时
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30秒超时
     
     try {
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
