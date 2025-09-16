@@ -195,8 +195,8 @@ export default function HomePage({ params }: PageProps) {
 
     try {
       console.log('📡 发送生成报告请求...')
-      // 使用完整的报告生成API，支持sonar-deep-research模型（Railway无超时限制）
-      const response = await fetch('/api/generate-report-perplexity', {
+      // 使用外部报告生成API，快速响应（8秒超时）
+      const response = await fetch('/api/generate-report-external', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -204,7 +204,7 @@ export default function HomePage({ params }: PageProps) {
         },
         body: JSON.stringify({
           stockData: stockData, // 发送完整的股票数据对象
-          userId: currentUser.id,
+          userId: currentUser.id, // 用户ID用于认证
           locale: params.locale, // 传递语言参数
         }),
       })

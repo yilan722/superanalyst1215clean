@@ -10,8 +10,22 @@ export async function POST(request: NextRequest) {
     console.log('🚀 开始外部报告生成...')
     
     // 获取请求数据
-    const { stockData, locale = 'zh' } = await request.json()
+    const { stockData, userId, locale = 'zh' } = await request.json()
     console.log('📊 股票数据:', stockData)
+    console.log('👤 用户ID:', userId)
+    
+    // 检查用户认证
+    if (!userId) {
+      return NextResponse.json({
+        error: '用户未认证',
+        details: '需要用户ID才能生成报告',
+        timestamp: new Date().toISOString()
+      }, { status: 401 })
+    }
+    
+    // 检查用户权限（简化版本，不依赖数据库）
+    // 注意：这里简化了权限检查，实际使用时可能需要完整的权限验证
+    console.log('✅ 用户认证通过，继续生成报告...')
     
     // 检查环境变量
     const perplexityApiKey = process.env.PERPLEXITY_API_KEY
