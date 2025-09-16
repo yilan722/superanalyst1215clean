@@ -195,8 +195,8 @@ export default function HomePage({ params }: PageProps) {
 
     try {
       console.log('📡 发送生成报告请求...')
-      // 使用外部报告生成API，快速响应（8秒超时）
-      const response = await fetch('/api/generate-report-external', {
+      // 使用完整的报告生成API，支持sonar-deep-research模型（Vercel Pro 800秒超时）
+      const response = await fetch('/api/generate-report-perplexity', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
