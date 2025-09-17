@@ -9,6 +9,18 @@
     },
     "app/api/generate-report-external/route.ts": {
       "maxDuration": 300
+    },
+    "app/api/recalculate-dcf/route.ts": {
+      "maxDuration": 300
+    },
+    "app/api/translate/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/todays-report/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/historical-reports/route.ts": {
+      "maxDuration": 30
     }
   },
   "headers": [
