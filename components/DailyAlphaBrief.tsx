@@ -6,7 +6,35 @@ import { type Locale } from '../lib/i18n'
 import { getTranslation } from '../lib/translations'
 import toast from 'react-hot-toast'
 import LinkedInShareTool from './LinkedInShareTool'
+import ShareTool from './ShareTool'
 import ShareAnalytics from './ShareAnalytics'
+
+// 翻译函数
+const translateContent = async (text: string, targetLang: string): Promise<string> => {
+  if (targetLang === 'zh') return text // 如果是中文，直接返回
+  
+  try {
+    const response = await fetch('/api/translate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: text,
+        targetLang: targetLang
+      })
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      return data.translatedText || text
+    }
+  } catch (error) {
+    console.error('Translation error:', error)
+  }
+  
+  return text // 如果翻译失败，返回原文
+}
 
 interface HotStock {
   symbol: string
@@ -68,6 +96,8 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
   const [showHistoricalReports, setShowHistoricalReports] = useState(false)
   const [selectedHistoricalReport, setSelectedHistoricalReport] = useState<HistoricalReport | null>(null)
   const [showHistoricalReportModal, setShowHistoricalReportModal] = useState(false)
+  const [translatedTodaysReport, setTranslatedTodaysReport] = useState<TodaysReport | null>(null)
+  const [isTranslating, setIsTranslating] = useState(false)
 
   // 模拟热门股票数据
   const mockHotStocks: HotStock[] = [
@@ -170,11 +200,39 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
       
       if (data.success) {
         setTodaysReport(data.data)
+        // 如果是英文版本，需要翻译内容
+        if (locale === 'en') {
+          await translateTodaysReport(data.data)
+        } else {
+          setTranslatedTodaysReport(data.data)
+        }
       }
     } catch (error) {
       console.error('Error fetching today\'s report:', error)
     } finally {
       setIsLoadingReport(false)
+    }
+  }
+
+  // 翻译今日报告
+  const translateTodaysReport = async (report: TodaysReport) => {
+    setIsTranslating(true)
+    try {
+      const translatedTitle = await translateContent(report.title, 'en')
+      const translatedCompany = await translateContent(report.company, 'en')
+      const translatedSummary = await translateContent(report.summary, 'en')
+      
+      setTranslatedTodaysReport({
+        ...report,
+        title: translatedTitle,
+        company: translatedCompany,
+        summary: translatedSummary
+      })
+    } catch (error) {
+      console.error('Translation error:', error)
+      setTranslatedTodaysReport(report) // 如果翻译失败，使用原文
+    } finally {
+      setIsTranslating(false)
     }
   }
 
@@ -315,7 +373,7 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
       </div>
 
       {/* Today's Must-Read Report */}
-      {todaysReport && (
+      {(translatedTodaysReport || todaysReport) && (
         <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-800">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center space-x-3">
@@ -368,10 +426,10 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
             <div className="flex items-start justify-between mb-3">
               <div>
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                  {todaysReport.title}
+                  {(translatedTodaysReport || todaysReport)?.title}
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  {todaysReport.company} ({todaysReport.symbol})
+                  {(translatedTodaysReport || todaysReport)?.company} ({(translatedTodaysReport || todaysReport)?.symbol})
                 </p>
               </div>
               <div className="flex items-center space-x-2">
@@ -381,14 +439,19 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
             </div>
             
             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
-              {todaysReport.summary}
+              {(translatedTodaysReport || todaysReport)?.summary}
+              {isTranslating && (
+                <span className="text-xs text-amber-600 ml-2">
+                  {locale === 'zh' ? '翻译中...' : 'Translating...'}
+                </span>
+              )}
             </p>
             
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4 text-xs text-slate-500 dark:text-slate-400">
                 <div className="flex items-center space-x-1">
                   <Calendar className="w-3 h-3" />
-                  <span>{new Date(todaysReport.date).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}</span>
+                  <span>{new Date((translatedTodaysReport || todaysReport)?.date || '').toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <FileText className="w-3 h-3" />
@@ -510,14 +573,14 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
         </div>
       )}
 
-      {/* LinkedIn Share Tool */}
-      {showShareTool && todaysReport && (
+      {/* Share Tool */}
+      {showShareTool && (translatedTodaysReport || todaysReport) && (
         <div className="mb-6">
-          <LinkedInShareTool
-            reportId={todaysReport.id}
-            reportTitle={todaysReport.title}
-            company={todaysReport.company}
-            symbol={todaysReport.symbol}
+          <ShareTool
+            reportId={(translatedTodaysReport || todaysReport)?.id || ''}
+            reportTitle={(translatedTodaysReport || todaysReport)?.title || ''}
+            company={(translatedTodaysReport || todaysReport)?.company || ''}
+            symbol={(translatedTodaysReport || todaysReport)?.symbol || ''}
             locale={locale}
           />
         </div>
@@ -659,17 +722,17 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
       )}
 
       {/* Today's Report Modal */}
-      {showReportModal && todaysReport && (
+      {showReportModal && (translatedTodaysReport || todaysReport) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
             <div className="p-6 border-b border-slate-200 dark:border-slate-700">
               <div className="flex justify-between items-start">
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                    {todaysReport.title}
+                    {(translatedTodaysReport || todaysReport)?.title}
                   </h2>
                   <p className="text-slate-600 dark:text-slate-400">
-                    {todaysReport.company} ({todaysReport.symbol}) • {new Date(todaysReport.date).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}
+                    {(translatedTodaysReport || todaysReport)?.company} ({(translatedTodaysReport || todaysReport)?.symbol}) • {new Date((translatedTodaysReport || todaysReport)?.date || '').toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}
                   </p>
                 </div>
                 <button
@@ -688,7 +751,7 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
                   {locale === 'zh' ? '报告摘要' : 'Report Summary'}
                 </h3>
                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                  {todaysReport.summary}
+                  {(translatedTodaysReport || todaysReport)?.summary}
                 </p>
               </div>
 
