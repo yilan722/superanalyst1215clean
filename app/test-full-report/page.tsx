@@ -51,7 +51,6 @@ export default function TestFullReportPage() {
         </tr>
       </table>
     `,
-    conclusion: '...',
     // 模拟consensus数据
     consensusData: {
       revenueGrowth: { "2025": 0.18, "2026": 0.15, "2027": 0.12 },
