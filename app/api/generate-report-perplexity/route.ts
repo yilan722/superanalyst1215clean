@@ -130,12 +130,13 @@ export async function POST(request: NextRequest) {
           }
         ],
         max_tokens: 15000,
-        temperature: 0.05,
+        temperature: 0.0, // 设置为0确保输出一致性
         search_queries: true,
         search_recency_filter: 'month',
         return_citations: true,
-        top_p: 0.9,
-        presence_penalty: 0.15
+        top_p: 0.1, // 降低top_p减少随机性
+        presence_penalty: 0.0, // 移除presence_penalty
+        frequency_penalty: 0.0 // 添加frequency_penalty控制重复
       }
 
       console.log('📤 发送Perplexity Sonar Deep Research API请求...')
@@ -397,22 +398,47 @@ function cleanThinkingProcess(content: string): string {
 
 // 验证报告格式的函数
 function validateReportFormat(reportContent: any): any {
-  const requiredSections = ['fundamentalAnalysis', 'businessSegments', 'growthCatalysts', 'valuationAnalysis']
+  console.log('🔍 开始验证报告格式...')
   
-  // 确保所有必需的部分都存在
+  // 检查必需的四个部分
+  const requiredSections = ['fundamentalAnalysis', 'businessSegments', 'growthCatalysts', 'valuationAnalysis']
   for (const section of requiredSections) {
-    if (!reportContent[section] || typeof reportContent[section] !== 'string') {
-      console.warn(`⚠️ 缺少必需的部分: ${section}`)
-      reportContent[section] = `<h3>${section.replace(/([A-Z])/g, ' $1').trim()}</h3><p>此部分内容暂时无法获取，请稍后重试。</p>`
-    } else {
-      // 清理每个部分的内容
-      reportContent[section] = cleanThinkingProcess(reportContent[section])
-      
-      // 确保每个部分只包含相关内容
-      reportContent[section] = ensureSectionContentIsolation(reportContent[section], section)
+    if (!reportContent[section]) {
+      console.error(`❌ 缺少必需的部分: ${section}`)
+      throw new Error(`Missing required section: ${section}`)
     }
   }
   
+  // 验证每个部分的格式
+  for (const section of requiredSections) {
+    const content = reportContent[section]
+    if (typeof content !== 'string') {
+      console.error(`❌ 部分内容格式错误: ${section}`)
+      throw new Error(`Invalid content format for section: ${section}`)
+    }
+    
+    // 检查表格数量（每个部分应该恰好3个表格）
+    const tableMatches = content.match(/<table class="metric-table">/g)
+    const tableCount = tableMatches ? tableMatches.length : 0
+    if (tableCount !== 3) {
+      console.warn(`⚠️ 部分 ${section} 表格数量不正确: ${tableCount}/3`)
+    }
+    
+    // 检查图表数量（每个部分应该恰好3个图表）
+    const chartMatches = content.match(/<div class="chart-container">/g)
+    const chartCount = chartMatches ? chartMatches.length : 0
+    if (chartCount !== 3) {
+      console.warn(`⚠️ 部分 ${section} 图表数量不正确: ${chartCount}/3`)
+    }
+    
+    // 检查内容长度（每个部分最少500字）
+    const textContent = content.replace(/<[^>]*>/g, '').trim()
+    if (textContent.length < 500) {
+      console.warn(`⚠️ 部分 ${section} 内容过短: ${textContent.length}/500`)
+    }
+  }
+  
+  console.log('✅ 报告格式验证完成')
   return reportContent
 }
 
@@ -459,6 +485,25 @@ fundamentalAnalysis (基本面分析) - 必须包含以下内容：
 - 营收增长、利润率、现金流分析（必须包含历史趋势和预测）
 - 行业地位和竞争优势（必须包含市场份额、竞争格局分析）
 - 必须包含3个数据表格：核心财务指标表、业绩对比表、行业对比表
+- 每个表格必须使用标准HTML格式，参考以下示例：
+  <table class="metric-table">
+    <thead>
+      <tr>
+        <th>指标</th>
+        <th>当前值</th>
+        <th>去年同期</th>
+        <th>变化</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>营收</td>
+        <td>$1.21B</td>
+        <td>$0.39B</td>
+        <td class="positive">+207%</td>
+      </tr>
+    </tbody>
+  </table>
 
 businessSegments (业务板块) - 必须包含以下内容：
 - 按业务板块划分的详细收入明细（必须包含具体数字和百分比）
@@ -467,7 +512,26 @@ businessSegments (业务板块) - 必须包含以下内容：
 - 按业务板块划分的市场份额分析（必须包含竞争对手对比）
 - 业务板块盈利能力和利润率（必须包含毛利率、净利率对比）
 - 未来业务板块增长预测（必须包含具体预测数据）
-- 必须包含2-3个数据表格：收入结构表、业务板块表现表、区域分布表
+- 必须包含3个数据表格：收入结构表、业务板块表现表、区域分布表
+- 每个表格必须使用标准HTML格式，参考以下示例：
+  <table class="metric-table">
+    <thead>
+      <tr>
+        <th>业务板块</th>
+        <th>收入占比</th>
+        <th>主要客户</th>
+        <th>增长率</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>超大规模客户</td>
+        <td>~65%</td>
+        <td>Microsoft, Google</td>
+        <td class="positive">高</td>
+      </tr>
+    </tbody>
+  </table>
 
 growthCatalysts (增长催化剂) - 必须包含以下内容：
 - 主要增长驱动因素和市场机遇（必须包含具体市场数据和机会量化）
@@ -478,6 +542,25 @@ growthCatalysts (增长催化剂) - 必须包含以下内容：
 - 监管利好或利空（必须包含具体政策影响分析）
 - 竞争优势和护城河（必须包含具体竞争优势分析）
 - 必须包含3个数据表格：增长催化剂影响表、新产品时间表、和可比公司对比的关键数据表
+- 每个表格必须使用标准HTML格式，参考以下示例：
+  <table class="metric-table">
+    <thead>
+      <tr>
+        <th>市场细分</th>
+        <th>市场规模(2025E)</th>
+        <th>增长率</th>
+        <th>CoreWeave机会</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>AI训练基础设施</td>
+        <td>$45B</td>
+        <td class="positive">35%</td>
+        <td>大市场份额</td>
+      </tr>
+    </tbody>
+  </table>
 
 valuationAnalysis (估值分析) - 必须包含以下内容：
 - DCF (现金流折现) 分析及详细假设（必须包含关键假设和计算结果）
@@ -486,6 +569,27 @@ valuationAnalysis (估值分析) - 必须包含以下内容：
 - 估值综合与关键发现（避免直接投资建议，只陈述分析发现）
 - 主要风险和缓解因素（必须包含关键风险识别和应对措施）
 - 必须包含3个数据表格：DCF估值表、可比公司估值表、内在价值汇总表
+- 每个表格必须使用标准HTML格式，参考以下示例：
+  <table class="metric-table">
+    <thead>
+      <tr>
+        <th>DCF假设</th>
+        <th>2025E</th>
+        <th>2026E</th>
+        <th>2027E</th>
+        <th>终端</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>收入增长率</td>
+        <td class="positive">170%</td>
+        <td class="positive">60%</td>
+        <td class="positive">45%</td>
+        <td>3-4%</td>
+      </tr>
+    </tbody>
+  </table>
 
 🔑 核心要求：
 - 使用最新的财务数据（比如今天是2025年9月5号，应该搜索2024年年报和2025年Q1,Q2的财报）；搜索最新相关信息，进行对估值变化的深度分析
@@ -500,6 +604,10 @@ valuationAnalysis (估值分析) - 必须包含以下内容：
 
 📊 专业格式要求（参考/Users/yilanliu/opus4modelvaluation/reference-reports/CoreWeave, Inc. (CRWV) - In-Depth Company Profile.pdf）
 - 使用专业的HTML样式，严格按照以下类名：'report-title', 'section-title', 'subsection-title', 'metric-table', 'highlight-box', 'positive', 'negative', 'neutral', 'recommendation-buy', 'recommendation-sell', 'recommendation-hold'
+- 重要：在表格中必须使用正确的CSS类名：
+  - 正面数据使用 class="positive"（绿色）
+  - 负面数据使用 class="negative"（红色）
+  - 中性数据使用 class="neutral"（灰色）
 - 报告标题使用大标题格式：<h1>公司名称 (股票代码) 估值分析报告</h1>
 - 重要：不要在每个部分开头添加主要章节标题（如"1. 基本面分析"），这些标题会在PDF模板中自动添加
 - 子部分使用三级标题：<h3>1.1 公司概况</h3>
@@ -512,7 +620,19 @@ valuationAnalysis (估值分析) - 必须包含以下内容：
 📋 内容结构要求：
 - 确保 JSON 格式正确且有效
 - 每个部分都应全面且详细 (每个部分最少 500 字)
-- 每个部分必须包含至少2-3个数据表格来支撑分析
+- 每个部分必须包含恰好3个数据表格来支撑分析
+- 每个部分还必须包含3个图表，使用以下HTML格式：
+  <div class="chart-container">
+    <h4>图表标题</h4>
+    <div class="chart-placeholder">
+      <p>图表描述：这里应该包含具体的图表数据和分析</p>
+      <ul>
+        <li>数据点1：具体数值和趋势</li>
+        <li>数据点2：具体数值和趋势</li>
+        <li>数据点3：具体数值和趋势</li>
+      </ul>
+    </div>
+  </div>
 - 所有表格数据必须与文字分析内容相匹配，不能出现矛盾
 - 绝对不要显示任何英文思考过程或推理步骤
 

@@ -1,0 +1,22 @@
+{
+  "lockedAt": "2025-09-19T08:49:06.406Z",
+  "lockedBy": "AI Assistant",
+  "version": "1.0",
+  "description": "报告格式已锁定，禁止修改",
+  "lockedValues": {
+    "tablesPerSection": 3,
+    "chartsPerSection": 3,
+    "minContentLength": 500,
+    "requiredSections": [
+      "fundamentalAnalysis",
+      "businessSegments",
+      "growthCatalysts",
+      "valuationAnalysis"
+    ]
+  },
+  "lockedFiles": [
+    "app/api/generate-report-perplexity/route.ts",
+    "REPORT_FORMAT_STANDARD.md",
+    "scripts/test-report-format.js"
+  ]
+}

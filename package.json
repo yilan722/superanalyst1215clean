@@ -8,7 +8,13 @@
     "build": "next build",
     "build:cloudflare": "node build-cloudflare.js",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "format:test": "node scripts/test-report-format.js",
+    "format:lock": "node scripts/format-lock.js lock",
+    "format:check": "node scripts/format-lock.js check",
+    "format:monitor": "node scripts/format-monitor.js monitor",
+    "format:scan": "node scripts/format-monitor.js scan",
+    "format:consistency": "node scripts/test-format-consistency.js"
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",
