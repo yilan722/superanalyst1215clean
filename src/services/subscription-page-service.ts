@@ -131,8 +131,10 @@ export class SubscriptionPageService {
     }
     
     // Get monthly report limit from subscription_tiers table (only if subscription is active)
-    const monthlyReportLimit = isSubscriptionActive ? (subscriptionTier?.monthly_report_limit || 0) : 0
     
+    const monthlyReportLimit = subscriptionTier?.monthly_report_limit || 0
+
+    console.log('monthly', subscriptionTier?.monthly_report_limit)
     const paidReportsUsed = userData?.paid_reports_used || 0
     const freeReportsUsed = userData?.free_reports_used || 0
     const totalReportsUsed = paidReportsUsed + freeReportsUsed
@@ -147,7 +149,7 @@ export class SubscriptionPageService {
       : (freeReportsUsed / 1) * 100 // Free users: percentage of 1 report used
 
     return {
-      isSubscriptionActive,
+      isSubscriptionActive: isSubscriptionActive || false,
       monthlyReportLimit,
       paidReportsUsed,
       freeReportsUsed,

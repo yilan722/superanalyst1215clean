@@ -150,18 +150,22 @@ export default function UserInfo({ user, onLogout, onRefresh, onLogin, onOpenSub
   const subscriptionStatus = getSubscriptionStatus()
   const remainingReports = getRemainingReports()
 
-  const getSubscriptionTypeDisplayName = (subscriptionType: string) => {
+  const getSubscriptionTypeDisplayName = (subscriptionType: number | undefined) => {
+    if (!subscriptionType) return '免费用户'
+    
     switch (subscriptionType) {
-      case 'single_report':
-        return '单篇报告'
-      case 'monthly_30':
-        return '月度订阅 (30篇)'
-      case 'monthly_70':
-        return '高级订阅 (70篇)'
-      case 'premium_300':
-        return '专业版 (300篇)'
+      case 1:
+        return '免费用户'
+      case 2:
+        return '基础版'
+      case 3:
+        return '专业版'
+      case 4:
+        return '企业版'
+      case 5:
+        return '企业高级版'
       default:
-        return subscriptionType
+        return `订阅层级 ${subscriptionType}`
     }
   }
 

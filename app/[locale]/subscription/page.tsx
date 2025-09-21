@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { type Locale } from '@/src/services/i18n'
 import { getTranslation } from '@/src/services/translations'
 import { useAuthContext } from '@/src/services/auth-context'
-import { SubscriptionPageService, type UserSubscriptionData, type SubscriptionStatus, type SubscriptionMetrics } from '@/src/services/subscription-page-service'
+import { SubscriptionPageService, type SubscriptionStatus, type SubscriptionMetrics } from '@/src/services/subscription-page-service'
+import { type UserWithSubscription } from '@/src/services/database/user-service'
 import { CreditCard, Check, X, Loader2, AlertCircle, Zap, Star, Crown, TrendingUp, FileText, Clock, Headphones, Users, Wrench } from 'lucide-react'
 
 interface SubscriptionPageProps {
@@ -18,7 +19,7 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
   const { locale } = params
   const router = useRouter()
   const { user: authUser, loading: authLoading } = useAuthContext()
-  const [userData, setUserData] = useState<UserSubscriptionData | null>(null)
+  const [userData, setUserData] = useState<UserWithSubscription | null>(null)
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null)
   const [subscriptionMetrics, setSubscriptionMetrics] = useState<SubscriptionMetrics | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -151,7 +152,7 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
         'AI-Driven Deep Analysis',
         'Real-time Market Data'
       ],
-      isCurrent: userData?.subscription_type === 'free' || !userData?.subscription_type,
+      isCurrent: !userData?.subscription_id || userData?.subscription_tiers?.name?.toLowerCase() === 'free',
       color: 'slate'
     },
     {
@@ -169,7 +170,7 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
         'AI-Driven Deep Analysis',
         'Real-time Market Data'
       ],
-      isCurrent: userData?.subscription_type === 'basic',
+      isCurrent: userData?.subscription_tiers?.name?.toLowerCase() === 'basic',
       color: 'blue'
     },
     {
@@ -188,7 +189,7 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
         'Real-time Market Data',
         'Priority Customer Support'
       ],
-      isCurrent: userData?.subscription_type === 'professional',
+      isCurrent: userData?.subscription_tiers?.name?.toLowerCase() === 'pro',
       color: 'purple',
       isBestValue: true
     },
@@ -209,7 +210,7 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
         'Priority Customer Support',
         'API Access / Dedicated Account Manager'
       ],
-      isCurrent: userData?.subscription_type === 'business',
+      isCurrent: userData?.subscription_tiers?.name?.toLowerCase() === 'business',
       color: 'amber'
     },
     {
@@ -230,7 +231,7 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
         'API Access / Dedicated Account Manager',
         'Technical Analysis VIP Consulting'
       ],
-      isCurrent: userData?.subscription_type === 'enterprise',
+      isCurrent: userData?.subscription_tiers?.name?.toLowerCase() === 'enterprise',
       color: 'emerald',
       isCustom: true
     }
