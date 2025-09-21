@@ -3,8 +3,9 @@
  * Handles subscription tier management and user subscription logic
  */
 
-import { supabase } from '../../service/supabase'
+
 import { SubscriptionTier, TierName, UserSubscriptionInfo, SubscriptionFeatures } from '@/src/types/subscription'
+import { supabase } from './supabase-client'
 
 export class SubscriptionService {
   /**

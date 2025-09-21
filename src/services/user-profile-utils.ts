@@ -215,7 +215,7 @@ export async function incrementUserReportUsage(
     const { error } = await supabase
       .from('users')
       .update({
-        [updateField]: supabase.raw(`${updateField} + 1`),
+        [updateField]: `${updateField} + 1`,
         updated_at: new Date().toISOString()
       })
       .eq('id', userId)
