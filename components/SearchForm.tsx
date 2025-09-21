@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { Search, ArrowRight } from 'lucide-react'
-import { type Locale } from '../lib/i18n'
-import { getTranslation } from '../lib/translations'
+import { type Locale } from '../src/services/i18n'
+import { getTranslation } from '../src/services/translations'
 
 interface SearchFormProps {
   onSearch: (symbol: string) => void

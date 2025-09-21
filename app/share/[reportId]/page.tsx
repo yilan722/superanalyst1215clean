@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { FileText, Lock, Eye, Download, ExternalLink, Calendar, Building2 } from 'lucide-react'
-import { type Locale } from '@/lib/i18n'
+import { type Locale } from '@/src/services/i18n'
 
 interface SharePageProps {
   params: {

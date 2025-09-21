@@ -1,7 +1,7 @@
 import React from 'react'
 import { Clock, AlertCircle, CheckCircle } from 'lucide-react'
-import { getTranslation } from '../lib/translations'
-import type { Locale } from '../lib/i18n'
+import { getTranslation } from '../src/services/translations'
+import type { Locale } from '../src/services/i18n'
 
 interface GenerationModalProps {
   isOpen: boolean

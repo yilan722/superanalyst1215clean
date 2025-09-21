@@ -3,8 +3,8 @@
 import React, { useState } from 'react'
 import { CreditCard, Lock, CheckCircle, AlertCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { supabase } from '../lib/supabase-client'
-import { useAuthContext } from '../lib/auth-context'
+import { supabase } from '../src/services/supabase-client'
+import { useAuthContext } from '../src/services/auth-context'
 import ClientCouponInput from './ClientCouponInput'
 
 interface SimpleStripeCheckoutProps {

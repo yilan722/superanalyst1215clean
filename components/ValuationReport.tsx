@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react'
 import { DollarSign, TrendingUp, BarChart3, TrendingDown, Download } from 'lucide-react'
-import { StockData, ValuationReportData } from '../types'
-import { type Locale } from '../lib/i18n'
-import { getTranslation } from '../lib/translations'
+import { StockData, ValuationReportData } from '../src/types'
+import { type Locale } from '../src/services/i18n'
+import { getTranslation } from '../src/services/translations'
 import toast from 'react-hot-toast'
 import DCFParameterEditor from './DCFParameterEditor'
-import { useAuthContext } from '../lib/auth-context'
+import { useAuthContext } from '../src/services/auth-context'
 
 interface ValuationReportProps {
   stockData: StockData | null

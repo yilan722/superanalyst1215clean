@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { User, Crown, FileText, CreditCard, Settings, ArrowLeft, Plus, CheckCircle } from 'lucide-react'
-import { type Locale } from '@/lib/i18n'
-import { getTranslation } from '@/lib/translations'
-import { useAuthContext } from '@/lib/auth-context'
-import { supabase } from '@/lib/supabase-client'
+import { type Locale } from '@/src/services/i18n'
+import { getTranslation } from '@/src/services/translations'
+import { useAuthContext } from '@/src/services/auth-context'
+import { supabase } from '@/src/services/supabase-client'
 import toast from 'react-hot-toast'
 
 interface UserData {

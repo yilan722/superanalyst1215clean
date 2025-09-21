@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { ArrowUp, ArrowDown, Minus, TrendingUp, TrendingDown, ExternalLink } from 'lucide-react'
-import { CompanyAnalysis } from '../../../types'
+import { CompanyAnalysis } from '../../types'
 
 interface ComparisonTableProps {
   companies: CompanyAnalysis[]

@@ -13,10 +13,6 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 TUSHARE_TOKEN=your-tushare-token
 ALPHA_VANTAGE_API_KEY=your-alpha-vantage-key
 
-# 支付宝配置
-ALIPAY_APP_ID=your-alipay-app-id
-ALIPAY_PRIVATE_KEY=your-private-key
-ALIPAY_PUBLIC_KEY=your-public-key
 ```
 
 ### ✅ 数据库设置
@@ -57,34 +53,6 @@ vercel env add NEXT_PUBLIC_SUPABASE_URL
 vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
 # ... 添加所有环境变量
 ```
-
-### 2. Railway
-
-**优势:**
-- 全栈应用托管
-- 自动 HTTPS
-- 数据库集成
-- 简单易用
-
-**部署步骤:**
-1. 访问 [railway.app](https://railway.app)
-2. 连接 GitHub 仓库
-3. 配置环境变量
-4. 自动部署
-
-### 3. Netlify
-
-**优势:**
-- 静态站点优化
-- 全球 CDN
-- 免费 SSL
-- 自动部署
-
-**部署步骤:**
-1. 连接 GitHub 仓库
-2. 构建命令: `npm run build`
-3. 发布目录: `.next`
-4. 配置环境变量
 
 ## 🔧 部署配置
 

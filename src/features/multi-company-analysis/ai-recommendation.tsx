@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Target, TrendingUp, AlertTriangle, Shield, ArrowRight, Lightbulb } from 'lucide-react'
-import { MultiCompanyAnalysis } from '../../../types'
+import { MultiCompanyAnalysis } from '../../types'
 
 interface AIRecommendationProps {
   analysis: MultiCompanyAnalysis

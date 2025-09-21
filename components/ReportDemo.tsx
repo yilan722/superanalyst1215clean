@@ -9,8 +9,8 @@ import {
   DollarSign, 
   Activity
 } from 'lucide-react'
-import { type Locale } from '../lib/i18n'
-import { getTranslation } from '../lib/translations'
+import { type Locale } from '../src/services/i18n'
+import { getTranslation } from '../src/services/translations'
 
 interface ReportDemoProps {
   locale: Locale

@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { type Locale } from '@/lib/i18n'
-import { useAuthContext } from '@/lib/auth-context'
-import { supabase } from '@/lib/supabase-client'
+import { type Locale } from '@/src/services/i18n'
+import { useAuthContext } from '@/src/services/auth-context'
+import { supabase } from '@/src/services/supabase-client'
 import { FileText, Download, Eye, Calendar, Loader2, AlertCircle } from 'lucide-react'
 
 interface ReportsPageProps {

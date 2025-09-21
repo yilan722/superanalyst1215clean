@@ -4,9 +4,9 @@ import React, { useState } from 'react'
 import { X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import SimpleStripeCheckout from './SimpleStripeCheckout'
-import { getTranslation } from '../lib/translations'
-import { Locale } from '../lib/i18n'
-import { supabase } from '../lib/supabase-client'
+import { getTranslation } from '../src/services/translations'
+import { Locale } from '../src/services/i18n'
+import { supabase } from '../src/services/supabase-client'
 
 interface SubscriptionPlan {
   id: string

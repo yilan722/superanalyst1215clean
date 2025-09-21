@@ -5,6 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:backend": "cd backend && python run.py",
+    "dev:celery": "cd backend && celery -A celery_worker worker --loglevel=info",
+    "dev:full": "concurrently \"npm run dev\" \"npm run dev:backend\" \"npm run dev:celery\"",
     "build": "next build",
     "build:cloudflare": "node build-cloudflare.js",
     "start": "next start",
@@ -14,7 +17,11 @@
     "format:check": "node scripts/format-lock.js check",
     "format:monitor": "node scripts/format-monitor.js monitor",
     "format:scan": "node scripts/format-monitor.js scan",
-    "format:consistency": "node scripts/test-format-consistency.js"
+    "format:consistency": "node scripts/test-format-consistency.js",
+    "backend:install": "cd backend && pip install -r requirements.txt",
+    "backend:dev": "cd backend && python run.py",
+    "backend:celery": "cd backend && celery -A celery_worker worker --loglevel=info",
+    "backend:flower": "cd backend && celery -A celery_worker flower"
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",
@@ -48,6 +55,7 @@
   },
   "devDependencies": {
     "eslint": "^8.0.0",
-    "eslint-config-next": "^14.0.0"
+    "eslint-config-next": "^14.0.0",
+    "concurrently": "^8.2.2"
   }
 }

@@ -1,4 +1,4 @@
-import { MultiCompanyAnalysis } from '../../../types'
+import { MultiCompanyAnalysis } from '../../types'
 
 export interface ExportOptions {
   format: 'pdf' | 'excel' | 'json'

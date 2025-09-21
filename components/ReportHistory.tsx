@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Download, Eye, Calendar, FileText, Trash2, RefreshCw } from 'lucide-react'
-import { supabase } from '../lib/supabase-client'
-import { useAuthContext } from '@/lib/auth-context'
+import { supabase } from '../src/services/supabase-client'
+import { useAuthContext } from '@/src/services/auth-context'
 
-import type { Locale } from '@/lib/i18n'
+import type { Locale } from '@/src/services/i18n'
 
 interface Report {
   id: string

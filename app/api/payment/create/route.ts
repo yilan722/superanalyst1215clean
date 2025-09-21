@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '../../../../lib/supabase-server'
-import { createPayment } from '../../../../lib/supabase-auth'
-import { createAlipayOrder } from '../../../../lib/alipay'
+import { createServerSupabaseClient } from '../../../../src/services/supabase-server'
+import { createPayment } from '../../../../src/services/supabase-auth'
+import { createAlipayOrder } from '../../../../service/alipay'
 
 // 订阅计划配置
 const SUBSCRIPTION_PLANS = {

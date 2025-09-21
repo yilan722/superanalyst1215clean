@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { signIn, signUp } from '../lib/supabase-auth'
+import { signIn, signUp } from '../src/services/supabase-auth'
 
 interface AuthModalProps {
   isOpen: boolean

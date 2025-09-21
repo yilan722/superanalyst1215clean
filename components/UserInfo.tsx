@@ -3,10 +3,10 @@
 import React, { useState } from 'react'
 import { User, LogOut, CreditCard, BarChart3, LogIn } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { signOut } from '../lib/supabase-auth'
-import { useAuthContext } from '../lib/auth-context'
-import { getTranslation } from '../lib/translations'
-import { Locale } from '../lib/i18n'
+import { signOut } from '../src/services/supabase-auth'
+import { useAuthContext } from '../src/services/auth-context'
+import { getTranslation } from '../src/services/translations'
+import { Locale } from '../src/services/i18n'
 
 interface UserData {
   id: string
@@ -14,7 +14,7 @@ interface UserData {
   name?: string
   free_reports_used: number
   paid_reports_used: number
-  subscription_type?: string
+  subscription_type?: number
   subscription_end?: string
   monthly_report_limit: number
   // 新增积分相关字段

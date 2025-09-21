@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAlipayPayment } from '../../../../lib/alipay'
-import { updatePaymentStatus, updateUserSubscription } from '../../../../lib/supabase-auth'
+import { verifyAlipayPayment } from '../../../../service/alipay'
+import { updatePaymentStatus, updateUserSubscription } from '../../../../src/services/supabase-auth'
 
 export async function POST(request: NextRequest) {
   try {

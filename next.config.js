@@ -12,6 +12,7 @@ const nextConfig = {
   // 环境变量
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
+    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
   },
   
   // 重定向配置

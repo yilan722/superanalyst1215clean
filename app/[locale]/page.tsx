@@ -12,12 +12,12 @@ import SubscriptionModal from '../../components/SubscriptionModal'
 import ReportHistory from '../../components/ReportHistory'
 import GenerationModal from '../../components/GenerationModal'
 import Footer from '../../components/Footer'
-import { StockData, ValuationReportData } from '../../types'
-import { type Locale } from '../../lib/i18n'
+import { StockData, ValuationReportData } from '../../src/types'
+import { type Locale } from '../../src/services/i18n'
 
-import { useAuthContext } from '../../lib/auth-context'
-import { canGenerateReport } from '../../lib/supabase-auth'
-import { supabase } from '../../lib/supabase-client'
+import { useAuthContext } from '../../src/services/auth-context'
+import { canGenerateReport } from '../../src/services/supabase-auth'
+import { supabase } from '../../src/services/supabase-client'
 import toast from 'react-hot-toast'
 
 // 导入Insight Refinery组件
@@ -179,6 +179,14 @@ export default function HomePage({ params }: PageProps) {
       
       if (!canGenerate.canGenerate) {
         console.log('❌ 用户无权限，显示订阅模态框')
+        
+        // Check if it's specifically a free report quota issue
+        if (canGenerate.reason === 'No free report quota left') {
+          console.log('📋 免费报告配额已用完，显示订阅模态框')
+          // You can add a specific state or toast message here if needed
+          toast.error(params.locale === 'zh' ? '免费报告配额已用完，请订阅获取更多报告' : 'No free report quota left')
+        }
+        
         setShowSubscriptionModal(true)
         return
       }

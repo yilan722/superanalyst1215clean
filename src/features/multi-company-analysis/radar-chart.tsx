@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { CompanyAnalysis } from '../../../types'
+import { CompanyAnalysis } from '../../types'
 
 interface RadarChartProps {
   companies: CompanyAnalysis[]
