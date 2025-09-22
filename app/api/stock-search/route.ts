@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
 async function searchTushare(searchTerm: string): Promise<StockSearchResult[]> {
   try {
     // 使用Tushare API搜索A股
-    const { fetchStockBasicInfo } = await import('@/lib/tushare-api')
+    const { fetchStockBasicInfo } = await import('@/app/services/tushare-api')
     
     // 尝试不同的市场后缀
     const markets = ['.SZ', '.SH']

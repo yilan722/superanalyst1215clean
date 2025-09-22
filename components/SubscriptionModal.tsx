@@ -5,8 +5,8 @@ import { X, Check, CreditCard, Zap, Crown, Star, TrendingUp, Shield, Headphones,
 import toast from 'react-hot-toast'
 import UserAgreementModal from './UserAgreementModal'
 import StripeSubscriptionModal from './StripeSubscriptionModal'
-import { getTranslation } from '../lib/translations'
-import { Locale } from '../lib/i18n'
+import { getTranslation } from '../app/services/translations'
+import { Locale } from '../app/services/i18n'
 
 interface SubscriptionPlan {
   id: string

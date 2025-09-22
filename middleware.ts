@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
-import { locales, defaultLocale } from './lib/i18n'
+import { locales, defaultLocale } from './app/services/i18n'
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname

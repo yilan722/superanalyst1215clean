@@ -2,8 +2,8 @@
 
 import React from 'react'
 import { Home, TrendingUp, Brain, BarChart3, Settings, User } from 'lucide-react'
-import { type Locale } from '../lib/i18n'
-import { getTranslation } from '../lib/translations'
+import { type Locale } from '../app/services/i18n'
+import { getTranslation } from '../app/services/translations'
 import SuperAnalystLogo from './SuperAnalystLogo'
 import UserDropdown from './UserDropdown'
 

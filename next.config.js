@@ -12,6 +12,7 @@ const nextConfig = {
   // 环境变量
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
+    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
   },
   
   // 重定向配置
@@ -48,6 +49,16 @@ const nextConfig = {
       assert: false,
       os: false,
       path: false,
+    }
+    
+    // 添加路径别名解析
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname),
+      '@/src': require('path').resolve(__dirname, 'src'),
+      '@/lib': require('path').resolve(__dirname, 'lib'),
+      '@/components': require('path').resolve(__dirname, 'components'),
+      '@/app': require('path').resolve(__dirname, 'app'),
     }
     
     return config

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createApiSupabaseClient } from '../../../lib/supabase-server'
-import { canGenerateReport, incrementReportUsage, createReport } from '../../../lib/supabase-auth'
+import { createApiSupabaseClient } from '../../services/database/supabase-server'
+import { canGenerateReport, incrementReportUsage, createReport } from '../../services/database/supabase-auth'
 
 // 强制动态渲染，因为使用了request.headers和数据库操作
 export const dynamic = 'force-dynamic'

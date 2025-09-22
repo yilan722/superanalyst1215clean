@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { StartSessionRequest, DiscussionSession } from '@/lib/types/insight-refinery'
+import { createServerSupabaseClient } from '@/app/services/database/supabase-server'
+import { StartSessionRequest, DiscussionSession } from '@/app/services/types/insight-refinery'
 
 export async function POST(request: NextRequest) {
   try {

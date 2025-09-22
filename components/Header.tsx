@@ -2,8 +2,8 @@ import LanguageSwitcher from './LanguageSwitcher'
 import UserInfo from './UserInfo'
 import InsightRefineryButton from './InsightRefinery/InsightRefineryButton'
 import SuperAnalystLogo from './SuperAnalystLogo'
-import { type Locale } from '../lib/i18n'
-import { getTranslation } from '../lib/translations'
+import { type Locale } from '../app/services/i18n'
+import { getTranslation } from '../app/services/translations'
 
 interface HeaderProps {
   locale: Locale

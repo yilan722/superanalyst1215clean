@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { SUBSCRIPTION_PLANS } from '@/lib/stripe-config'
+import { SUBSCRIPTION_PLANS } from '@/app/services/stripe-config'
 
 // Create Supabase client with service role key
 const supabase = createClient(

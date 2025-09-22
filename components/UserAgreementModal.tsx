@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { X, Check } from 'lucide-react'
-import { getTranslation, getTranslationArray } from '../lib/translations'
-import { Locale } from '../lib/i18n'
+import { getTranslation, getTranslationArray } from '../app/services/translations'
+import { Locale } from '../app/services/i18n'
 
 interface UserAgreementModalProps {
   isOpen: boolean

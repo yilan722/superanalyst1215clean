@@ -3,7 +3,7 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { XCircle, ArrowLeft, RefreshCw } from 'lucide-react'
-import { type Locale } from '@/lib/i18n'
+import { type Locale } from '@/app/services/i18n'
 
 interface CancelPageProps {
   params: {
