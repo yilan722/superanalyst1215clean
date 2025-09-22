@@ -18,7 +18,6 @@
     "format:monitor": "node scripts/format-monitor.js monitor",
     "format:scan": "node scripts/format-monitor.js scan",
     "format:consistency": "node scripts/test-format-consistency.js",
-    "sync:api": "node scripts/sync-api-routes.js",
     "backend:install": "cd backend && pip install -r requirements.txt",
     "backend:dev": "cd backend && python run.py",
     "backend:celery": "cd backend && celery -A celery_worker worker --loglevel=info",

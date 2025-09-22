@@ -1,3 +1,4 @@
+import { SubscriptionService } from './subscription-service'
 import { supabase } from './supabase-client'
 
 // 使用全局客户端实例，避免多实例问题
@@ -416,18 +417,20 @@ export async function canGenerateReport(userId: string): Promise<{ canGenerate: 
     
     const profile = await profilePromise
     
+    
     console.log('📋 步骤3完成，用户资料:', { profile: !!profile })
     
     if (!profile) {
       console.log('❌ 用户资料不存在')
       return { canGenerate: false, reason: 'User not found' }
     }
-
-    // Check if user has free reports available
-    if (profile.free_reports_used === 0) {
+    
+    const subTier = await SubscriptionService.getTierById(profile.subscription_id)
+    // Check if user has free reports available 
+    if (subTier.monthly_report_limit > 0) {
       console.log('✅ 免费报告可用')
-      return { 
-        canGenerate: true, 
+      return {
+        canGenerate: true,
         reason: '免费报告可用',
         remainingReports: 1,
         needsSubscription: false

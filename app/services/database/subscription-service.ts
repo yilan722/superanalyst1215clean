@@ -58,7 +58,7 @@ export class SubscriptionService {
   /**
    * Get a specific subscription tier by ID
    */
-  static async getTierById(tierId: number): Promise<SubscriptionTier | null> {
+  static async getTierById(tierId: number): Promise<SubscriptionTier> {
     try {
       const { data, error } = await supabase
         .from('subscription_tiers')
@@ -69,13 +69,11 @@ export class SubscriptionService {
 
       if (error) {
         console.error('Error fetching subscription tier by ID:', error)
-        return null
       }
-
       return data
     } catch (error) {
-      console.error('Error in getTierById:', error)
-      return null
+      console.error('Error in getTierById:', error) 
+      throw new Error('Error fetching subscription tier by ID')
     }
   }
 
