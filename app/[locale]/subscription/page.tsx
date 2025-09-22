@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { type Locale } from '@/src/services/i18n'
-import { getTranslation } from '@/src/services/translations'
-import { useAuthContext } from '@/src/services/auth-context'
-import { SubscriptionPageService, type SubscriptionStatus, type SubscriptionMetrics } from '@/src/services/subscription-page-service'
-import { type UserWithSubscription } from '@/src/services/database/user-service'
+import { type Locale } from '@/app/services/i18n'
+import { getTranslation } from '@/app/services/translations'
+import { useAuthContext } from '@/app/services/auth-context'
+import { SubscriptionPageService, type SubscriptionStatus, type SubscriptionMetrics } from '@/app/services/subscription-page-service'
+import { type UserWithSubscription } from '@/app/services/database/user-service'
 import { CreditCard, Check, X, Loader2, AlertCircle, Zap, Star, Crown, TrendingUp, FileText, Clock, Headphones, Users, Wrench } from 'lucide-react'
 
 interface SubscriptionPageProps {

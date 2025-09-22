@@ -1,9 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { type Locale } from '@/src/services/i18n'
-import { useAuthContext } from '@/src/services/auth-context'
-import { supabase } from '@/src/services/supabase-client'
+import { type Locale } from '@/app/services/i18n'
+import { useAuthContext } from '@/app/services/auth-context'
+import { supabase } from '@/app/services/supabase-client'
 import { RefreshCw, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
 
 interface DebugSubscriptionPageProps {

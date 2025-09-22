@@ -12,16 +12,16 @@ import SubscriptionModal from '../../components/SubscriptionModal'
 import ReportHistory from '../../components/ReportHistory'
 import GenerationModal from '../../components/GenerationModal'
 import Footer from '../../components/Footer'
-import { StockData, ValuationReportData } from '../../src/types'
-import { type Locale } from '../../src/services/i18n'
+import { StockData, ValuationReportData } from '../types'
+import { type Locale } from '../services/i18n'
 
-import { useAuthContext } from '../../src/services/auth-context'
-import { canGenerateReport } from '../../src/services/supabase-auth'
-import { supabase } from '../../src/services/supabase-client'
+import { useAuthContext } from '../services/auth-context'
 import toast from 'react-hot-toast'
 
 // 导入Insight Refinery组件
 import InsightRefineryButton from '../../components/InsightRefinery/InsightRefineryButton'
+import { canGenerateReport } from '../services/database/supabase-auth'
+import { supabase } from '../services/supabase'
 
 interface PageProps {
   params: { locale: Locale }

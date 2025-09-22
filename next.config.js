@@ -51,6 +51,16 @@ const nextConfig = {
       path: false,
     }
     
+    // 添加路径别名解析
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname),
+      '@/src': require('path').resolve(__dirname, 'src'),
+      '@/lib': require('path').resolve(__dirname, 'lib'),
+      '@/components': require('path').resolve(__dirname, 'components'),
+      '@/app': require('path').resolve(__dirname, 'app'),
+    }
+    
     return config
   },
   

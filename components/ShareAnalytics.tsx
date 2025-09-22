@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { BarChart3, TrendingUp, Users, Share2, Eye, MousePointer } from 'lucide-react'
-import { type Locale } from '@/src/services/i18n'
+import { type Locale } from '@/app/services/i18n'
 
 interface ShareAnalyticsProps {
   reportId: string

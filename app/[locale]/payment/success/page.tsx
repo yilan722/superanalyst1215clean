@@ -3,9 +3,9 @@
 import React, { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle, ArrowRight, FileText } from 'lucide-react'
-import { type Locale } from '@/src/services/i18n'
-import { getTranslation } from '@/src/services/translations'
-import { useAuthContext } from '@/src/services/auth-context'
+import { type Locale } from '@/app/services/i18n'
+import { getTranslation } from '@/app/services/translations'
+import { useAuthContext } from '@/app/services/auth-context'
 
 interface SuccessPageProps {
   params: {

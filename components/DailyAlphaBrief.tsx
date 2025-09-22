@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { TrendingUp, TrendingDown, BarChart3, DollarSign, Users, Calendar, ExternalLink, FileText, Lock, Eye, Share2 } from 'lucide-react'
-import { type Locale } from '../src/services/i18n'
-import { getTranslation } from '../src/services/translations'
+import { type Locale } from '../app/services/i18n'
+import { getTranslation } from '../app/services/translations'
 import toast from 'react-hot-toast'
 import LinkedInShareTool from './LinkedInShareTool'
 import ShareTool from './ShareTool'

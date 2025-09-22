@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Globe, ChevronDown } from 'lucide-react'
-import { locales, localeNames, type Locale } from '../src/services/i18n'
-import { getTranslation } from '../src/services/translations'
+import { locales, localeNames, type Locale } from '../app/services/i18n'
+import { getTranslation } from '../app/services/translations'
 
 interface LanguageSwitcherProps {
   currentLocale: Locale

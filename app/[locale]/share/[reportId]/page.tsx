@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { FileText, Lock, Eye, Download, ExternalLink, Calendar, Building2 } from 'lucide-react'
-import { type Locale } from '@/src/services/i18n'
-import { getTranslation } from '@/src/services/translations'
+import { type Locale } from '@/app/services/i18n'
+import { getTranslation } from '@/app/services/translations'
 
 interface SharePageProps {
   params: {

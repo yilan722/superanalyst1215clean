@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { type Locale } from '@/src/services/i18n'
-import { useAuthContext } from '@/src/services/auth-context'
-import { supabase } from '@/src/services/supabase-client'
+import { type Locale } from '@/app/services/i18n'
+import { useAuthContext } from '@/app/services/auth-context'
+import { supabase } from '@/app/services/supabase-client'
 import { ArrowLeft, Loader2, AlertCircle, CreditCard, Check } from 'lucide-react'
 import SimpleStripeCheckout from '@/components/SimpleStripeCheckout'
 

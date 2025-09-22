@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { Brain, MessageSquare, History, ChevronDown } from 'lucide-react'
 import InsightRefineryModal from './InsightRefineryModal'
 import ReportHistorySelector from './ReportHistorySelector'
-import { Locale } from '@/src/services/i18n'
+import { Locale } from '@/app/services/i18n'
 
 interface Report {
   id: string

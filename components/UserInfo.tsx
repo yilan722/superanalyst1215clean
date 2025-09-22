@@ -3,10 +3,10 @@
 import React, { useState } from 'react'
 import { User, LogOut, CreditCard, BarChart3, LogIn } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { signOut } from '../src/services/supabase-auth'
-import { useAuthContext } from '../src/services/auth-context'
-import { getTranslation } from '../src/services/translations'
-import { Locale } from '../src/services/i18n'
+import { signOut } from '../app/services/supabase-auth'
+import { useAuthContext } from '../app/services/auth-context'
+import { getTranslation } from '../app/services/translations'
+import { Locale } from '../app/services/i18n'
 
 interface UserData {
   id: string

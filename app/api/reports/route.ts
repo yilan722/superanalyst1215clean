@@ -1,6 +1,5 @@
-import { createApiSupabaseClient } from '@/src/services/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
-
+import { createApiSupabaseClient } from '../../services/supabase-server'
 
 // 强制动态渲染，因为使用了request和数据库操作
 export const dynamic = 'force-dynamic'

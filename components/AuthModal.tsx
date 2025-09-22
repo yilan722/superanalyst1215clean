@@ -1,9 +1,10 @@
+
 'use client'
 
 import React, { useState } from 'react'
 import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { signIn, signUp } from '../src/services/supabase-auth'
+import { signIn, signUp } from '@/app/services/database/supabase-auth'
 
 interface AuthModalProps {
   isOpen: boolean

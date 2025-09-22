@@ -1,8 +1,8 @@
 'use client'
 
 import React from 'react'
-import { type Locale } from '@/src/services/i18n'
-import { useAuthContext } from '@/src/services/auth-context'
+import { type Locale } from '@/app/services/i18n'
+import { useAuthContext } from '@/app/services/auth-context'
 
 interface TestPageProps {
   params: {
