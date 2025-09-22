@@ -1,18 +1,18 @@
 import { PaymentService } from './payment-service'
 import { ReportService } from './report-service'
-import { SubscriptionService } from './subscription-service'
+import { SubscriptionService } from '@/app/services/database/subscription-service'
 import { UserService } from './user-service'
 
 // Export all database services
 export { BaseDatabaseService } from './base-database-service'
 export { UserService } from './user-service'
-export { SubscriptionService } from './subscription-service'
+export { SubscriptionService } from '@/app/services/database/subscription-service'
 export { ReportService } from './report-service'
 export { PaymentService } from './payment-service'
 
 // Export types
 export type { User, UserWithSubscription } from './user-service'
-export type { SubscriptionTier } from './subscription-service'
+export type { SubscriptionTier } from '@/app/types/subscription'
 export type { Report, ReportWithUser } from './report-service'
 export type { Payment } from './payment-service'
 

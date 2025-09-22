@@ -3,7 +3,7 @@
  * Ensures user profiles are created in the database when needed
  */
 
-import { createApiSupabaseClient } from './supabase-server'
+import { createApiSupabaseClient } from '@/app/services/database/supabase-server'
 
 export interface UserProfile {
   id: string

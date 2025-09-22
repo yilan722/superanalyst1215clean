@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { User, CreditCard, FileText, LogOut, ChevronDown, Settings, BarChart3 } from 'lucide-react'
 import { useAuthContext } from '@/app/services/auth-context'
-import { supabase } from '@/app/services/supabase-client'
 
 interface UserDropdownProps {
   userData: any

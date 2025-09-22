@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from './supabase-client'
-import { setGlobalForceSignOut } from './supabase-auth'
-import type { User } from './supabase-auth'
+import { supabase } from '@/app/services/database/supabase-client'
+import { setGlobalForceSignOut } from '@/app/services/database/supabase-auth'
+import type { User } from '@/app/services/database/supabase-auth'
 
 export default function useAuth() {
   const [user, setUser] = useState<User | null>(null)
