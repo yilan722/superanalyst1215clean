@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Home, TrendingUp, Brain, BarChart3, Settings, User } from 'lucide-react'
+import { Home, TrendingUp, Brain, BarChart3, Settings, User, Calculator } from 'lucide-react'
 import { type Locale } from '../lib/i18n'
 import { getTranslation } from '../lib/translations'
 import SuperAnalystLogo from './SuperAnalystLogo'
@@ -9,8 +9,8 @@ import UserDropdown from './UserDropdown'
 
 interface SidebarProps {
   locale: Locale
-  activeTab: 'home' | 'daily-alpha' | 'insight-refinery'
-  onTabChange: (tab: 'home' | 'daily-alpha' | 'insight-refinery') => void
+  activeTab: 'home' | 'daily-alpha' | 'insight-refinery' | 'valuation'
+  onTabChange: (tab: 'home' | 'daily-alpha' | 'insight-refinery' | 'valuation') => void
   user: any
   userData?: {
     subscription_type: string | null
@@ -94,7 +94,15 @@ export default function Sidebar({
       id: 'insight-refinery' as const,
       name: getTranslation(locale, 'insightRefinery'),
       icon: Brain,
-      description: getTranslation(locale, 'insightRefineryDescription')
+      description: getTranslation(locale, 'insightRefineryDescription'),
+      isBeta: true
+    },
+    {
+      id: 'valuation' as const,
+      name: locale === 'zh' ? '估值分析' : 'Valuation Analysis',
+      icon: Calculator,
+      description: locale === 'zh' ? 'DCF估值模型和参数调整' : 'DCF Valuation Model & Parameter Adjustment',
+      isBeta: true
     }
   ]
 
@@ -117,22 +125,29 @@ export default function Sidebar({
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              className={`w-full flex items-start space-x-3 p-3 rounded-lg transition-all duration-200 group ${
+              className={`w-full flex items-center space-x-3 p-4 rounded-lg transition-all duration-200 group ${
                 isActive 
                   ? 'bg-amber-500/20 border border-amber-500/30 text-amber-300' 
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >
-              <Icon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+              <Icon className={`w-5 h-5 flex-shrink-0 ${
                 isActive ? 'text-amber-400' : 'text-slate-400 group-hover:text-slate-300'
               }`} />
-              <div className="flex-1 min-w-0">
-                <p className={`font-medium text-sm ${
-                  isActive ? 'text-amber-300' : 'text-slate-300 group-hover:text-white'
-                }`}>
-                  {item.name}
-                </p>
-                <p className={`text-xs mt-1 ${
+              <div className="flex-1 min-w-0 text-center">
+                <div className="flex items-center justify-center space-x-2">
+                  <p className={`font-semibold text-sm whitespace-nowrap ${
+                    isActive ? 'text-amber-300' : 'text-slate-300 group-hover:text-white'
+                  }`}>
+                    {item.name}
+                  </p>
+                  {item.isBeta && (
+                    <span className="px-1.5 py-0.5 text-xs font-medium bg-purple-600 text-white rounded">
+                      BETA
+                    </span>
+                  )}
+                </div>
+                <p className={`text-xs mt-1 leading-tight ${
                   isActive ? 'text-amber-400/70' : 'text-slate-500 group-hover:text-slate-400'
                 }`}>
                   {item.description}

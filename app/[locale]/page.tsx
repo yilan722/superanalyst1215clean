@@ -34,9 +34,19 @@ export default function HomePage({ params }: PageProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isGeneratingReport, setIsGeneratingReport] = useState(false)
   const [userData, setUserData] = useState<any>(null)
+  const [currentLocale, setCurrentLocale] = useState<Locale>(params.locale)
   
   // 使用认证上下文管理用户状态
   const { user: useAuthUser, loading: userLoading, signOut: useAuthSignOut, forceUpdate: useAuthForceUpdate, refreshUserData } = useAuthContext()
+  
+  // 语言切换处理函数
+  const handleLocaleChange = (newLocale: Locale) => {
+    setCurrentLocale(newLocale)
+    // 更新URL路径
+    const currentPath = window.location.pathname
+    const pathWithoutLocale = currentPath.replace(/^\/[a-z]{2}/, '')
+    router.push(`/${newLocale}${pathWithoutLocale}`)
+  }
   
   // 获取用户数据
   const fetchUserData = async () => {
@@ -159,7 +169,7 @@ export default function HomePage({ params }: PageProps) {
     if (!stockData) {
       console.log('❌ 没有选择股票')
       // 修复TypeScript错误：直接使用内联翻译而不是getTranslation函数
-      toast.error(params.locale === 'zh' ? '请先搜索并选择股票' : 'Please search and select a stock first')
+      toast.error(currentLocale === 'zh' ? '请先搜索并选择股票' : 'Please search and select a stock first')
       return
     }
 
@@ -186,7 +196,7 @@ export default function HomePage({ params }: PageProps) {
       console.log('✅ 用户有权限，继续生成报告...')
     } catch (error) {
       console.error('❌ 权限检查失败:', error)
-      toast.error(params.locale === 'zh' ? '权限检查失败' : 'Permission check failed')
+      toast.error(currentLocale === 'zh' ? '权限检查失败' : 'Permission check failed')
       return
     }
 
@@ -205,7 +215,7 @@ export default function HomePage({ params }: PageProps) {
         body: JSON.stringify({
           stockData: stockData, // 发送完整的股票数据对象
           userId: currentUser.id, // 用户ID用于认证
-          locale: params.locale, // 传递语言参数
+          locale: currentLocale, // 传递当前语言参数
         }),
       })
 
@@ -218,27 +228,27 @@ export default function HomePage({ params }: PageProps) {
         if (response.status === 403) {
           console.log('🚫 访问被拒绝，显示订阅模态框')
           if (errorData.needsSubscription) {
-            toast.error(params.locale === 'zh' ? '需要订阅' : 'Subscription required')
+            toast.error(currentLocale === 'zh' ? '需要订阅' : 'Subscription required')
             setShowSubscriptionModal(true)
           } else {
-            toast.error(errorData.reason || (params.locale === 'zh' ? '访问被拒绝' : 'Access denied'))
+            toast.error(errorData.reason || (currentLocale === 'zh' ? '访问被拒绝' : 'Access denied'))
           }
           return
         }
-        throw new Error(errorData.error || (params.locale === 'zh' ? 'API错误' : 'API error'))
+        throw new Error(errorData.error || (currentLocale === 'zh' ? 'API错误' : 'API error'))
       }
 
       const data = await response.json()
       console.log('✅ 报告生成成功:', data)
       setReportData(data)
       setShowGenerationModal(false)
-      toast.success(params.locale === 'zh' ? '报告生成成功' : 'Report generated successfully')
+      toast.success(currentLocale === 'zh' ? '报告生成成功' : 'Report generated successfully')
     } catch (error) {
       console.error('❌ 报告生成失败:', error)
       setShowGenerationModal(false)
       
       // 提供更友好的错误信息
-      let errorMessage = params.locale === 'zh' ? 'API错误' : 'API error'
+      let errorMessage = currentLocale === 'zh' ? 'API错误' : 'API error'
       if (error instanceof Error) {
         if (error.message.includes('API quota exhausted')) {
           errorMessage = 'API quota exhausted. Please try again later or contact support.'
@@ -304,7 +314,7 @@ export default function HomePage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <MainLayout
-        locale={params.locale}
+        locale={currentLocale}
         user={currentUser}
         userData={userData}
         onLogout={handleLogout}
@@ -312,6 +322,7 @@ export default function HomePage({ params }: PageProps) {
         onOpenSubscription={handleOpenSubscription}
         onOpenReportHistory={handleOpenReportHistory}
         onOpenAccount={handleOpenAccount}
+        onLocaleChange={handleLocaleChange}
       >
         <div className="space-y-6">
           {/* Search Form and Stock Data Display */}
@@ -320,7 +331,7 @@ export default function HomePage({ params }: PageProps) {
               onSearch={handleSearch}
               onGenerateReport={handleGenerateReport}
               isLoading={isUserLoading || isGeneratingReport}
-              locale={params.locale}
+              locale={currentLocale}
               isGeneratingReport={isGeneratingReport}
             />
             
@@ -395,7 +406,7 @@ export default function HomePage({ params }: PageProps) {
                         reportId={`report-${Date.now()}`}
                         reportTitle={`${stockData.name} (${stockData.symbol}) 估值分析报告`}
                         userId={currentUser.id}
-                        locale={params.locale}
+                        locale={currentLocale}
                         variant="primary"
                         size="md"
                       />
@@ -417,7 +428,7 @@ export default function HomePage({ params }: PageProps) {
               stockData={stockData}
               reportData={reportData}
               isLoading={isGeneratingReport}
-              locale={params.locale}
+              locale={currentLocale}
             />
           )}
         </div>
@@ -428,25 +439,25 @@ export default function HomePage({ params }: PageProps) {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         onSuccess={handleAuthSuccess}
-        locale={params.locale}
+        locale={currentLocale}
       />
 
       <SubscriptionModal
         isOpen={showSubscriptionModal}
         onClose={() => setShowSubscriptionModal(false)}
         userId={currentUser?.id || ''}
-        locale={params.locale}
+        locale={currentLocale}
       />
 
       <ReportHistory
         isOpen={showReportHistory}
         onClose={() => setShowReportHistory(false)}
-        locale={params.locale}
+        locale={currentLocale}
       />
 
       <GenerationModal
         isOpen={showGenerationModal}
-        locale={params.locale}
+        locale={currentLocale}
       />
       
       <Footer />

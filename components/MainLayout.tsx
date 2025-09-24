@@ -5,6 +5,8 @@ import Sidebar from './Sidebar'
 import DailyAlphaBrief from './DailyAlphaBrief'
 import ReportHub from './InsightRefinery/ReportHub'
 import HeaderUserDropdown from './HeaderUserDropdown'
+import ValuationAnalysis from './ValuationAnalysis'
+import LanguageSelector from './LanguageSelector'
 import { type Locale } from '../lib/i18n'
 
 interface MainLayoutProps {
@@ -21,6 +23,7 @@ interface MainLayoutProps {
   onOpenSubscription: () => void
   onOpenReportHistory: () => void
   onOpenAccount?: () => void
+  onLocaleChange: (locale: Locale) => void
   children: React.ReactNode
 }
 
@@ -33,11 +36,12 @@ export default function MainLayout({
   onOpenSubscription, 
   onOpenReportHistory,
   onOpenAccount,
+  onLocaleChange,
   children 
 }: MainLayoutProps) {
-  const [activeTab, setActiveTab] = useState<'home' | 'daily-alpha' | 'insight-refinery'>('home')
+  const [activeTab, setActiveTab] = useState<'home' | 'daily-alpha' | 'insight-refinery' | 'valuation'>('home')
 
-  const handleTabChange = (tab: 'home' | 'daily-alpha' | 'insight-refinery') => {
+  const handleTabChange = (tab: 'home' | 'daily-alpha' | 'insight-refinery' | 'valuation') => {
     setActiveTab(tab)
   }
 
@@ -66,6 +70,8 @@ export default function MainLayout({
             </div>
           </div>
         )
+        case 'valuation':
+          return <ValuationAnalysis locale={locale} user={user} />
       case 'home':
       default:
         return children
@@ -98,28 +104,36 @@ export default function MainLayout({
                 {activeTab === 'home' && (locale === 'zh' ? '专业AI驱动股票研究平台' : 'Professional AI-driven Equity Research Platform')}
                 {activeTab === 'daily-alpha' && (locale === 'zh' ? '每日热门股票' : 'Daily Alpha Brief')}
                 {activeTab === 'insight-refinery' && (locale === 'zh' ? '洞察精炼器' : 'Insight Refinery')}
+                {activeTab === 'valuation' && (locale === 'zh' ? '估值分析' : 'Valuation Analysis')}
               </h1>
               <p className="text-xs text-gray-500 mt-1 leading-relaxed">
                 {activeTab === 'home' && (locale === 'zh' ? 'SuperAnalyst处理80%的繁琐研究工作，让您100%专注于分析、策略和形成独特见解' : 'SuperAnalyst handles 80% of research that\'s grunt work, so you can spend 100% of your brainpower on analysis, strategy, and forming your own unique thesis')}
                 {activeTab === 'daily-alpha' && (locale === 'zh' ? '每日热门股票基本面研究报告' : 'Daily Hot Stock Fundamental Research Report')}
                 {activeTab === 'insight-refinery' && (locale === 'zh' ? 'AI深度讨论与报告进化' : 'Enrich AI Reports with Your Data & Insights')}
+                {activeTab === 'valuation' && (locale === 'zh' ? 'DCF估值模型和参数调整工具' : 'DCF Valuation Model & Parameter Adjustment Tool')}
               </p>
             </div>
             
-            {/* User Dropdown in Top Bar */}
-            {user ? (
-              <HeaderUserDropdown userData={userData} locale={locale} />
-            ) : (
-              <button
-                onClick={onLogin}
-                className="flex items-center space-x-2 px-4 py-2 bg-amber-600 text-white hover:bg-amber-700 rounded-lg transition-colors font-medium"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                </svg>
-                <span>{locale === 'zh' ? '登录' : 'Login'}</span>
-              </button>
-            )}
+            {/* Language Selector and User Dropdown in Top Bar */}
+            <div className="flex items-center space-x-4">
+              <LanguageSelector 
+                currentLocale={locale} 
+                onLocaleChange={onLocaleChange} 
+              />
+              {user ? (
+                <HeaderUserDropdown userData={userData} locale={locale} />
+              ) : (
+                <button
+                  onClick={onLogin}
+                  className="flex items-center space-x-2 px-4 py-2 bg-amber-600 text-white hover:bg-amber-700 rounded-lg transition-colors font-medium"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
+                  <span>{locale === 'zh' ? '登录' : 'Login'}</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
         

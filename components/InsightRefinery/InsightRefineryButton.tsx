@@ -107,6 +107,7 @@ export default function InsightRefineryButton({
             >
               <Brain className="h-4 w-4" />
               <span>🔬 Insight Refinery</span>
+              <span className="ml-2 px-1.5 py-0.5 text-xs font-medium bg-purple-600 text-white rounded">BETA</span>
               <ChevronDown className="h-4 w-4" />
             </button>
 
@@ -142,6 +143,7 @@ export default function InsightRefineryButton({
           >
             <Brain className="h-4 w-4" />
             <span>🔬 Insight Refinery</span>
+            <span className="ml-2 px-1.5 py-0.5 text-xs font-medium bg-purple-600 text-white rounded">BETA</span>
           </button>
         )}
       </div>
