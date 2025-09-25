@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import puppeteer from 'puppeteer'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0 // 禁用缓存，确保实时更新
 
 interface StockTwitsStock {
   symbol: string
@@ -88,28 +89,40 @@ async function scrapeStockTwitsMostActive(): Promise<string[]> {
         '--disable-accelerated-2d-canvas',
         '--no-first-run',
         '--no-zygote',
-        '--disable-gpu'
+        '--disable-gpu',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor'
       ]
     })
     
     const page = await browser.newPage()
     
     // 设置用户代理
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
     
     // 设置视口
     await page.setViewport({ width: 1920, height: 1080 })
+
+    // 禁用图片和CSS加载以提高速度
+    await page.setRequestInterception(true)
+    page.on('request', (req) => {
+      if (req.resourceType() === 'image' || req.resourceType() === 'stylesheet' || req.resourceType() === 'font') {
+        req.abort()
+      } else {
+        req.continue()
+      }
+    })
 
     console.log('正在访问 StockTwits most-active 页面...')
     
     // 访问页面，使用更宽松的超时设置
     await page.goto('https://stocktwits.com/sentiment/most-active', {
-      waitUntil: 'domcontentloaded',
+      waitUntil: 'networkidle2',
       timeout: 60000
     })
 
     // 等待页面加载
-    await page.waitForTimeout(8000)
+    await new Promise(resolve => setTimeout(resolve, 10000))
     
     // 尝试等待特定元素加载
     try {
@@ -123,12 +136,12 @@ async function scrapeStockTwitsMostActive(): Promise<string[]> {
     await page.evaluate(() => {
       window.scrollTo(0, document.body.scrollHeight / 2)
     })
-    await page.waitForTimeout(2000)
+    await new Promise(resolve => setTimeout(resolve, 2000))
     
     await page.evaluate(() => {
       window.scrollTo(0, 0)
     })
-    await page.waitForTimeout(2000)
+    await new Promise(resolve => setTimeout(resolve, 2000))
 
     // 先获取页面调试信息
     const debugInfo = await page.evaluate(() => {
@@ -155,7 +168,7 @@ async function scrapeStockTwitsMostActive(): Promise<string[]> {
 
     // 尝试多种选择器来获取股票数据
     const stocks = await page.evaluate(() => {
-      const results = []
+      const results: string[] = []
       
       // 方法1: 从页面 JSON 数据中提取股票符号
       try {
@@ -163,55 +176,52 @@ async function scrapeStockTwitsMostActive(): Promise<string[]> {
         const scripts = document.querySelectorAll('script')
         for (const script of scripts) {
           const content = script.textContent || ''
-          if (content.includes('"symbols":[') && content.includes('"rank":')) {
-            console.log('找到包含股票数据的脚本')
-            
-            // 尝试解析 JSON 数据
-            try {
-              // 查找 symbols 数组 - 使用更精确的正则表达式
-              const symbolsMatch = content.match(/"symbols":\s*\[(.*?)\]/s)
-              if (symbolsMatch) {
-                const symbolsJson = '[' + symbolsMatch[1] + ']'
-                console.log('找到 symbols JSON 片段，长度:', symbolsJson.length)
+          
+          // 查找多种可能的 JSON 数据格式
+          const patterns = [
+            /"symbols":\s*\[(.*?)\]/s,
+            /"mostActive":\s*\[(.*?)\]/s,
+            /"stocks":\s*\[(.*?)\]/s,
+            /"data":\s*\[(.*?)\]/s
+          ]
+          
+          for (const pattern of patterns) {
+            const match = content.match(pattern)
+            if (match) {
+              console.log('找到股票数据模式:', pattern.source)
+              
+              try {
+                const jsonData = '[' + match[1] + ']'
+                console.log('JSON 数据片段长度:', jsonData.length)
                 
-                const symbolsData = JSON.parse(symbolsJson)
+                const symbolsData = JSON.parse(jsonData)
                 console.log('解析到股票数据:', symbolsData.length, '只股票')
                 
-                // 按排名排序并提取前10只，包含完整数据
+                // 按排名排序并提取前10只
                 symbolsData
-                  .sort((a, b) => (a.rank || 999) - (b.rank || 999))
+                  .sort((a: any, b: any) => (a.rank || a.position || 999) - (b.rank || b.position || 999))
                   .slice(0, 10)
-                  .forEach(stock => {
-                    if (stock.symbol) {
-                      console.log(`排名 ${stock.rank}: ${stock.symbol} - ${stock.title}`)
-                      console.log('价格数据:', stock.priceData ? '有' : '无')
-                      console.log('基本面数据:', stock.fundamentals ? '有' : '无')
+                  .forEach((stock: any) => {
+                    if (stock.symbol || stock.ticker) {
+                      const symbol = stock.symbol || stock.ticker
+                      console.log(`排名 ${stock.rank || stock.position}: ${symbol}`)
                       
-                      results.push({
-                        symbol: stock.symbol,
-                        title: stock.title,
-                        rank: stock.rank,
-                        priceData: stock.priceData,
-                        fundamentals: stock.fundamentals
-                      })
+                      results.push(symbol)
                     }
                   })
                 
                 if (results.length > 0) {
-                  console.log('成功从 JSON 数据提取股票数据:', results.length, '只股票')
+                  console.log('成功从 JSON 数据提取股票符号:', results.length, '只股票')
                   return results
                 }
-              } else {
-                console.log('未找到 symbols 数组')
+              } catch (jsonError) {
+                console.log('JSON 解析失败:', (jsonError as Error).message)
               }
-            } catch (jsonError) {
-              console.log('JSON 解析失败:', jsonError.message)
-              console.log('尝试解析的内容片段:', content.substring(0, 500))
             }
           }
         }
       } catch (error) {
-        console.log('脚本解析失败:', error.message)
+        console.log('脚本解析失败:', (error as Error).message)
       }
       
       // 方法2: 查找表格中的股票符号 - 针对 StockTwits 的表格结构
@@ -221,13 +231,13 @@ async function scrapeStockTwitsMostActive(): Promise<string[]> {
       
       if (tableRows.length > 0) {
         tableRows.forEach((row, index) => {
-          if (index >= 15) return // 增加搜索范围
+          if (index >= 20) return // 增加搜索范围
           
           // 查找表格行中的股票符号
           const cells = row.querySelectorAll('td, th, [role="cell"], .cell, [class*="cell"], [class*="column"]')
           if (cells.length >= 1) {
             // 尝试多个列来查找股票符号
-            for (let i = 0; i < Math.min(cells.length, 3); i++) {
+            for (let i = 0; i < Math.min(cells.length, 4); i++) {
               const symbolCell = cells[i]
               const symbolText = symbolCell.textContent?.trim() || ''
               
@@ -238,7 +248,7 @@ async function scrapeStockTwitsMostActive(): Promise<string[]> {
               if (symbolMatch) {
                 const symbol = symbolMatch[1]
                 if (symbol && symbol.length <= 5 && 
-                    !['RANK', 'SYMBOL', 'PRICE', 'CHANGE', 'VOLUME', 'HIGH', 'LOW', 'CAP', 'WATCH', 'HTML', 'CSS', 'JS'].includes(symbol)) {
+                    !['RANK', 'SYMBOL', 'PRICE', 'CHANGE', 'VOLUME', 'HIGH', 'LOW', 'CAP', 'WATCH', 'HTML', 'CSS', 'JS', 'API', 'URL', 'HTTP', 'HTTPS', 'JSON', 'XML', 'DOM', 'BODY', 'HEAD', 'DIV', 'SPAN', 'P', 'A', 'IMG', 'BUTTON', 'INPUT', 'FORM', 'TABLE', 'TR', 'TD', 'TH', 'UL', 'LI', 'OL', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'NAV', 'HEADER', 'FOOTER', 'MAIN', 'SECTION', 'ARTICLE', 'ASIDE', 'FIGURE', 'FIGCAPTION', 'TIME', 'MARK', 'SMALL', 'STRONG', 'EM', 'B', 'I', 'U', 'S', 'SUB', 'SUP', 'CODE', 'PRE', 'KBD', 'SAMP', 'VAR', 'CITE', 'Q', 'BLOCKQUOTE', 'ADDRESS', 'DETAILS', 'SUMMARY', 'MENU', 'DIALOG', 'CANVAS', 'SVG', 'AUDIO', 'VIDEO', 'SOURCE', 'TRACK', 'MAP', 'AREA', 'OBJECT', 'PARAM', 'EMBED', 'IFRAME', 'NOSCRIPT', 'SCRIPT', 'STYLE', 'LINK', 'META', 'TITLE', 'BASE', 'TEMPLATE', 'SLOT'].includes(symbol)) {
                   console.log(`找到股票符号: ${symbol}`)
                   results.push(symbol)
                   break // 找到符号后跳出列循环
@@ -365,8 +375,29 @@ export async function GET(request: NextRequest) {
   try {
     console.log('开始获取 StockTwits most-active 数据...')
     
-    // 爬取 StockTwits 获取最活跃的股票符号
-    const symbols = await scrapeStockTwitsMostActive()
+    // 尝试多次爬取 StockTwits 获取最活跃的股票符号
+    let symbols: string[] = []
+    let attempts = 0
+    const maxAttempts = 3
+    
+    while (symbols.length === 0 && attempts < maxAttempts) {
+      attempts++
+      console.log(`第 ${attempts} 次尝试爬取 StockTwits 数据...`)
+      
+      try {
+        symbols = await scrapeStockTwitsMostActive()
+        if (symbols.length > 0) {
+          console.log(`成功获取 ${symbols.length} 只股票符号`)
+          break
+        }
+      } catch (error) {
+        console.error(`第 ${attempts} 次尝试失败:`, error)
+        if (attempts < maxAttempts) {
+          console.log('等待 5 秒后重试...')
+          await new Promise(resolve => setTimeout(resolve, 5000))
+        }
+      }
+    }
     
     // 如果没有获取到数据，使用 StockTwits 截图中的真实股票列表
     const finalSymbols = symbols.length > 0 ? symbols : [
@@ -375,6 +406,7 @@ export async function GET(request: NextRequest) {
     ]
     
     console.log('使用的股票符号:', finalSymbols)
+    console.log('数据来源:', symbols.length > 0 ? 'StockTwits 爬虫' : '硬编码回退')
     
     const hotStocks: StockTwitsStock[] = []
     
@@ -417,8 +449,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       data: hotStocks,
-      source: 'stocktwits',
-      timestamp: new Date().toISOString()
+      source: symbols.length > 0 ? 'stocktwits' : 'fallback',
+      timestamp: new Date().toISOString(),
+      attempts: attempts,
+      symbolsFound: symbols.length
+    }, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     })
     
   } catch (error) {

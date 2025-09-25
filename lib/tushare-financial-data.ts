@@ -137,7 +137,7 @@ export async function fetchDCFFinancialData(ticker: string): Promise<DCFFinancia
       name: basicData.name,
       currentPrice: dailyBasicData?.close || 0,
       marketCap: dailyBasicData?.total_mv || 0,
-      sharesOutstanding: dailyBasicData?.total_mv / (dailyBasicData?.close || 1) || 0,
+      sharesOutstanding: (dailyBasicData?.total_mv || 0) / (dailyBasicData?.close || 1) || 0,
       
       // 利润表数据
       revenue: incomeData.revenue || 0,

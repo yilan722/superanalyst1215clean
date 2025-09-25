@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0 // 禁用缓存，确保实时更新
 
 interface HotStock {
   symbol: string
@@ -173,8 +174,12 @@ export async function GET(request: NextRequest) {
         console.log('使用 StockTwits 数据...')
 
         // 调用 StockTwits API 获取完整数据
-        const stockTwitsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/stocktwits-most-active`)
+        const stockTwitsUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/stocktwits-most-active`
+        console.log('调用 StockTwits API:', stockTwitsUrl)
+        const stockTwitsResponse = await fetch(stockTwitsUrl)
+        console.log('StockTwits API 响应状态:', stockTwitsResponse.status)
         const stockTwitsData = await stockTwitsResponse.json()
+        console.log('StockTwits API 响应数据:', stockTwitsData.success, stockTwitsData.data?.length)
 
         if (stockTwitsData.success && stockTwitsData.data) {
           const hotStocks: HotStock[] = []
@@ -182,23 +187,22 @@ export async function GET(request: NextRequest) {
           // 处理 StockTwits 返回的数据，如果价格数据不完整则使用 yfinance
           for (const stockData of stockTwitsData.data) {
             if (stockData.symbol) {
-              // 检查是否有完整的价格数据
-              const priceData = stockData.priceData || {}
-              const fundamentals = stockData.fundamentals || {}
-              
+              // StockTwits API 已经返回了完整的股票数据
               let finalData = {
                 symbol: stockData.symbol,
-                name: stockData.title || stockData.name || stockData.symbol,
-                price: priceData.Last || 0,
-                change: priceData.Change || 0,
-                changePercent: priceData.PercentChange || 0,
-                volume: priceData.Volume || 0,
-                marketCap: fundamentals.marketCapitalization ? parseFloat(fundamentals.marketCapitalization) * 1000000000 : 0,
-                peRatio: fundamentals.pERatio || 0,
-                sector: fundamentals.sectorName || 'Unknown',
+                name: stockData.name || stockData.symbol,
+                price: stockData.price || 0,
+                change: stockData.change || 0,
+                changePercent: stockData.changePercent || 0,
+                volume: stockData.volume || 0,
+                marketCap: stockData.marketCap || 0,
+                peRatio: stockData.peRatio || 0,
+                sector: stockData.sector || 'Unknown',
+                reason: stockData.reason || 'Market activity',
+                confidence: stockData.confidence || 'low',
                 rank: stockData.rank || 0,
-                high52Week: fundamentals.highPriceLast52Weeks || 0,
-                low52Week: fundamentals.lowPriceLast52Weeks || 0,
+                high52Week: 0,
+                low52Week: 0,
                 isIndex: ['SPY', 'QQQ', 'DIA', 'IWM', 'ARKK'].includes(stockData.symbol)
               }
               
@@ -247,6 +251,12 @@ export async function GET(request: NextRequest) {
             success: true,
             data: hotStocks,
             source: 'stocktwits'
+          }, {
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
           })
         } else {
           // 回退到硬编码列表，使用 StockTwits 的真实数据
@@ -308,6 +318,12 @@ export async function GET(request: NextRequest) {
             success: true,
             data: hotStocks,
             source: 'stocktwits-fallback'
+          }, {
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
           })
         }
 
@@ -424,16 +440,35 @@ export async function GET(request: NextRequest) {
         }
       ]
       
-      return NextResponse.json({ success: true, data: mockStocks, source: 'mock' })
+      return NextResponse.json({ success: true, data: mockStocks, source: 'mock' }, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
     }
     
-    return NextResponse.json({ success: true, data: hotStocks, source: 'yahoo' })
+    return NextResponse.json({ success: true, data: hotStocks, source: 'yahoo' }, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    })
     
   } catch (error) {
     console.error('Error fetching hot stocks:', error)
     return NextResponse.json(
       { success: false, error: 'Failed to fetch hot stocks data' },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }
     )
   }
 }

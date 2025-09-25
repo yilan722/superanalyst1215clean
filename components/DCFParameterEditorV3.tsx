@@ -450,6 +450,7 @@ export default function DCFParameterEditorV3({
                 buyUnderPrice={buyUnderPrice}
                 year52High={year52High}
                 year52Low={year52Low}
+                priceChange={0}
               />
             </div>
 

@@ -139,7 +139,7 @@ export async function fetchEnhancedDCFFinancialData(ticker: string): Promise<Enh
       name: basicData.name,
       currentPrice: dailyBasicData?.close || 0,
       marketCap: dailyBasicData?.total_mv || 0,
-      sharesOutstanding: dailyBasicData?.total_mv / (dailyBasicData?.close || 1) || 0,
+      sharesOutstanding: (dailyBasicData?.total_mv || 0) / (dailyBasicData?.close || 1) || 0,
       
       // 利润表数据
       revenue: incomeData.revenue || 0,
@@ -213,7 +213,7 @@ async function getHistoricalIncomeData(tsCode: string) {
         return dateB.localeCompare(dateA)
       })
       
-      return items.map(item => ({
+      return items.map((item: any) => ({
         year: item[fields.indexOf('end_date')].substring(0, 4),
         revenue: parseFloat(item[fields.indexOf('revenue')]) || 0,
         oper_cost: parseFloat(item[fields.indexOf('oper_cost')]) || 0,
@@ -253,7 +253,7 @@ async function getHistoricalBalanceData(tsCode: string) {
         return dateB.localeCompare(dateA)
       })
       
-      return items.map(item => ({
+      return items.map((item: any) => ({
         year: item[fields.indexOf('end_date')].substring(0, 4),
         total_assets: parseFloat(item[fields.indexOf('total_assets')]) || 0,
         total_liab: parseFloat(item[fields.indexOf('total_liab')]) || 0,
@@ -292,7 +292,7 @@ async function getHistoricalCashflowData(tsCode: string) {
         return dateB.localeCompare(dateA)
       })
       
-      return items.map(item => ({
+      return items.map((item: any) => ({
         year: item[fields.indexOf('end_date')].substring(0, 4),
         n_cashflow_act: parseFloat(item[fields.indexOf('n_cashflow_act')]) || 0,
         n_cashflow_inv_act: parseFloat(item[fields.indexOf('n_cashflow_inv_act')]) || 0,
@@ -329,7 +329,7 @@ async function getDividendData(tsCode: string) {
         return dateB.localeCompare(dateA)
       })
       
-      return items.map(item => ({
+      return items.map((item: any) => ({
         year: item[fields.indexOf('end_date')].substring(0, 4),
         cash_div: parseFloat(item[fields.indexOf('cash_div')]) || 0,
         stk_div: parseFloat(item[fields.indexOf('stk_div')]) || 0,

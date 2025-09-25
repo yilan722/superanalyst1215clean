@@ -1,4 +1,4 @@
-import { DCFFinancialData } from './tushare-enhanced-data'
+import { EnhancedDCFFinancialData } from './tushare-enhanced-data'
 
 // 增强的DCF计算参数接口
 export interface EnhancedDCFParams {
@@ -85,7 +85,7 @@ export const DEFAULT_ENHANCED_DCF_PARAMS: EnhancedDCFParams = {
 }
 
 // 计算自由现金流
-export function calculateFreeCashFlow(financialData: DCFFinancialData): number {
+export function calculateFreeCashFlow(financialData: EnhancedDCFFinancialData): number {
   // 自由现金流 = 经营活动产生的现金流量净额 - 资本性支出
   const operatingCashFlow = financialData.operatingCashFlow || 0
   const capex = financialData.capex || 0
@@ -113,7 +113,7 @@ export function calculateFreeCashFlow(financialData: DCFFinancialData): number {
 
 // 增强的DCF计算函数
 export function calculateEnhancedDCF(
-  financialData: DCFFinancialData,
+  financialData: EnhancedDCFFinancialData,
   params: EnhancedDCFParams = DEFAULT_ENHANCED_DCF_PARAMS
 ): EnhancedDCFResult {
   console.log(`🚀 开始增强DCF计算: ${financialData.symbol}`)
@@ -276,7 +276,7 @@ function calculateSensitivityAnalysis(
 }
 
 // 数据质量评估
-function assessDataQuality(financialData: DCFFinancialData) {
+function assessDataQuality(financialData: EnhancedDCFFinancialData) {
   let completeness = 0
   let reliability = 'LOW'
   

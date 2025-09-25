@@ -48,7 +48,7 @@ export default function EnhancedDCFForm({
     if (initialData?.freeCashFlow && initialData.freeCashFlow !== 0) {
       setParameters(prev => ({
         ...prev,
-        dcfStartValue: initialData.freeCashFlow
+        dcfStartValue: initialData.freeCashFlow || 0
       }))
     }
   }, [initialData])

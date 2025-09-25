@@ -286,11 +286,11 @@ export default function ValuationAnalysis({ locale, user }: ValuationAnalysisPro
         },
         cashFlowData: {
           years: dcfValuation.historicalData?.years || ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', 'TTM'],
-          freeCashFlow: dcfValuation.historicalData?.freeCashFlow ? [...dcfValuation.historicalData.freeCashFlow.map(v => v / 1000000000), dcfValuation.freeCashFlow / 1000000000] : [12.5, 15.2, 18.7, 22.1, 25.8, 28.3, 31.2, 28.9, 26.5, 24.1, 22.68],
-          ownerEarningsFCF: dcfValuation.historicalData?.freeCashFlow ? [...dcfValuation.historicalData.freeCashFlow.map(v => v * 0.95 / 1000000000), dcfValuation.freeCashFlow * 0.95 / 1000000000] : [11.8, 14.5, 17.9, 21.3, 24.7, 27.1, 29.8, 27.6, 25.2, 22.9, 21.5],
-          eps: dcfValuation.historicalData?.eps ? [...dcfValuation.historicalData.eps.map(v => v / 1000000000), dcfValuation.netIncome / dcfValuation.sharesOutstanding / 1000000000] : [2.1, 2.5, 3.0, 3.4, 3.8, 4.2, 4.6, 4.1, 3.7, 3.3, 2.9],
-          dividendsPaid: dcfValuation.historicalData?.dividendsPaid ? [...dcfValuation.historicalData.dividendsPaid.map(v => v / 1000000000), 0] : [0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.0, 0.9, 0.8, 0.7],
-          dividendsAndBuybacks: dcfValuation.historicalData?.dividendsAndBuybacks ? [...dcfValuation.historicalData.dividendsAndBuybacks.map(v => v / 1000000000), 0] : [1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.1, 1.9, 1.7, 1.5]
+          freeCashFlow: dcfValuation.historicalData?.freeCashFlow ? [...dcfValuation.historicalData.freeCashFlow.map((v: number) => v / 1000000000), dcfValuation.freeCashFlow / 1000000000] : [12.5, 15.2, 18.7, 22.1, 25.8, 28.3, 31.2, 28.9, 26.5, 24.1, 22.68],
+          ownerEarningsFCF: dcfValuation.historicalData?.freeCashFlow ? [...dcfValuation.historicalData.freeCashFlow.map((v: number) => v * 0.95 / 1000000000), dcfValuation.freeCashFlow * 0.95 / 1000000000] : [11.8, 14.5, 17.9, 21.3, 24.7, 27.1, 29.8, 27.6, 25.2, 22.9, 21.5],
+          eps: dcfValuation.historicalData?.eps ? [...dcfValuation.historicalData.eps.map((v: number) => v / 1000000000), dcfValuation.netIncome / dcfValuation.sharesOutstanding / 1000000000] : [2.1, 2.5, 3.0, 3.4, 3.8, 4.2, 4.6, 4.1, 3.7, 3.3, 2.9],
+          dividendsPaid: dcfValuation.historicalData?.dividendsPaid ? [...dcfValuation.historicalData.dividendsPaid.map((v: number) => v / 1000000000), 0] : [0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.0, 0.9, 0.8, 0.7],
+          dividendsAndBuybacks: dcfValuation.historicalData?.dividendsAndBuybacks ? [...dcfValuation.historicalData.dividendsAndBuybacks.map((v: number) => v / 1000000000), 0] : [1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.1, 1.9, 1.7, 1.5]
         },
         performance5Year: {
           periods: dcfValuation.performanceData?.periods || ['2019-2023', '2020-2024', '2021-2024', '2022-2024', '2023-2024', 'Median'],
@@ -311,7 +311,7 @@ export default function ValuationAnalysis({ locale, user }: ValuationAnalysisPro
         },
         futureCashFlow: {
           years: dcfValuation.dcfCalculation?.projectedCashFlows?.year || [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034],
-          projectedCashFlow: dcfValuation.dcfCalculation?.projectedCashFlows?.freeCashFlow?.map(v => v / 1000000000) || [24.95, 27.44, 30.19, 33.21, 36.53, 40.18, 44.20, 48.62, 53.48, 58.83],
+          projectedCashFlow: dcfValuation.dcfCalculation?.projectedCashFlows?.freeCashFlow?.map((v: number) => v / 1000000000) || [24.95, 27.44, 30.19, 33.21, 36.53, 40.18, 44.20, 48.62, 53.48, 58.83],
           growthRates: ['10.00%', '10.00%', '10.00%', '9.00%', '9.00%', '9.00%', '8.10%', '8.10%', '8.10%', '7.29%'],
           terminalValue: dcfValuation.dcfCalculation?.terminalValue?.terminalValue || 998260000000
         },

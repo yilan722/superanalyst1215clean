@@ -183,8 +183,10 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
       if (data.success) {
         setHotStocks(data.data)
         console.log(`✅ 成功获取 ${data.data.length} 只热门股票数据，数据源: ${data.source}`)
+        console.log('股票符号:', data.data.map((s: HotStock) => s.symbol))
       } else {
         // 如果API失败，使用模拟数据
+        console.log('❌ API 调用失败，使用模拟数据')
         setHotStocks(mockHotStocks)
         toast.error(locale === 'zh' ? '无法获取实时数据，显示模拟数据' : 'Unable to fetch real-time data, showing mock data')
       }
@@ -418,9 +420,11 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
             </div>
           </div>
           
-          <div 
-            onClick={handleTodaysReportClick}
-            className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-600 transition-colors cursor-pointer group"
+          <a 
+            href={`/en/reports/${(translatedTodaysReport || todaysReport)?.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-600 transition-colors cursor-pointer group"
           >
             <div className="flex items-start justify-between mb-3">
               <div>
@@ -482,7 +486,7 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
                 )}
               </div>
             </div>
-          </div>
+          </a>
         </div>
       )}
 

@@ -5,8 +5,8 @@ import React, { useState } from 'react'
 export default function TestSimpleValuation() {
   const [ticker, setTicker] = useState('')
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState(null)
-  const [error, setError] = useState(null)
+  const [result, setResult] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSearch = async () => {
     if (!ticker.trim()) return
@@ -55,7 +55,7 @@ export default function TestSimpleValuation() {
       
     } catch (error) {
       console.error('搜索错误:', error)
-      setError(error.message)
+      setError(error instanceof Error ? error.message : 'Unknown error')
     } finally {
       setLoading(false)
     }

@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import EnhancedDCFForm from '../../components/EnhancedDCFForm'
 
 export default function TestEnhancedDCF() {
-  const [result, setResult] = useState(null)
+  const [result, setResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
   const handleCalculate = async (params: any) => {
