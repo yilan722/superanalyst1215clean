@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { fetchEnhancedDCFFinancialData } from '@/lib/tushare-enhanced-data'
+import { fetchEnhancedDCFFinancialData } from '@/app/services/tushare-enhanced-data'
 
 export const dynamic = 'force-dynamic'
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe-config'
+import { stripe } from '@/app/services/stripe-config'
 import { createClient } from '@supabase/supabase-js'
 
 // Create Supabase client with service role key

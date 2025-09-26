@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { StockData } from '@/types'
+import { StockData } from '@/app/types'
 // 移除akshare-api引用，只使用tushare和yfinance
 
 // 强制动态渲染，因为使用了request.url
@@ -290,7 +290,7 @@ export async function GET(request: NextRequest) {
       // 使用tushare API获取A股数据（唯一稳定数据源）
       try {
         console.log(`🔄 使用tushare获取A股 ${ticker} 数据...`)
-        const { fetchAStockData: fetchTushareData } = await import('@/lib/tushare-api')
+        const { fetchAStockData: fetchTushareData } = await import('@/app/services/tushare-api')
         const tushareData = await fetchTushareData(ticker)
         
         // tushare应该直接返回中文公司名称，不需要手动修复
@@ -332,7 +332,7 @@ export async function GET(request: NextRequest) {
     } else if (isHKStock) {
       // 使用港股API获取港股数据
       try {
-        const { fetchHKStockData } = await import('@/lib/hk-stock-api')
+        const { fetchHKStockData } = await import('@/app/services/hk-stock-api')
         const hkStockData = await fetchHKStockData(ticker)
         return NextResponse.json(hkStockData)
       } catch (hkStockError) {
@@ -347,7 +347,7 @@ export async function GET(request: NextRequest) {
       try {
         // 优先使用Yahoo Finance基础API（免费且现在正常工作）
         try {
-          const { fetchYahooFinanceFallback } = await import('@/lib/yahoo-finance-html-api')
+          const { fetchYahooFinanceFallback } = await import('@/app/services/yahoo-finance-html-api')
           const yahooData = await fetchYahooFinanceFallback(ticker)
           console.log(`✅ Yahoo Finance基础API成功获取 ${ticker} 数据`)
           return NextResponse.json(yahooData)
@@ -356,7 +356,7 @@ export async function GET(request: NextRequest) {
           
           // 备用方案1：使用实时股票数据API
           try {
-            const { fetchRealTimeStockData } = await import('@/lib/real-time-stock-data')
+            const { fetchRealTimeStockData } = await import('@/app/services/real-time-stock-data')
             const realTimeData = await fetchRealTimeStockData(ticker)
             console.log(`✅ 实时数据API成功获取 ${ticker} 数据`)
             return NextResponse.json(realTimeData)
@@ -365,7 +365,7 @@ export async function GET(request: NextRequest) {
             
             // 备用方案2：使用Opus4 API
             try {
-              const { fetchOtherMarketStockData } = await import('@/lib/opus4-stock-api')
+              const { fetchOtherMarketStockData } = await import('@/app/services/opus4-stock-api')
               const opus4Data = await fetchOtherMarketStockData(ticker)
               console.log(`✅ Opus4 API成功获取 ${ticker} 数据`)
               return NextResponse.json(opus4Data)

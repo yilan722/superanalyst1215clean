@@ -100,8 +100,15 @@ export default function StockPriceChart({
 
       {/* Chart */}
       <div className="p-6">
-        <div className="relative">
-          <svg width={chartWidth} height={chartHeight} className="overflow-visible">
+        <div className="relative w-full overflow-hidden">
+          <div className="w-full" style={{ aspectRatio: '2/1' }}>
+            <svg 
+              width="100%" 
+              height="100%" 
+              viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+              className="max-w-full h-auto"
+              preserveAspectRatio="xMidYMid meet"
+            >
             {/* Grid lines */}
             {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
               const y = margin.top + ratio * (chartHeight - margin.top - margin.bottom)
@@ -179,7 +186,8 @@ export default function StockPriceChart({
               r="4"
               fill="#3b82f6"
             />
-          </svg>
+            </svg>
+          </div>
 
           {/* Legend */}
           <div className="flex items-center justify-center space-x-6 mt-4">

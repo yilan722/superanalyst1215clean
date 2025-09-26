@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe-config'
+import { stripe } from '@/app/services/stripe-config'
 
 export async function GET(request: NextRequest) {
   try {

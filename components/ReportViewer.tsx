@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Report } from '@/lib/reports'
+import { Report } from '@/app/services/reports'
 import { 
   Calendar, 
   Building2, 

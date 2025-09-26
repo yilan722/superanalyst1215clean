@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { getAllReports } from '@/lib/reports'
+import { getAllReports, type Report } from '@/app/services/reports'
 import { Calendar, Building2, FileText, ExternalLink } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -36,7 +36,7 @@ export default async function ReportsPage() {
     "url": "https://superanalyst.pro/reports",
     "mainEntity": {
       "@type": "ItemList",
-      "itemListElement": reports.map((report, index) => ({
+      "itemListElement": reports.map((report: Report, index: number) => ({
         "@type": "Article",
         "position": index + 1,
         "headline": report.title,
@@ -84,7 +84,7 @@ export default async function ReportsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {reports.map((report) => (
+              {reports.map((report: Report) => (
                 <div key={report.id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">

@@ -5,7 +5,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { CreditCard, Lock, CheckCircle, AlertCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { supabase } from '../lib/supabase-client'
+import { supabase } from '@/app/services/database/supabase-client'
 import ClientCouponInput from './ClientCouponInput'
 
 // Make sure to call `loadStripe` outside of a component's render to avoid

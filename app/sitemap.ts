@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { getAllReports } from '@/lib/reports'
+import { getAllReports } from '@/app/services/reports'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const reports = await getAllReports()

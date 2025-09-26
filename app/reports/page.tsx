@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { getAllReports } from '@/lib/reports'
+import { getAllReports } from '@/app/services/reports'
 import { Calendar, Building2, FileText, ExternalLink } from 'lucide-react'
 
 export const metadata: Metadata = {

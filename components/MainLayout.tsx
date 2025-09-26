@@ -7,7 +7,7 @@ import ReportHub from './InsightRefinery/ReportHub'
 import HeaderUserDropdown from './HeaderUserDropdown'
 import ValuationAnalysis from './ValuationAnalysis'
 import LanguageSelector from './LanguageSelector'
-import { type Locale } from '../lib/i18n'
+import { type Locale } from '../app/services/i18n'
 
 interface MainLayoutProps {
   locale: Locale

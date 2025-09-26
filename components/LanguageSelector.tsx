@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { type Locale, locales, localeNames } from '../lib/i18n'
+import { type Locale, locales, localeNames } from '../app/services/i18n'
 
 interface LanguageSelectorProps {
   currentLocale: Locale

@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import ReportViewer from '@/components/ReportViewer'
-import { getReportById } from '@/lib/reports'
+import { getReportById } from '@/app/services/reports'
 
 interface ReportPageProps {
   params: {

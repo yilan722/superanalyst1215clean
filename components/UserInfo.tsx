@@ -3,10 +3,11 @@
 import React, { useState } from 'react'
 import { User, LogOut, CreditCard, BarChart3, LogIn } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { signOut } from '../lib/supabase-auth'
-import { useAuthContext } from '../lib/auth-context'
-import { getTranslation } from '../lib/translations'
-import { Locale } from '../lib/i18n'
+
+import { useAuthContext } from '../app/services/auth-context'
+import { getTranslation } from '../app/services/translations'
+import { Locale } from '../app/services/i18n'
+import { signOut } from '@/app/services/database/supabase-auth'
 
 interface UserData {
   id: string
@@ -14,7 +15,7 @@ interface UserData {
   name?: string
   free_reports_used: number
   paid_reports_used: number
-  subscription_type?: string
+  subscription_type?: number
   subscription_end?: string
   monthly_report_limit: number
   // 新增积分相关字段
@@ -150,18 +151,22 @@ export default function UserInfo({ user, onLogout, onRefresh, onLogin, onOpenSub
   const subscriptionStatus = getSubscriptionStatus()
   const remainingReports = getRemainingReports()
 
-  const getSubscriptionTypeDisplayName = (subscriptionType: string) => {
+  const getSubscriptionTypeDisplayName = (subscriptionType: number | undefined) => {
+    if (!subscriptionType) return '免费用户'
+    
     switch (subscriptionType) {
-      case 'single_report':
-        return '单篇报告'
-      case 'monthly_30':
-        return '月度订阅 (30篇)'
-      case 'monthly_70':
-        return '高级订阅 (70篇)'
-      case 'premium_300':
-        return '专业版 (300篇)'
+      case 1:
+        return '免费用户'
+      case 2:
+        return '基础版'
+      case 3:
+        return '专业版'
+      case 4:
+        return '企业版'
+      case 5:
+        return '企业高级版'
       default:
-        return subscriptionType
+        return `订阅层级 ${subscriptionType}`
     }
   }
 

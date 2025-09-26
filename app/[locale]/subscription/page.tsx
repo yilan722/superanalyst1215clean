@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { type Locale } from '@/lib/i18n'
-import { getTranslation } from '@/lib/translations'
-import { useAuthContext } from '@/lib/auth-context'
-import { supabase } from '@/lib/supabase-client'
+import { type Locale } from '@/app/services/i18n'
+import { getTranslation } from '@/app/services/translations'
+import { useAuthContext } from '@/app/services/auth-context'
+import { SubscriptionPageService, type SubscriptionStatus, type SubscriptionMetrics } from '@/app/services/subscription-page-service'
+import { type UserWithSubscription } from '@/app/services/database/user-service'
 import { CreditCard, Check, X, Loader2, AlertCircle, Zap, Star, Crown, TrendingUp, FileText, Clock, Headphones, Users, Wrench } from 'lucide-react'
 
 interface SubscriptionPageProps {
@@ -18,7 +19,9 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
   const { locale } = params
   const router = useRouter()
   const { user: authUser, loading: authLoading } = useAuthContext()
-  const [userData, setUserData] = useState<any>(null)
+  const [userData, setUserData] = useState<UserWithSubscription | null>(null)
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null)
+  const [subscriptionMetrics, setSubscriptionMetrics] = useState<SubscriptionMetrics | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -46,78 +49,38 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
   const fetchUserData = async () => {
     setIsLoading(true)
     setError(null)
+    
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', authUser?.id)
-        .single()
-
-      if (error) {
-        setError(error.message)
-        console.error('Error fetching user data:', error)
-        setUserData(null)
-      } else {
+      const data = await SubscriptionPageService.fetchUserSubscriptionData(authUser?.id!)
+      
+      if (data) {
         setUserData(data)
+        
+        // Calculate subscription status and metrics
+        const status = await SubscriptionPageService.getSubscriptionStatus(data, locale)
+        const metrics = await SubscriptionPageService.calculateSubscriptionMetrics(data)
+        
+        setSubscriptionStatus(status)
+        setSubscriptionMetrics(metrics)
+      } else {
+        setError(locale === 'zh' ? '加载用户数据失败' : 'Failed to load user data')
+        setUserData(null)
+        setSubscriptionStatus(null)
+        setSubscriptionMetrics(null)
       }
     } catch (err) {
       setError(locale === 'zh' ? '加载用户数据失败' : 'Failed to load user data')
       console.error('Unexpected error fetching user data:', err)
       setUserData(null)
+      setSubscriptionStatus(null)
+      setSubscriptionMetrics(null)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const getSubscriptionStatus = () => {
-    if (!userData?.subscription_type) {
-      return {
-        name: locale === 'zh' ? '免费用户' : 'Free User',
-        color: 'text-slate-500',
-        bgColor: 'bg-slate-100',
-        description: locale === 'zh' ? '您目前是免费用户。' : 'You are currently on the Free plan.'
-      }
-    }
-
-    switch (userData.subscription_type) {
-      case 'basic':
-        return {
-          name: locale === 'zh' ? '基础会员' : 'Basic Member',
-          color: 'text-blue-600',
-          bgColor: 'bg-blue-100',
-          description: locale === 'zh' ? '享受基础报告功能。' : 'Access to basic report features.'
-        }
-      case 'professional':
-        return {
-          name: locale === 'zh' ? '专业会员' : 'Pro Member',
-          color: 'text-purple-600',
-          bgColor: 'bg-purple-100',
-          description: locale === 'zh' ? '解锁更多高级分析。' : 'Unlock more advanced analytics.'
-        }
-      case 'business':
-        return {
-          name: locale === 'zh' ? '企业会员' : 'Business Member',
-          color: 'text-amber-600',
-          bgColor: 'bg-amber-100',
-          description: locale === 'zh' ? '获得所有企业级功能。' : 'Gain access to all enterprise-grade features.'
-        }
-      default:
-        return {
-          name: locale === 'zh' ? '未知会员' : 'Unknown Member',
-          color: 'text-slate-500',
-          bgColor: 'bg-slate-100',
-          description: locale === 'zh' ? '您的会员状态未知。' : 'Your membership status is unknown.'
-        }
-    }
-  }
-
-  const subscriptionStatus = getSubscriptionStatus()
-  const monthlyReportLimit = userData?.monthly_report_limit || 0
-  const paidReportsUsed = userData?.paid_reports_used || 0
-  const freeReportsUsed = userData?.free_reports_used || 0
-  const totalReportsUsed = paidReportsUsed + freeReportsUsed
-  const reportsRemaining = Math.max(0, (monthlyReportLimit || 0) - totalReportsUsed)
-  const reportUsagePercentage = monthlyReportLimit > 0 ? (totalReportsUsed / monthlyReportLimit) * 100 : 0
+  // Get subscription tier details for display
+  const subscriptionTierDetails = SubscriptionPageService.getSubscriptionTierDetails(userData)
 
   const handleUpgrade = (planType: string) => {
     // Redirect to payment page with selected plan
@@ -139,25 +102,14 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
     if (!confirmed) return
 
     try {
-      const response = await fetch('/api/stripe/cancel-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          subscriptionId: userData.subscription_id
-        })
-      })
-
-      const result = await response.json()
-
+      const result = await SubscriptionPageService.cancelSubscription(userData.subscription_id.toString())
+      
       if (result.success) {
         alert(locale === 'zh' ? '订阅已成功取消' : 'Subscription cancelled successfully')
-        // Refresh the page to update user data
-        window.location.reload()
+        // Refresh user data
+        await fetchUserData()
       } else {
-        throw new Error(result.error || 'Failed to cancel subscription')
+        alert(locale === 'zh' ? `取消订阅失败: ${result.error}` : `Failed to cancel subscription: ${result.error}`)
       }
     } catch (error) {
       console.error('Cancel subscription error:', error)
@@ -200,7 +152,7 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
         'AI-Driven Deep Analysis',
         'Real-time Market Data'
       ],
-      isCurrent: userData?.subscription_type === 'free' || !userData?.subscription_type,
+      isCurrent: !userData?.subscription_id || userData?.subscription_tiers?.name?.toLowerCase() === 'free',
       color: 'slate'
     },
     {
@@ -218,7 +170,7 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
         'AI-Driven Deep Analysis',
         'Real-time Market Data'
       ],
-      isCurrent: userData?.subscription_type === 'basic',
+      isCurrent: userData?.subscription_tiers?.name?.toLowerCase() === 'basic',
       color: 'blue'
     },
     {
@@ -237,7 +189,7 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
         'Real-time Market Data',
         'Priority Customer Support'
       ],
-      isCurrent: userData?.subscription_type === 'professional',
+      isCurrent: userData?.subscription_tiers?.name?.toLowerCase() === 'pro',
       color: 'purple',
       isBestValue: true
     },
@@ -258,7 +210,7 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
         'Priority Customer Support',
         'API Access / Dedicated Account Manager'
       ],
-      isCurrent: userData?.subscription_type === 'business',
+      isCurrent: userData?.subscription_tiers?.name?.toLowerCase() === 'business',
       color: 'amber'
     },
     {
@@ -279,7 +231,7 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
         'API Access / Dedicated Account Manager',
         'Technical Analysis VIP Consulting'
       ],
-      isCurrent: userData?.subscription_type === 'enterprise',
+      isCurrent: userData?.subscription_tiers?.name?.toLowerCase() === 'enterprise',
       color: 'emerald',
       isCustom: true
     }
@@ -305,36 +257,75 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
             </h2>
             
             <div className="flex items-center space-x-4 mb-6">
-              <div className={`px-4 py-2 rounded-full ${subscriptionStatus.bgColor}`}>
-                <span className={`font-semibold ${subscriptionStatus.color}`}>
-                  {subscriptionStatus.name}
+              <div className={`px-4 py-2 rounded-full ${subscriptionStatus?.bgColor || 'bg-slate-100'}`}>
+                <span className={`font-semibold ${subscriptionStatus?.color || 'text-slate-500'}`}>
+                  {subscriptionStatus?.name || (locale === 'zh' ? '加载中...' : 'Loading...')}
                 </span>
               </div>
-              <p className="text-slate-600">{subscriptionStatus.description}</p>
+              <p className="text-slate-600">{subscriptionStatus?.description || ''}</p>
             </div>
+
+            {/* Subscription Tier Details - Only show for active subscriptions */}
+            {subscriptionMetrics?.isSubscriptionActive && subscriptionTierDetails && (
+              <div className="bg-blue-50 rounded-lg p-4 mb-6">
+                <h3 className="text-lg font-semibold text-slate-700 mb-3">
+                  {locale === 'zh' ? '订阅详情' : 'Subscription Details'}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-slate-600">
+                      {locale === 'zh' ? '每月报告限制' : 'Monthly Report Limit'}
+                    </p>
+                    <p className="font-semibold text-slate-800">
+                      {subscriptionTierDetails.monthlyReportLimit }
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-600">
+                      {locale === 'zh' ? '月费' : 'Monthly Price'}
+                    </p>
+                    <p className="font-semibold text-slate-800">
+                      ${subscriptionTierDetails.priceMonthly}
+                    </p>
+                  </div>
+                </div>
+                {subscriptionTierDetails.subscriptionEnd && (
+                  <div className="mt-4 pt-4 border-t border-blue-200">
+                    <p className="text-sm text-slate-600">
+                      {locale === 'zh' ? '订阅到期时间' : 'Subscription Expires'}
+                    </p>
+                    <p className="font-semibold text-slate-800">
+                      {new Date(subscriptionTierDetails.subscriptionEnd).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Report Usage */}
             <div className="bg-gray-100 rounded-lg p-4">
               <div className="flex justify-between items-center mb-2">
                 <p className="text-sm text-slate-600">
                   {locale === 'zh' ? '已使用报告' : 'Reports Used'}:{' '}
-                  <span className="font-semibold">{totalReportsUsed}</span> /{' '}
-                  <span className="font-semibold">{monthlyReportLimit === 0 ? '∞' : monthlyReportLimit}</span>
+                  <span className="font-semibold">{subscriptionMetrics?.totalReportsUsed || 0}</span> /{' '}
+                  <span className="font-semibold">
+                    {subscriptionMetrics?.monthlyReportLimit || 0}
+                  </span>
                 </p>
                 <p className="text-sm font-semibold text-slate-700">
-                  {reportsRemaining} {locale === 'zh' ? '剩余' : 'left'}
+                  {subscriptionMetrics?.reportsRemaining || 0} {locale === 'zh' ? '剩余' : 'left'}
                 </p>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div
                   className="bg-amber-500 h-2.5 rounded-full"
-                  style={{ width: `${Math.min(100, reportUsagePercentage)}%` }}
+                  style={{ width: `${Math.min(100, subscriptionMetrics?.reportUsagePercentage || 0)}%` }}
                 ></div>
               </div>
             </div>
 
             {/* Cancel Subscription Button */}
-            {userData?.subscription_type && userData?.subscription_type !== 'free' && (
+            {subscriptionMetrics?.isSubscriptionActive && subscriptionTierDetails && (
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <button
                   onClick={handleCancelSubscription}

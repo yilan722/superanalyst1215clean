@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { AuthProvider } from '@/lib/auth-context'
+import { AuthProvider } from '@/app/services/auth-context'
 
 export const metadata: Metadata = {
   title: 'SuperAnalyst - AI-Powered Pro Equity Research',
