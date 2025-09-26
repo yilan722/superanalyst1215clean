@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Home, TrendingUp, Brain, BarChart3, Settings, User, Calculator, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, LogOut, CreditCard, FileText } from 'lucide-react'
 import { type Locale } from '../app/services/i18n'
@@ -18,6 +18,9 @@ interface SidebarProps {
     name?: string | null
     email?: string
     subscription_type: string | null
+    subscription_tiers?: {
+      name: string
+    } | null
     monthly_report_limit: number
     paid_reports_used: number
     free_reports_used: number
@@ -48,6 +51,13 @@ export default function Sidebar({
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { signOut } = useAuthContext()
+
+  // 当侧边栏折叠时，自动关闭用户菜单
+  useEffect(() => {
+    if (isCollapsed) {
+      setIsUserProfileExpanded(false)
+    }
+  }, [isCollapsed])
 
   const handleCollapseToggle = () => {
     const newCollapsed = !isCollapsed
@@ -83,14 +93,55 @@ export default function Sidebar({
     }
   }
   const getSubscriptionStatus = () => {
-    if (!userData?.subscription_type) {
+    // 检查是否有订阅信息
+    const subscriptionType = userData?.subscription_type
+    const subscriptionTier = userData?.subscription_tiers?.name?.toLowerCase()
+    
+    if (!subscriptionType && !subscriptionTier) {
       return {
         name: locale === 'zh' ? '免费用户' : 'Free User',
         color: 'text-slate-400'
       }
     }
 
-    switch (userData.subscription_type) {
+    // 优先使用新的subscription_tiers系统
+    if (subscriptionTier) {
+      switch (subscriptionTier) {
+        case 'free':
+          return {
+            name: locale === 'zh' ? '免费用户' : 'Free User',
+            color: 'text-slate-400'
+          }
+        case 'basic':
+          return {
+            name: locale === 'zh' ? '基础会员' : 'Basic Member',
+            color: 'text-blue-400'
+          }
+        case 'pro':
+          return {
+            name: locale === 'zh' ? '专业会员' : 'Pro Member',
+            color: 'text-purple-400'
+          }
+        case 'business':
+          return {
+            name: locale === 'zh' ? '企业会员' : 'Business Member',
+            color: 'text-amber-400'
+          }
+        case 'enterprise':
+          return {
+            name: locale === 'zh' ? '企业会员' : 'Enterprise Member',
+            color: 'text-amber-400'
+          }
+        default:
+          return {
+            name: locale === 'zh' ? '未知会员' : 'Unknown Member',
+            color: 'text-slate-400'
+          }
+      }
+    }
+
+    // 回退到旧的subscription_type系统
+    switch (subscriptionType) {
       case 'basic':
         return {
           name: locale === 'zh' ? '基础会员' : 'Basic Member',
@@ -219,14 +270,17 @@ export default function Sidebar({
         })}
       </div>
 
-      {/* User Section */}
-      <div className="border-t border-slate-700">
+      {/* User Section - 固定在底部 */}
+      <div className="border-t border-slate-700 mt-auto relative">
         {user ? (
           <div>
-            {/* User Profile Header */}
+            {/* User Profile Header - 整个区域可点击 */}
             <div className="p-2">
               {!isCollapsed ? (
-                <div className="flex items-center justify-between">
+                <button
+                  onClick={() => setIsUserProfileExpanded(!isUserProfileExpanded)}
+                  className="w-full flex items-center justify-between hover:bg-slate-800 rounded-lg p-2 transition-colors"
+                >
                   <div className="flex items-center space-x-2 flex-1 min-w-0">
                     <div className="w-6 h-6 bg-slate-700 rounded-full flex items-center justify-center flex-shrink-0">
                       <User className="w-3 h-3 text-slate-300" />
@@ -240,17 +294,14 @@ export default function Sidebar({
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setIsUserProfileExpanded(!isUserProfileExpanded)}
-                    className="p-1 hover:bg-slate-600 rounded transition-colors flex-shrink-0"
-                  >
+                  <div className="flex-shrink-0">
                     {isUserProfileExpanded ? (
                       <ChevronUp className="w-3 h-3 text-slate-400" />
                     ) : (
                       <ChevronDown className="w-3 h-3 text-slate-400" />
                     )}
-                  </button>
-                </div>
+                  </div>
+                </button>
               ) : (
                 <div className="flex items-center justify-center">
                   <button
@@ -264,64 +315,88 @@ export default function Sidebar({
               )}
             </div>
 
-            {/* Expanded User Profile Menu */}
+            {/* Expanded User Profile Menu - 向上展开 */}
             {isUserProfileExpanded && (
               <div className="px-2 pb-2">
-                <div className="bg-slate-800 rounded-lg p-1 space-y-0.5">
-                  {/* My Account */}
-                  <button
-                    onClick={handleAccount}
-                    className="w-full flex items-center space-x-2 px-2 py-1.5 text-xs text-slate-300 hover:bg-slate-700 rounded-md transition-colors"
-                  >
-                    <Settings className="w-3 h-3" />
-                    <span className="truncate">{locale === 'zh' ? '我的账户' : 'My Account'}</span>
-                  </button>
+                {isCollapsed ? (
+                  // 折叠状态：只显示图标，无背景容器
+                  <div className="flex flex-col space-y-1 absolute bottom-full left-0 right-0 mb-2">
+                    {/* My Account */}
+                    <button
+                      onClick={handleAccount}
+                      className="w-full flex items-center justify-center p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
+                      title={locale === 'zh' ? '我的账户' : 'My Account'}
+                    >
+                      <Settings className="w-4 h-4" />
+                    </button>
 
-                  {/* Manage Subscription */}
-                  <button
-                    onClick={handleManageSubscription}
-                    className="w-full flex items-center space-x-2 px-2 py-1.5 text-xs text-slate-300 hover:bg-slate-700 rounded-md transition-colors"
-                  >
-                    <CreditCard className="w-3 h-3" />
-                    <span className="truncate">{locale === 'zh' ? '订阅管理' : 'Manage Subscription'}</span>
-                  </button>
+                    {/* Manage Subscription */}
+                    <button
+                      onClick={handleManageSubscription}
+                      className="w-full flex items-center justify-center p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
+                      title={locale === 'zh' ? '订阅管理' : 'Manage Subscription'}
+                    >
+                      <CreditCard className="w-4 h-4" />
+                    </button>
 
-                  {/* Report Hub */}
-                  <button
-                    onClick={handleReportHub}
-                    className="w-full flex items-center space-x-2 px-2 py-1.5 text-xs text-slate-300 hover:bg-slate-700 rounded-md transition-colors"
-                  >
-                    <BarChart3 className="w-3 h-3" />
-                    <span className="truncate">{locale === 'zh' ? '报告中心' : 'Report Hub'}</span>
-                  </button>
+                    {/* Report Hub */}
+                    <button
+                      onClick={handleReportHub}
+                      className="w-full flex items-center justify-center p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
+                      title={locale === 'zh' ? '报告中心' : 'Report Hub'}
+                    >
+                      <BarChart3 className="w-4 h-4" />
+                    </button>
 
-                  {/* Report History */}
-                  <button
-                    onClick={handleReportHub}
-                    className="w-full flex items-center space-x-2 px-2 py-1.5 text-xs text-slate-300 hover:bg-slate-700 rounded-md transition-colors"
-                  >
-                    <FileText className="w-3 h-3" />
-                    <span className="truncate">{locale === 'zh' ? '报告历史' : 'Report History'}</span>
-                  </button>
+                    {/* Report History */}
+                    <button
+                      onClick={handleReportHub}
+                      className="w-full flex items-center justify-center p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
+                      title={locale === 'zh' ? '报告历史' : 'Report History'}
+                    >
+                      <FileText className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  // 展开状态：显示图标和文字，有背景容器
+                  <div className="bg-slate-800 rounded-lg p-1 space-y-0.5 absolute bottom-full left-0 right-0 mb-2">
+                      {/* My Account */}
+                      <button
+                        onClick={handleAccount}
+                        className="w-full flex items-center space-x-3 p-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors"
+                      >
+                        <Settings className="w-4 h-4 flex-shrink-0" />
+                        <span className="text-sm font-medium truncate">{locale === 'zh' ? '我的账户' : 'My Account'}</span>
+                      </button>
 
-                  {/* Separator */}
-                  <div className="border-t border-slate-700 my-1"></div>
+                      {/* Manage Subscription */}
+                      <button
+                        onClick={handleManageSubscription}
+                        className="w-full flex items-center space-x-3 p-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors"
+                      >
+                        <CreditCard className="w-4 h-4 flex-shrink-0" />
+                        <span className="text-sm font-medium truncate">{locale === 'zh' ? '订阅管理' : 'Manage Subscription'}</span>
+                      </button>
 
-                  {/* Logout */}
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center space-x-2 px-2 py-1.5 text-xs text-red-400 hover:bg-red-900/20 rounded-md transition-colors"
-                    disabled={isLoading}
-                  >
-                    <LogOut className="w-3 h-3" />
-                    <span className="truncate">
-                      {isLoading 
-                        ? (locale === 'zh' ? '登出中...' : 'Logging out...')
-                        : (locale === 'zh' ? '登出' : 'Logout')
-                      }
-                    </span>
-                  </button>
-                </div>
+                      {/* Report Hub */}
+                      <button
+                        onClick={handleReportHub}
+                        className="w-full flex items-center space-x-3 p-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors"
+                      >
+                        <BarChart3 className="w-4 h-4 flex-shrink-0" />
+                        <span className="text-sm font-medium truncate">{locale === 'zh' ? '报告中心' : 'Report Hub'}</span>
+                      </button>
+
+                      {/* Report History */}
+                      <button
+                        onClick={handleReportHub}
+                        className="w-full flex items-center space-x-3 p-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors"
+                      >
+                        <FileText className="w-4 h-4 flex-shrink-0" />
+                        <span className="text-sm font-medium truncate">{locale === 'zh' ? '报告历史' : 'Report History'}</span>
+                      </button>
+                    </div>
+                  )}
               </div>
             )}
           </div>

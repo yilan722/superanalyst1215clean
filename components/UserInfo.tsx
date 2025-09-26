@@ -208,15 +208,6 @@ export default function UserInfo({ user, onLogout, onRefresh, onLogin, onOpenSub
                 <span className="sm:hidden">Plan</span>
               </button>
               
-              
-              <button
-                onClick={handleLogout}
-                disabled={isLoading}
-                className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                title={getTranslation(locale, 'logout')}
-              >
-                <LogOut size={12} className="sm:w-3.5 sm:h-3.5" />
-              </button>
             </div>
           </>
         ) : (
@@ -247,24 +238,7 @@ export default function UserInfo({ user, onLogout, onRefresh, onLogin, onOpenSub
           </div>
         </div>
         
-        {user ? (
-          <button
-            onClick={handleLogout}
-            disabled={isLoading}
-            className="flex items-center space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors w-full sm:w-auto justify-center sm:justify-start"
-          >
-            <LogOut size={14} className="sm:w-4 sm:h-4" />
-            <span>{getTranslation(locale, 'logout')}</span>
-          </button>
-        ) : (
-          <button
-            onClick={onLogin}
-            className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-md transition-colors w-full sm:w-auto justify-center sm:justify-start"
-          >
-            <LogIn size={14} className="sm:w-4 sm:h-4" />
-            <span>{getTranslation(locale, 'loginTitle')}</span>
-          </button>
-        )}
+        
       </div>
 
       {user ? (

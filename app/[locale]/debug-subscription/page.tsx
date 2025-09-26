@@ -41,7 +41,16 @@ export default function DebugSubscriptionPage({ params }: DebugSubscriptionPageP
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select(`
+          *,
+          subscription_tiers!subscription_id(
+            id,
+            name,
+            monthly_report_limit,
+            price_monthly,
+            features
+          )
+        `)
         .eq('id', user.id)
         .single()
 

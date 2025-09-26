@@ -54,7 +54,16 @@ export default function HomePage({ params }: PageProps) {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select(`
+          *,
+          subscription_tiers!subscription_id(
+            id,
+            name,
+            monthly_report_limit,
+            price_monthly,
+            features
+          )
+        `)
         .eq('id', useAuthUser.id)
         .single()
 

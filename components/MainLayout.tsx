@@ -18,6 +18,9 @@ interface MainLayoutProps {
     name?: string | null
     email?: string
     subscription_type: string | null
+    subscription_tiers?: {
+      name: string
+    } | null
     monthly_report_limit: number
     paid_reports_used: number
     free_reports_used: number
