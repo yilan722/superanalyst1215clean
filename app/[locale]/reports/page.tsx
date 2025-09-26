@@ -14,10 +14,10 @@ interface ReportsPageProps {
   }
 }
 
-export default async function ReportsPage({ params }: ReportsPageProps) {
+export default function ReportsPage({ params }: ReportsPageProps) {
   const { locale } = params
-  const reports = await getAllReports()
   const { user } = useAuthContext()
+  const [reports, setReports] = useState<Report[]>([])
   const [userData, setUserData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -26,6 +26,7 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
       try {
         // 获取报告数据
         const reportsData = await getAllReports()
+        setReports(reportsData)
 
         // 如果用户已登录，获取用户数据
         if (user?.id) {

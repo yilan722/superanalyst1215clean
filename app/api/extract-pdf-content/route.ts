@@ -7,6 +7,14 @@ import pdf from 'pdf-parse'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
+  // 在构建时完全跳过这个API
+  if (process.env.NODE_ENV === 'production' || process.env.NEXT_PHASE === 'phase-production-build') {
+    return NextResponse.json(
+      { success: false, error: 'API not available during build' },
+      { status: 503 }
+    )
+  }
+  
   // 暂时禁用这个API以避免构建问题
   return NextResponse.json(
     { success: false, error: 'API temporarily disabled' },
@@ -14,13 +22,6 @@ export async function GET(request: NextRequest) {
   )
   
   try {
-    // 在构建时跳过这个API
-    if (process.env.NODE_ENV === 'production' && !request.url.includes('filename=')) {
-      return NextResponse.json(
-        { success: false, error: 'API not available during build' },
-        { status: 503 }
-      )
-    }
 
     const { searchParams } = new URL(request.url)
     const filename = searchParams.get('filename')
