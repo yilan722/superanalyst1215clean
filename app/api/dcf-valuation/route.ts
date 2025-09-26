@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { fetchDCFFinancialData } from '@/lib/tushare-financial-data'
-import { calculateDCFValuation, DEFAULT_DCF_PARAMS, DCFCalculationParams } from '@/lib/dcf-calculation'
+
+import { fetchDCFFinancialData } from '@/app/services/tushare-financial-data'
+import { calculateDCFValuation, DEFAULT_DCF_PARAMS, DCFCalculationParams } from '@/app/services/dcf-calculation'
 
 export const dynamic = 'force-dynamic'
 

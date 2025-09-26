@@ -1,29 +1,12 @@
-import { Metadata } from 'next'
+
+'use client'
+
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getAllReports, type Report } from '@/app/services/reports'
 import { Calendar, Building2, FileText, ExternalLink, ArrowLeft } from 'lucide-react'
-
-export const metadata: Metadata = {
-  title: 'Investment Research Reports | SuperAnalyst Pro',
-  description: 'Comprehensive equity research reports and investment analysis by SuperAnalyst Pro. Access detailed company profiles, valuation analysis, and market insights.',
-  keywords: [
-    'investment research',
-    'equity research',
-    'stock analysis',
-    'financial analysis',
-    'company reports',
-    'valuation analysis',
-    'DCF analysis',
-    'fundamental analysis',
-    'SuperAnalyst Pro'
-  ],
-  openGraph: {
-    title: 'Investment Research Reports | SuperAnalyst Pro',
-    description: 'Comprehensive equity research reports and investment analysis by SuperAnalyst Pro.',
-    type: 'website',
-    siteName: 'SuperAnalyst Pro'
-  }
-}
+import { useAuthContext } from '@/app/services/auth-context'
+import { supabase } from '@/app/services/database/supabase-client'
 
 interface ReportsPageProps {
   params: {
@@ -34,6 +17,54 @@ interface ReportsPageProps {
 export default async function ReportsPage({ params }: ReportsPageProps) {
   const { locale } = params
   const reports = await getAllReports()
+  const { user } = useAuthContext()
+  const [userData, setUserData] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // 获取报告数据
+        const reportsData = await getAllReports()
+
+        // 如果用户已登录，获取用户数据
+        if (user?.id) {
+          const { data, error } = await supabase
+            .from('users')
+            .select(`
+              *,
+              subscription_tiers!subscription_id(
+                id,
+                name,
+                monthly_report_limit,
+                price_monthly,
+                features
+              )
+            `)
+            .eq('id', user.id)
+            .single()
+          
+          if (data && !error) {
+            setUserData(data)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [user])
+
+  // 检查用户是否为免费用户
+  const isFreeUser = () => {
+    if (!userData) return true
+    const subscriptionTier = userData?.subscription_tiers?.name?.toLowerCase()
+    const subscriptionType = userData?.subscription_type
+    return !subscriptionTier && !subscriptionType
+  }
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -56,6 +87,17 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
         "url": `https://superanalyst.pro/reports/${report.id}`
       }))
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">{locale === 'zh' ? '加载中...' : 'Loading...'}</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -147,34 +189,38 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
           )}
         </div>
 
-        {/* CTA Section */}
-        <div className="bg-blue-600">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-white mb-4">
-                Get Access to Premium Research
-              </h2>
-              <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-                Unlock detailed valuation models, investment recommendations, 
-                and exclusive market insights with SuperAnalyst Pro.
-              </p>
-              <div className="flex justify-center space-x-4">
-                <a
-                  href="https://superanalyst.pro"
-                  className="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-                >
-                  Start Free Trial
-                </a>
-                <a
-                  href="https://superanalyst.pro/pricing"
-                  className="border border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-blue-600 transition-colors"
-                >
-                  View Pricing
-                </a>
+        {/* CTA Section - Only show for free users */}
+        {isFreeUser() && (
+          <div className="bg-blue-600">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-white mb-4">
+                  {locale === 'zh' ? '获取高级研究报告访问权限' : 'Get Access to Premium Research'}
+                </h2>
+                <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+                  {locale === 'zh' 
+                    ? '解锁详细的估值模型、投资建议和独家市场洞察，使用SuperAnalyst Pro。'
+                    : 'Unlock detailed valuation models, investment recommendations, and exclusive market insights with SuperAnalyst Pro.'
+                  }
+                </p>
+                <div className="flex justify-center space-x-4">
+                  <Link
+                    href={`/${locale}/subscription`}
+                    className="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                  >
+                    {locale === 'zh' ? '立即开始' : 'Get Started'}
+                  </Link>
+                  <Link
+                    href={`/${locale}/subscription`}
+                    className="border border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-blue-600 transition-colors"
+                  >
+                    {locale === 'zh' ? '了解更多' : 'Learn More'}
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   )

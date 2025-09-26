@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { type Locale } from '../../lib/i18n'
+import { type Locale } from '../services/i18n'
 import LanguageSelector from '../../components/LanguageSelector'
 
 export default function TestLanguagePage() {

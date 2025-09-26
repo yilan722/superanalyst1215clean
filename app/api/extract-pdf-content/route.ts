@@ -3,8 +3,25 @@ import fs from 'fs'
 import path from 'path'
 import pdf from 'pdf-parse'
 
+// 强制动态渲染
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
+  // 暂时禁用这个API以避免构建问题
+  return NextResponse.json(
+    { success: false, error: 'API temporarily disabled' },
+    { status: 503 }
+  )
+  
   try {
+    // 在构建时跳过这个API
+    if (process.env.NODE_ENV === 'production' && !request.url.includes('filename=')) {
+      return NextResponse.json(
+        { success: false, error: 'API not available during build' },
+        { status: 503 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const filename = searchParams.get('filename')
     
@@ -16,7 +33,8 @@ export async function GET(request: NextRequest) {
     }
     
     const reportsDir = path.join(process.cwd(), 'reference-reports')
-    const pdfPath = path.join(reportsDir, filename)
+
+    const pdfPath = path.join(reportsDir, filename!)
     
     // 检查文件是否存在
     if (!fs.existsSync(pdfPath)) {
