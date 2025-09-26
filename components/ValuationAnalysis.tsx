@@ -339,22 +339,10 @@ export default function ValuationAnalysis({ locale, user }: ValuationAnalysisPro
 
   return (
     <div className="space-y-6 p-6">
-      {/* 页面标题 */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <div className="flex items-center space-x-3">
-          <h1 className="text-2xl font-bold text-gray-800">
-            {isChinese ? '估值分析' : 'Valuation Analysis'}
-          </h1>
-          <span className="px-2 py-1 text-xs font-medium bg-purple-600 text-white rounded">BETA</span>
-        </div>
-        <p className="text-gray-600">
-          {isChinese ? 'DCF估值模型和参数调整工具' : 'DCF Valuation Model & Parameter Adjustment Tool'}
-        </p>
-      </div>
 
       {/* 股票搜索 */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+      <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-amber-500/30 shadow-lg p-6">
+        <h2 className="text-lg font-semibold text-amber-200 mb-4 font-inter">
           {isChinese ? '选择股票' : 'Select Stock'}
         </h2>
         <div className="flex space-x-4">
@@ -364,7 +352,7 @@ export default function ValuationAnalysis({ locale, user }: ValuationAnalysisPro
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder={isChinese ? '输入A股代码 (如: 000001, 600036, 300080)' : 'Enter A-share ticker (e.g., 000001, 600036, 300080)'}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 bg-slate-800 border border-amber-500/30 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-white placeholder-gray-400 font-inter"
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
                   handleStockSearch(searchInput)
@@ -375,7 +363,7 @@ export default function ValuationAnalysis({ locale, user }: ValuationAnalysisPro
           <button
             onClick={() => handleStockSearch(searchInput)}
             disabled={isLoadingValuation || !searchInput.trim()}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="px-6 py-3 bg-amber-600 text-slate-900 font-semibold rounded-md hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-inter"
           >
             {isLoadingValuation 
               ? (isChinese ? '搜索中...' : 'Searching...')

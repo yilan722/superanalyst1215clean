@@ -49,21 +49,6 @@ export default function UserProfile({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">
-                {locale === 'zh' ? '我的账户' : 'My Account'}
-              </h1>
-              <p className="text-slate-600 mt-1">
-                {locale === 'zh' ? '管理您的账户信息和订阅' : 'Manage your account information and subscription'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -77,9 +62,9 @@ export default function UserProfile({
                 </div>
                 <div className="flex-1">
                   <h2 className="text-xl font-semibold text-slate-900">
-                    {user.name || user.email}
+                    { user.email}
                   </h2>
-                  <p className="text-slate-600">{user.email}</p>
+                  <p className="text-slate-600">{user.name}</p>
                   <div className="flex items-center mt-2">
                     <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                       userData?.subscription_type 

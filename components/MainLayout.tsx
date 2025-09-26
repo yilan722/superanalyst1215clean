@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import Sidebar from './Sidebar'
 import DailyAlphaBrief from './DailyAlphaBrief'
 import ReportHub from './InsightRefinery/ReportHub'
-import HeaderUserDropdown from './HeaderUserDropdown'
+import UserDropdown from './UserDropdown'
 import ValuationAnalysis from './ValuationAnalysis'
 import UserProfile from './UserProfile'
 import LanguageSelector from './LanguageSelector'
@@ -15,6 +15,8 @@ interface MainLayoutProps {
   locale: Locale
   user: any
   userData?: {
+    name?: string | null
+    email?: string
     subscription_type: string | null
     monthly_report_limit: number
     paid_reports_used: number
@@ -37,7 +39,6 @@ export default function MainLayout({
   onLogin, 
   onOpenSubscription, 
   onOpenReportHistory,
-  onOpenAccount,
   onLocaleChange,
   children 
 }: MainLayoutProps) {
@@ -142,7 +143,7 @@ export default function MainLayout({
                 onLocaleChange={onLocaleChange} 
               />
               {user ? (
-                <HeaderUserDropdown userData={userData} locale={locale} />
+                <UserDropdown userData={userData} locale={locale} />
               ) : (
                 <button
                   onClick={onLogin}
