@@ -330,7 +330,7 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl p-6 border border-slate-700">
         <div className="flex items-center space-x-3 mb-4">

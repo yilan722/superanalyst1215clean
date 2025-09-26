@@ -11,7 +11,6 @@ import AuthModal from '../../components/AuthModal'
 import SubscriptionModal from '../../components/SubscriptionModal'
 import ReportHistory from '../../components/ReportHistory'
 import GenerationModal from '../../components/GenerationModal'
-import Footer from '../../components/Footer'
 import { StockData, ValuationReportData } from '../types'
 import { type Locale } from '../services/i18n'
 
@@ -460,7 +459,6 @@ export default function HomePage({ params }: PageProps) {
         locale={currentLocale}
       />
       
-      <Footer />
       <Toaster position="top-right" />
     </div>
   )

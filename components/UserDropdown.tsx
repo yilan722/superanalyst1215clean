@@ -8,9 +8,10 @@ import { useAuthContext } from '@/app/services/auth-context'
 interface UserDropdownProps {
   userData: any
   locale: string
+  onOpenAccount?: () => void
 }
 
-export default function UserDropdown({ userData, locale }: UserDropdownProps) {
+export default function UserDropdown({ userData, locale, onOpenAccount }: UserDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -146,38 +147,38 @@ export default function UserDropdown({ userData, locale }: UserDropdownProps) {
     <div className="relative" ref={dropdownRef}>
       {/* User Avatar Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+        onClick={() => onOpenAccount ? onOpenAccount() : setIsOpen(!isOpen)}
+        className="flex items-center space-x-2 p-1.5 rounded-md hover:bg-slate-800 transition-colors w-full"
         disabled={isLoading}
       >
-        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-          <User className="w-4 h-4 text-white" />
+        <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+          <User className="w-3 h-3 text-white" />
         </div>
-        <div className="text-left">
-          <p className="text-sm font-medium text-gray-900 truncate max-w-32">
+        <div className="text-left flex-1 min-w-0">
+          <p className="text-xs font-medium text-slate-300 truncate">
             {userData?.name || userData?.email || 'User'}
           </p>
-          <p className={`text-xs ${subscriptionStatus.color}`}>
+          <p className={`text-xs truncate ${subscriptionStatus.color.replace('text-', 'text-slate-')}`}>
             {subscriptionStatus.name}
           </p>
         </div>
-        <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+        <div className="absolute right-0 mt-1 w-56 bg-slate-800 rounded-md shadow-lg border border-slate-700 py-1 z-50">
           {/* User Info Header */}
-          <div className="px-4 py-3 border-b border-gray-100">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-white" />
+          <div className="px-3 py-2 border-b border-slate-700">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-xs font-medium text-slate-300 truncate">
                   {userData?.name || userData?.email || 'User'}
                 </p>
-                <p className={`text-xs ${subscriptionStatus.color}`}>
+                <p className={`text-xs truncate ${subscriptionStatus.color.replace('text-', 'text-slate-')}`}>
                   {subscriptionStatus.name}
                 </p>
               </div>
@@ -185,48 +186,47 @@ export default function UserDropdown({ userData, locale }: UserDropdownProps) {
           </div>
 
           {/* Menu Items */}
-          <div className="py-2">
+          <div className="py-1">
             <button
               onClick={handleAccount}
-              className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-700 transition-colors"
             >
-              <Settings className="w-4 h-4 mr-3" />
+              <Settings className="w-3 h-3 mr-2" />
               {locale === 'zh' ? '我的账户' : 'My Account'}
             </button>
 
             <button
               onClick={handleManageSubscription}
-              className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-700 transition-colors"
             >
-              <CreditCard className="w-4 h-4 mr-3" />
+              <CreditCard className="w-3 h-3 mr-2" />
               {locale === 'zh' ? '订阅管理' : 'Manage Subscription'}
             </button>
 
             <button
               onClick={handleReportHub}
-              className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-700 transition-colors"
             >
-              <BarChart3 className="w-4 h-4 mr-3" />
+              <BarChart3 className="w-3 h-3 mr-2" />
               {locale === 'zh' ? '报告中心' : 'Report Hub'}
             </button>
 
             <button
               onClick={handleReportHub}
-              className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-700 transition-colors"
             >
-              <FileText className="w-4 h-4 mr-3" />
+              <FileText className="w-3 h-3 mr-2" />
               {locale === 'zh' ? '报告历史' : 'Report History'}
             </button>
 
-
-            <div className="border-t border-gray-100 my-2"></div>
+            <div className="border-t border-slate-700 my-1"></div>
 
             <button
               onClick={handleLogout}
-              className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center px-3 py-1.5 text-xs text-red-400 hover:bg-red-900/20 transition-colors"
               disabled={isLoading}
             >
-              <LogOut className="w-4 h-4 mr-3" />
+              <LogOut className="w-3 h-3 mr-2" />
               {isLoading 
                 ? (locale === 'zh' ? '登出中...' : 'Logging out...')
                 : (locale === 'zh' ? '登出' : 'Logout')

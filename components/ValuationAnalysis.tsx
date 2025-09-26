@@ -10,7 +10,7 @@ import CashFlowDataTable from './CashFlowDataTable'
 import PerformanceAnalysisTable from './PerformanceAnalysisTable'
 import FutureCashFlowProjection from './FutureCashFlowProjection'
 import DCFValueCalculation from './DCFValueCalculation'
-import { type Locale } from '../lib/i18n'
+import { type Locale } from '../app/services/i18n'
 
 interface ValuationAnalysisProps {
   locale: Locale
@@ -338,7 +338,7 @@ export default function ValuationAnalysis({ locale, user }: ValuationAnalysisPro
   const isChinese = locale === 'zh'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* 页面标题 */}
       <div className="bg-white p-6 rounded-lg shadow">
         <div className="flex items-center space-x-3">

@@ -6,7 +6,9 @@ import DailyAlphaBrief from './DailyAlphaBrief'
 import ReportHub from './InsightRefinery/ReportHub'
 import HeaderUserDropdown from './HeaderUserDropdown'
 import ValuationAnalysis from './ValuationAnalysis'
+import UserProfile from './UserProfile'
 import LanguageSelector from './LanguageSelector'
+import Footer from './Footer'
 import { type Locale } from '../app/services/i18n'
 
 interface MainLayoutProps {
@@ -39,10 +41,15 @@ export default function MainLayout({
   onLocaleChange,
   children 
 }: MainLayoutProps) {
-  const [activeTab, setActiveTab] = useState<'home' | 'daily-alpha' | 'insight-refinery' | 'valuation'>('home')
+  const [activeTab, setActiveTab] = useState<'home' | 'daily-alpha' | 'insight-refinery' | 'valuation' | 'user-profile'>('home')
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
-  const handleTabChange = (tab: 'home' | 'daily-alpha' | 'insight-refinery' | 'valuation') => {
+  const handleTabChange = (tab: 'home' | 'daily-alpha' | 'insight-refinery' | 'valuation' | 'user-profile') => {
     setActiveTab(tab)
+  }
+
+  const handleOpenAccount = () => {
+    setActiveTab('user-profile')
   }
 
   const renderContent = () => {
@@ -72,6 +79,17 @@ export default function MainLayout({
         )
         case 'valuation':
           return <ValuationAnalysis locale={locale} user={user} />
+      case 'user-profile':
+        return (
+          <UserProfile
+            locale={locale}
+            user={user}
+            userData={userData}
+            onOpenSubscription={onOpenSubscription}
+            onOpenReportHistory={onOpenReportHistory}
+            onLogin={onLogin}
+          />
+        )
       case 'home':
       default:
         return children
@@ -79,7 +97,7 @@ export default function MainLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
       <Sidebar
         locale={locale}
@@ -91,13 +109,14 @@ export default function MainLayout({
         onLogin={onLogin}
         onOpenSubscription={onOpenSubscription}
         onOpenReportHistory={onOpenReportHistory}
-        onOpenAccount={onOpenAccount}
+        onOpenAccount={handleOpenAccount}
+        onCollapseChange={setIsSidebarCollapsed}
       />
       
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Bar */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className={`${isSidebarCollapsed ? 'ml-16' : 'ml-56'} flex flex-col min-h-screen transition-all duration-300`}>
+        {/* Top Bar - Fixed */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-sm font-semibold text-gray-600">
@@ -105,12 +124,14 @@ export default function MainLayout({
                 {activeTab === 'daily-alpha' && (locale === 'zh' ? '每日热门股票' : 'Daily Alpha Brief')}
                 {activeTab === 'insight-refinery' && (locale === 'zh' ? '洞察精炼器' : 'Insight Refinery')}
                 {activeTab === 'valuation' && (locale === 'zh' ? '估值分析' : 'Valuation Analysis')}
+                {activeTab === 'user-profile' && (locale === 'zh' ? '我的账户' : 'My Account')}
               </h1>
               <p className="text-xs text-gray-500 mt-1 leading-relaxed">
                 {activeTab === 'home' && (locale === 'zh' ? 'SuperAnalyst处理80%的繁琐研究工作，让您100%专注于分析、策略和形成独特见解' : 'SuperAnalyst handles 80% of research that\'s grunt work, so you can spend 100% of your brainpower on analysis, strategy, and forming your own unique thesis')}
                 {activeTab === 'daily-alpha' && (locale === 'zh' ? '每日热门股票基本面研究报告' : 'Daily Hot Stock Fundamental Research Report')}
                 {activeTab === 'insight-refinery' && (locale === 'zh' ? 'AI深度讨论与报告进化' : 'Enrich AI Reports with Your Data & Insights')}
                 {activeTab === 'valuation' && (locale === 'zh' ? 'DCF估值模型和参数调整工具' : 'DCF Valuation Model & Parameter Adjustment Tool')}
+                {activeTab === 'user-profile' && (locale === 'zh' ? '管理您的账户信息和订阅' : 'Manage your account information and subscription')}
               </p>
             </div>
             
@@ -139,11 +160,12 @@ export default function MainLayout({
         
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto">
-          <div className="p-6">
-            {renderContent()}
-          </div>
+          {renderContent()}
         </div>
       </div>
+      
+      {/* Footer */}
+      <Footer isSidebarCollapsed={isSidebarCollapsed} />
     </div>
   )
 }
