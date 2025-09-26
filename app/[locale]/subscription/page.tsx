@@ -137,6 +137,28 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
     )
   }
 
+  // 获取订阅等级的数字值
+  const getSubscriptionTierValue = (tierName: string) => {
+    const tierValues: { [key: string]: number } = {
+      'free': 0,
+      'basic': 1,
+      'pro': 2,
+      'professional': 2,
+      'business': 3,
+      'enterprise': 4
+    }
+    return tierValues[tierName.toLowerCase()] || 0
+  }
+
+  // 获取当前用户的订阅等级值
+  const getCurrentUserTierValue = () => {
+    if (!userData) return 0
+    const currentTier = userData?.subscription_tiers?.name?.toLowerCase()
+    return getSubscriptionTierValue(currentTier || 'free')
+  }
+
+  const currentUserTierValue = getCurrentUserTierValue()
+
   const plans = [
     {
       id: 'free',
@@ -260,15 +282,7 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-slate-800 mb-4">
-            SuperAnalyst - AI-Powered Pro Equity Research
-          </h1>
-          <p className="text-xl text-slate-600">
-            Choose the perfect plan for your investment research needs
-          </p>
-        </div>
-
+      
         {/* Current Subscription Status */}
         {userData && (
           <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
@@ -393,10 +407,10 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                   {plans.map((plan) => {
                     const IconComponent = plan.icon
                     return (
-                      <td key={plan.id} className="px-6 py-4 text-center">
+                      <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
                         <div className="flex flex-col items-center">
-                          <IconComponent className="w-8 h-8 text-gray-600 mb-2" />
-                          <div className="text-lg font-semibold text-gray-900">{plan.name}</div>
+                          <IconComponent className={`w-8 h-8 mb-2 ${plan.isCurrent ? 'text-yellow-600' : 'text-gray-600'}`} />
+                          <div className={`text-lg font-semibold ${plan.isCurrent ? 'text-yellow-800' : 'text-gray-900'}`}>{plan.name}</div>
                           {plan.isBestValue && (
                             <span className="inline-block px-2 py-1 text-xs font-semibold text-purple-600 bg-purple-100 rounded-full mt-1">
                               Best Value
@@ -414,10 +428,10 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                     Price
                   </td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="px-6 py-4 text-center">
-                      <div className="text-2xl font-bold text-gray-900">
+                    <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
+                      <div className={`text-2xl font-bold ${plan.isCurrent ? 'text-yellow-800' : 'text-gray-900'}`}>
                         {plan.price}
-                        {plan.period && <span className="text-sm text-gray-500">{plan.period}</span>}
+                        {plan.period && <span className={`text-sm ${plan.isCurrent ? 'text-yellow-600' : 'text-gray-500'}`}>{plan.period}</span>}
                       </div>
                     </td>
                   ))}
@@ -429,8 +443,8 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                     Reports per Month
                   </td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="px-6 py-4 text-center">
-                      <div className="text-lg font-semibold text-gray-900">
+                    <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
+                      <div className={`text-lg font-semibold ${plan.isCurrent ? 'text-yellow-800' : 'text-gray-900'}`}>
                         {plan.reportsPerMonth ? `${plan.reportsPerMonth} Reports per Month` : 'Custom'}
                       </div>
                     </td>
@@ -443,8 +457,8 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                     Reports per Day
                   </td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="px-6 py-4 text-center">
-                      <div className="text-sm text-gray-600">
+                    <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
+                      <div className={`text-sm ${plan.isCurrent ? 'text-yellow-700' : 'text-gray-600'}`}>
                         {plan.reportsPerDay ? `${plan.reportsPerDay} | Total: ${plan.totalReports}` : 'Custom'}
                       </div>
                     </td>
@@ -457,8 +471,8 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                     Average Cost
                   </td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="px-6 py-4 text-center">
-                      <div className="text-sm text-gray-600">
+                    <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
+                      <div className={`text-sm ${plan.isCurrent ? 'text-yellow-700' : 'text-gray-600'}`}>
                         {plan.averageCost ? `Average Cost: ${plan.averageCost}/篇` : '-'}
                       </div>
                     </td>
@@ -471,8 +485,8 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                     Additional Purchase
                   </td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="px-6 py-4 text-center">
-                      <div className="text-sm text-gray-600">
+                    <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
+                      <div className={`text-sm ${plan.isCurrent ? 'text-yellow-700' : 'text-gray-600'}`}>
                         {plan.additionalCost ? `Additional Purchase: ${plan.additionalCost}/篇` : '-'}
                       </div>
                     </td>
@@ -485,11 +499,11 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                     Features
                   </td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="px-6 py-4 text-center">
+                    <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
                       <div className="space-y-1">
                         {plan.features.map((feature, index) => (
-                          <div key={index} className="flex items-center justify-center text-sm text-gray-600">
-                            <Check className="w-4 h-4 text-green-500 mr-1" />
+                          <div key={index} className={`flex items-center justify-center text-sm ${plan.isCurrent ? 'text-yellow-700' : 'text-gray-600'}`}>
+                            <Check className={`w-4 h-4 mr-1 ${plan.isCurrent ? 'text-yellow-600' : 'text-green-500'}`} />
                             {feature}
                           </div>
                         ))}
@@ -503,37 +517,34 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     Action
                   </td>
-                  {plans.map((plan) => (
-                    <td key={plan.id} className="px-6 py-4 text-center">
-                      {plan.isCurrent ? (
-                        <div className="px-4 py-2 bg-green-100 text-green-600 rounded-lg text-center text-sm font-semibold">
-                          Current Plan
-                        </div>
-                      ) : plan.isCustom ? (
-                        <button
-                          onClick={() => handleUpgrade(plan.id)}
-                          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-semibold"
-                        >
-                          Contact Sales
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleUpgrade(plan.id)}
-                          className={`px-4 py-2 rounded-lg transition-colors text-sm font-semibold ${
-                            plan.color === 'blue'
-                              ? 'bg-blue-600 text-white hover:bg-blue-700'
-                              : plan.color === 'purple'
-                              ? 'bg-purple-600 text-white hover:bg-purple-700'
-                              : plan.color === 'amber'
-                              ? 'bg-amber-600 text-white hover:bg-amber-700'
-                              : 'bg-gray-600 text-white hover:bg-gray-700'
-                          }`}
-                        >
-                          {plan.price === 'Free' ? 'Get Started' : 'Upgrade'}
-                        </button>
-                      )}
-                    </td>
-                  ))}
+                  {plans.map((plan) => {
+                    const planTierValue = getSubscriptionTierValue(plan.id)
+                    const isLowerTier = planTierValue < currentUserTierValue
+                    const isDisabled = isLowerTier && !plan.isCurrent
+                    
+                    return (
+                      <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
+                        {plan.isCurrent ? (
+                          <div className="px-4 py-2 bg-green-100 text-green-600 rounded-lg text-center text-sm font-semibold">
+                            Current Plan
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => !isDisabled && handleUpgrade(plan.id)}
+                            disabled={isDisabled}
+                            className={`px-4 py-2 rounded-lg transition-colors text-sm font-semibold ${
+                              isDisabled
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-yellow-500 text-black hover:bg-yellow-600'
+                            }`}
+                            title={isDisabled ? 'You already have a higher tier subscription' : ''}
+                          >
+                            {isDisabled ? 'Downgrade' : 'Upgrade'}
+                          </button>
+                        )}
+                      </td>
+                    )
+                  })}
                 </tr>
               </tbody>
             </table>
