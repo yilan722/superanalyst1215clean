@@ -348,14 +348,6 @@ export default function Sidebar({
                       <BarChart3 className="w-4 h-4" />
                     </button>
 
-                    {/* Report History */}
-                    <button
-                      onClick={handleReportHub}
-                      className="w-full flex items-center justify-center p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
-                      title={locale === 'zh' ? '报告历史' : 'Report History'}
-                    >
-                      <FileText className="w-4 h-4" />
-                    </button>
                   </div>
                 ) : (
                   // 展开状态：显示图标和文字，有背景容器
@@ -387,14 +379,6 @@ export default function Sidebar({
                         <span className="text-sm font-medium truncate">{locale === 'zh' ? '报告中心' : 'Report Hub'}</span>
                       </button>
 
-                      {/* Report History */}
-                      <button
-                        onClick={handleReportHub}
-                        className="w-full flex items-center space-x-3 p-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors"
-                      >
-                        <FileText className="w-4 h-4 flex-shrink-0" />
-                        <span className="text-sm font-medium truncate">{locale === 'zh' ? '报告历史' : 'Report History'}</span>
-                      </button>
                     </div>
                   )}
               </div>

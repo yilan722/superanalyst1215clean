@@ -7,7 +7,7 @@ import { getTranslation } from '@/app/services/translations'
 import { useAuthContext } from '@/app/services/auth-context'
 import { SubscriptionPageService, type SubscriptionStatus, type SubscriptionMetrics } from '@/app/services/subscription-page-service'
 import { type UserWithSubscription } from '@/app/services/database/user-service'
-import { CreditCard, Check, X, Loader2, AlertCircle, Zap, Star, Crown, TrendingUp, FileText, Clock, Headphones, Users, Wrench } from 'lucide-react'
+import { CreditCard, Check, X, Loader2, AlertCircle, Zap, Star, Crown, TrendingUp, FileText, Clock, Headphones, Users, Wrench, ArrowLeft } from 'lucide-react'
 
 interface SubscriptionPageProps {
   params: {
@@ -238,8 +238,28 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => router.push(`/${locale}`)}
+                className="flex items-center text-slate-600 hover:text-slate-900"
+              >
+                <ArrowLeft className="w-5 h-5 mr-2" />
+                {locale === 'zh' ? '返回首页' : 'Back to Home'}
+              </button>
+              <h1 className="text-xl font-semibold text-slate-900">
+                {locale === 'zh' ? '订阅管理' : 'Subscription'}
+              </h1>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-slate-800 mb-4">
             SuperAnalyst - AI-Powered Pro Equity Research
