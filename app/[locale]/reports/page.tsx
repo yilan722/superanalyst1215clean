@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { getAllReports, type Report } from '@/app/services/reports'
+import { type Report } from '@/app/services/reports'
 import { Calendar, Building2, FileText, ExternalLink, ArrowLeft } from 'lucide-react'
 import { useAuthContext } from '@/app/services/auth-context'
 import { supabase } from '@/app/services/database/supabase-client'
@@ -24,9 +24,17 @@ export default function ReportsPage({ params }: ReportsPageProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 获取报告数据
-        const reportsData = await getAllReports()
-        setReports(reportsData)
+        console.log('Fetching reports data...')
+        // 通过API路由获取报告数据
+        const response = await fetch('/api/all-reports')
+        if (response.ok) {
+          const result = await response.json()
+          console.log('Reports data:', result.data)
+          setReports(result.data || [])
+        } else {
+          console.error('Failed to fetch reports:', response.statusText)
+          setReports([])
+        }
 
         // 如果用户已登录，获取用户数据
         if (user?.id) {
@@ -51,6 +59,7 @@ export default function ReportsPage({ params }: ReportsPageProps) {
         }
       } catch (error) {
         console.error('Error fetching data:', error)
+        setReports([])
       } finally {
         setIsLoading(false)
       }
