@@ -18,6 +18,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, locale }: AuthMo
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const [subscriptionId] = useState(3)
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -41,7 +42,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, locale }: AuthMo
         onSuccess()
       } else {
         console.log('📝 注册模式')
-        const result = await signUp(email, password, name)
+        const result = await signUp(email, password, name, subscriptionId)
         console.log('✅ 注册成功:', result.user?.id)
         
         toast.success(locale === 'zh' ? '注册成功！请检查您的邮箱进行验证。' : 'Registration successful! Please check your email for verification.')

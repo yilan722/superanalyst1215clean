@@ -3,11 +3,10 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { type Locale } from '@/app/services/i18n'
-import { getTranslation } from '@/app/services/translations'
 import { useAuthContext } from '@/app/services/auth-context'
 import { SubscriptionPageService, type SubscriptionStatus, type SubscriptionMetrics } from '@/app/services/subscription-page-service'
 import { type UserWithSubscription } from '@/app/services/database/user-service'
-import { CreditCard, Check, X, Loader2, AlertCircle, Zap, Star, Crown, TrendingUp, FileText, Clock, Headphones, Users, Wrench, ArrowLeft } from 'lucide-react'
+import { Check, Loader2, AlertCircle, Zap, Star, Crown, TrendingUp, FileText, ArrowLeft } from 'lucide-react'
 
 interface SubscriptionPageProps {
   params: {
@@ -24,9 +23,42 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
   const [subscriptionMetrics, setSubscriptionMetrics] = useState<SubscriptionMetrics | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [authTimeout, setAuthTimeout] = useState(false)
+
+  // 设置认证超时
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (authLoading) {
+        console.log('⏰ 认证超时，显示错误信息')
+        setAuthTimeout(true)
+        setIsLoading(false)
+      }
+    }, 10000) // 10秒超时
+
+    return () => clearTimeout(timer)
+  }, [authLoading])
 
   useEffect(() => {
-    console.log('🔍 订阅页面认证检查:', { user: authUser?.id, loading: authLoading })
+    console.log('🔍 订阅页面认证检查:', { 
+      user: authUser?.id, 
+      email: authUser?.email,
+      loading: authLoading,
+      timeout: authTimeout,
+      timestamp: new Date().toISOString()
+    })
+    
+    // 如果认证超时，显示错误
+    if (authTimeout) {
+      console.log('⏰ 认证超时，显示错误信息')
+      return
+    }
+    
+    // 简化认证检查：如果用户存在，直接获取数据
+    if (authUser?.id) {
+      console.log('✅ 用户已认证，获取用户数据')
+      fetchUserData()
+      return
+    }
     
     // 如果还在加载中，等待
     if (authLoading) {
@@ -34,24 +66,34 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
       return
     }
     
-    // 如果加载完成但没有用户，重定向
+    // 如果加载完成但没有用户，显示登录提示
     if (!authUser) {
-      console.log('❌ 用户未认证，重定向到主页')
-      router.push(`/${locale}`)
+      console.log('❌ 用户未认证，显示登录提示')
+      setError(locale === 'zh' ? '请先登录以查看订阅信息' : 'Please login to view subscription information')
+      setIsLoading(false)
       return
     }
-    
-    // 用户已认证，获取数据
-    console.log('✅ 用户已认证，获取用户数据')
-    fetchUserData()
-  }, [authUser, authLoading, locale, router])
+  }, [authUser, authLoading, authTimeout, locale, router])
+
+  // 添加一个强制刷新按钮，用于调试
+  const handleForceRefresh = () => {
+    console.log('🔄 强制刷新认证状态')
+    window.location.reload()
+  }
 
   const fetchUserData = async () => {
     setIsLoading(true)
     setError(null)
     
     try {
-      const data = await SubscriptionPageService.fetchUserSubscriptionData(authUser?.id!)
+      if (!authUser?.id) {
+        setError('User not authenticated')
+        return
+      }
+      
+      console.log('🔍 开始获取用户数据，用户ID:', authUser.id)
+      const data = await SubscriptionPageService.fetchUserSubscriptionData(authUser.id)
+      console.log('📊 获取到的用户数据:', data)
       
       if (data) {
         setUserData(data)
@@ -60,17 +102,21 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
         const status = await SubscriptionPageService.getSubscriptionStatus(data, locale)
         const metrics = await SubscriptionPageService.calculateSubscriptionMetrics(data)
         
+        console.log('📈 订阅状态:', status)
+        console.log('📊 订阅指标:', metrics)
+        
         setSubscriptionStatus(status)
         setSubscriptionMetrics(metrics)
       } else {
+        console.error('❌ 用户数据为空')
         setError(locale === 'zh' ? '加载用户数据失败' : 'Failed to load user data')
         setUserData(null)
         setSubscriptionStatus(null)
         setSubscriptionMetrics(null)
       }
     } catch (err) {
+      console.error('❌ 获取用户数据时发生错误:', err)
       setError(locale === 'zh' ? '加载用户数据失败' : 'Failed to load user data')
-      console.error('Unexpected error fetching user data:', err)
       setUserData(null)
       setSubscriptionStatus(null)
       setSubscriptionMetrics(null)
@@ -120,8 +166,26 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="animate-spin text-amber-500 h-8 w-8" />
-        <p className="ml-3 text-slate-700">{locale === 'zh' ? '加载中...' : 'Loading...'}</p>
+        <div className="text-center">
+          <Loader2 className="animate-spin text-amber-500 h-8 w-8 mx-auto mb-4" />
+          <p className="text-slate-700 mb-2">{locale === 'zh' ? '加载中...' : 'Loading...'}</p>
+          <div className="text-sm text-gray-500 mb-4">
+            <p>Auth Loading: {authLoading ? 'true' : 'false'}</p>
+            <p>User ID: {authUser?.id || 'null'}</p>
+            <p>Timeout: {authTimeout ? 'true' : 'false'}</p>
+          </div>
+          {authTimeout && (
+            <div className="text-red-500 text-sm mb-4">
+              {locale === 'zh' ? '认证超时，请刷新页面重试' : 'Authentication timeout, please refresh and try again'}
+            </div>
+          )}
+          <button
+            onClick={handleForceRefresh}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            {locale === 'zh' ? '强制刷新' : 'Force Refresh'}
+          </button>
+        </div>
       </div>
     )
   }
@@ -131,7 +195,13 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-500">{error}</p>
+          <p className="text-red-500 mb-4">{error}</p>
+          <button
+            onClick={() => router.push(`/${locale}`)}
+            className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
+          >
+            {locale === 'zh' ? '返回首页登录' : 'Back to Home to Login'}
+          </button>
         </div>
       </div>
     )

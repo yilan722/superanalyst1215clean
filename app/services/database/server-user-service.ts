@@ -1,4 +1,4 @@
-import { BaseDatabaseService } from './base-database-service'
+import { ServerDatabaseService } from '@/app/services/database/server-database-service'
 
 export interface User {
   id: string
@@ -23,7 +23,7 @@ export interface UserWithSubscription extends User {
   } | null
 }
 
-export class UserService extends BaseDatabaseService {
+export class ServerUserService extends ServerDatabaseService {
   /**
    * Get user by ID
    */
@@ -50,7 +50,7 @@ export class UserService extends BaseDatabaseService {
         `)
         .eq('id', userId)
         .single()
-      console.log('UseService获取用户订阅数据:', data)
+
       if (error) {
         if (error.code === 'PGRST116') {
           return null

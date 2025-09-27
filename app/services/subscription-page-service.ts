@@ -42,7 +42,6 @@ export class SubscriptionPageService {
     if (userData?.subscription_id) {
       subscriptionTier = await SubscriptionService.getTierById(userData.subscription_id);
     }
-    
     if (userData?.subscription_id === 3) {
       return {
         name: locale === 'zh' ? '免费用户' : 'Free User',
@@ -68,38 +67,39 @@ export class SubscriptionPageService {
     }
 
     // Use the tier name from the database
-    const tierName = subscriptionTier?.name ?? 'unknown'
+    const tierId = subscriptionTier?.id ?? 'unknown'
 
-    switch (tierName.toLowerCase()) {
-      case 'free':
+
+    switch (tierId) {
+      case 3:
         return {
           name: locale === 'zh' ? '免费用户' : 'Free User',
           color: 'text-slate-500',
           bgColor: 'bg-slate-100',
           description: locale === 'zh' ? '您目前是免费用户。' : 'You are currently on the Free plan.'
         }
-      case 'basic':
+      case 4:
         return {
           name: locale === 'zh' ? '基础会员' : 'Basic Member',
           color: 'text-blue-600',
           bgColor: 'bg-blue-100',
           description: locale === 'zh' ? '享受基础报告功能。' : 'Access to basic report features.'
         }
-      case 'pro':
+      case 5:
         return {
           name: locale === 'zh' ? '专业会员' : 'Pro Member',
           color: 'text-purple-600',
           bgColor: 'bg-purple-100',
           description: locale === 'zh' ? '解锁更多高级分析。' : 'Unlock more advanced analytics.'
         }
-      case 'business':
+      case 6:
         return {
           name: locale === 'zh' ? '企业会员' : 'Business Member',
           color: 'text-amber-600',
           bgColor: 'bg-amber-100',
           description: locale === 'zh' ? '获得所有企业级功能。' : 'Gain access to all enterprise-grade features.'
         }
-      case 'enterprise':
+      case 7:
         return {
           name: locale === 'zh' ? '企业会员' : 'Enterprise Member',
           color: 'text-emerald-600',
@@ -135,7 +135,6 @@ export class SubscriptionPageService {
     
     const monthlyReportLimit = subscriptionTier?.monthly_report_limit || 0
 
-    console.log('monthly', subscriptionTier?.monthly_report_limit)
     const paidReportsUsed = userData?.paid_reports_used || 0
     const freeReportsUsed = userData?.free_reports_used || 0
     const totalReportsUsed = paidReportsUsed + freeReportsUsed
