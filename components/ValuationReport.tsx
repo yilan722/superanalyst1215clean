@@ -31,7 +31,7 @@ export default function ValuationReport({ stockData, reportData, isLoading, loca
   const [dcfParameters, setDCFParameters] = useState<DCFParameters | null>(null)
   const [originalDCFParameters, setOriginalDCFParameters] = useState<DCFParameters | null>(null)
   const [isRecalculating, setIsRecalculating] = useState(false)
-  const [updatedValuationData, setUpdatedValuationData] = useState<any>(null)
+  const [updatedValuationData, setUpdatedValuationData] = useState(null)
   
   // 使用认证上下文获取用户信息
   const { user } = useAuthContext()

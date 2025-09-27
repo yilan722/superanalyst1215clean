@@ -7,7 +7,7 @@ interface ValuationAnalysisProps {
   user: any
 }
 
-export default function ValuationAnalysisSimple({ locale, user }: ValuationAnalysisProps) {
+export default function ValuationAnalysisSimple({ locale }: ValuationAnalysisProps) {
   const [searchInput, setSearchInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

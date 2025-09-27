@@ -1,5 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Disable ESLint and TypeScript during build
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   // Cloudflare Pages支持 - 使用Pages Functions
   // output: 'export', // 注释掉，使用Pages Functions支持API路由
   

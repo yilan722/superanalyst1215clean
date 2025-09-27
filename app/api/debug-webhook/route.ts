@@ -1,3 +1,7 @@
+
+// 使用 Node.js runtime 以避免 Edge Runtime 兼容性问题
+export const runtime = "nodejs"
+
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/app/services/stripe-config'
 import { createClient } from '@supabase/supabase-js'
