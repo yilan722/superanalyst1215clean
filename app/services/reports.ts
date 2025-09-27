@@ -102,8 +102,8 @@ export async function getReportById(id: string): Promise<Report | null> {
 
 async function extractPDFContent(pdfPath: string): Promise<any> {
   try {
-    // 在服务器端直接调用 PDF 解析功能
-    const pdf = require('pdf-parse')
+    // 动态导入pdf-parse以避免构建时问题
+    const pdf = await import('pdf-parse')
     const reportsDir = path.join(process.cwd(), 'reference-reports')
     const fullPath = path.join(reportsDir, pdfPath)
     
@@ -117,13 +117,8 @@ async function extractPDFContent(pdfPath: string): Promise<any> {
     const dataBuffer = fs.readFileSync(fullPath)
     console.log(`PDF file size: ${dataBuffer.length} bytes`)
     
-    // 使用更安全的 PDF 解析选项
-    const data = await pdf(dataBuffer, {
-      // 禁用一些可能有问题的功能
-      pagerender: false,
-      normalizeWhitespace: true,
-      disableCombineTextItems: false
-    })
+    // 使用基本的 PDF 解析选项
+    const data = await pdf.default(dataBuffer)
     console.log(`PDF extracted: ${data.numpages} pages, ${data.text.length} characters`)
     
     const parsedContent = parsePDFContent(data.text)
