@@ -18,6 +18,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, locale }: AuthMo
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const [subscriptionId] = useState(3)
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -33,7 +34,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, locale }: AuthMo
         const result = await signIn(email, password)
         console.log('✅ 登录成功:', result.user?.id)
         
-        toast.success('登录成功！')
+        toast.success(locale === 'zh' ? '登录成功！' : 'Login successful!')
         
         // 立即关闭模态框和重置表单
         resetForm()
@@ -41,10 +42,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess, locale }: AuthMo
         onSuccess()
       } else {
         console.log('📝 注册模式')
-        const result = await signUp(email, password, name)
+        const result = await signUp(email, password, name, subscriptionId)
         console.log('✅ 注册成功:', result.user?.id)
         
-        toast.success('注册成功！请检查您的邮箱进行验证。')
+        toast.success(locale === 'zh' ? '注册成功！请检查您的邮箱进行验证。' : 'Registration successful! Please check your email for verification.')
         
         // 立即关闭模态框和重置表单
         resetForm()
@@ -54,18 +55,18 @@ export default function AuthModal({ isOpen, onClose, onSuccess, locale }: AuthMo
     } catch (error) {
       console.error('❌ 认证错误:', error)
       
-      let errorMessage = '操作失败'
+      let errorMessage = locale === 'zh' ? '操作失败' : 'Operation failed'
       if (error instanceof Error) {
         errorMessage = error.message
       }
       
       // 提供更友好的错误信息
       if (errorMessage.includes('Invalid login credentials')) {
-        errorMessage = '邮箱或密码错误'
+        errorMessage = locale === 'zh' ? '邮箱或密码错误' : 'Invalid email or password'
       } else if (errorMessage.includes('User already registered')) {
-        errorMessage = '该邮箱已被注册，请直接登录'
+        errorMessage = locale === 'zh' ? '该邮箱已被注册，请直接登录' : 'Email already registered, please login directly'
       } else if (errorMessage.includes('Email not confirmed')) {
-        errorMessage = '请先验证您的邮箱'
+        errorMessage = locale === 'zh' ? '请先验证您的邮箱' : 'Please verify your email first'
       }
       
       toast.error(errorMessage)

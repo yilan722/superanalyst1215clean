@@ -142,13 +142,13 @@ export default function ReportHub({ userId, locale }: ReportHubProps) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600">加载研报中心...</span>
+        <span className="ml-3 text-gray-600">Loading Research Report Center...</span>
       </div>
     )
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col p-6">
       {/* 头部统计 */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

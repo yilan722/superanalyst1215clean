@@ -3,11 +3,10 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { type Locale } from '@/app/services/i18n'
-import { getTranslation } from '@/app/services/translations'
 import { useAuthContext } from '@/app/services/auth-context'
 import { SubscriptionPageService, type SubscriptionStatus, type SubscriptionMetrics } from '@/app/services/subscription-page-service'
 import { type UserWithSubscription } from '@/app/services/database/user-service'
-import { CreditCard, Check, X, Loader2, AlertCircle, Zap, Star, Crown, TrendingUp, FileText, Clock, Headphones, Users, Wrench } from 'lucide-react'
+import { Check, Loader2, AlertCircle, Zap, Star, Crown, TrendingUp, FileText, ArrowLeft } from 'lucide-react'
 
 interface SubscriptionPageProps {
   params: {
@@ -24,9 +23,42 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
   const [subscriptionMetrics, setSubscriptionMetrics] = useState<SubscriptionMetrics | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [authTimeout, setAuthTimeout] = useState(false)
+
+  // 设置认证超时
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (authLoading) {
+        console.log('⏰ 认证超时，显示错误信息')
+        setAuthTimeout(true)
+        setIsLoading(false)
+      }
+    }, 10000) // 10秒超时
+
+    return () => clearTimeout(timer)
+  }, [authLoading])
 
   useEffect(() => {
-    console.log('🔍 订阅页面认证检查:', { user: authUser?.id, loading: authLoading })
+    console.log('🔍 订阅页面认证检查:', { 
+      user: authUser?.id, 
+      email: authUser?.email,
+      loading: authLoading,
+      timeout: authTimeout,
+      timestamp: new Date().toISOString()
+    })
+    
+    // 如果认证超时，显示错误
+    if (authTimeout) {
+      console.log('⏰ 认证超时，显示错误信息')
+      return
+    }
+    
+    // 简化认证检查：如果用户存在，直接获取数据
+    if (authUser?.id) {
+      console.log('✅ 用户已认证，获取用户数据')
+      fetchUserData()
+      return
+    }
     
     // 如果还在加载中，等待
     if (authLoading) {
@@ -34,24 +66,34 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
       return
     }
     
-    // 如果加载完成但没有用户，重定向
+    // 如果加载完成但没有用户，显示登录提示
     if (!authUser) {
-      console.log('❌ 用户未认证，重定向到主页')
-      router.push(`/${locale}`)
+      console.log('❌ 用户未认证，显示登录提示')
+      setError(locale === 'zh' ? '请先登录以查看订阅信息' : 'Please login to view subscription information')
+      setIsLoading(false)
       return
     }
-    
-    // 用户已认证，获取数据
-    console.log('✅ 用户已认证，获取用户数据')
-    fetchUserData()
-  }, [authUser, authLoading, locale, router])
+  }, [authUser, authLoading, authTimeout, locale, router])
+
+  // 添加一个强制刷新按钮，用于调试
+  const handleForceRefresh = () => {
+    console.log('🔄 强制刷新认证状态')
+    window.location.reload()
+  }
 
   const fetchUserData = async () => {
     setIsLoading(true)
     setError(null)
     
     try {
-      const data = await SubscriptionPageService.fetchUserSubscriptionData(authUser?.id!)
+      if (!authUser?.id) {
+        setError('User not authenticated')
+        return
+      }
+      
+      console.log('🔍 开始获取用户数据，用户ID:', authUser.id)
+      const data = await SubscriptionPageService.fetchUserSubscriptionData(authUser.id)
+      console.log('📊 获取到的用户数据:', data)
       
       if (data) {
         setUserData(data)
@@ -60,17 +102,21 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
         const status = await SubscriptionPageService.getSubscriptionStatus(data, locale)
         const metrics = await SubscriptionPageService.calculateSubscriptionMetrics(data)
         
+        console.log('📈 订阅状态:', status)
+        console.log('📊 订阅指标:', metrics)
+        
         setSubscriptionStatus(status)
         setSubscriptionMetrics(metrics)
       } else {
+        console.error('❌ 用户数据为空')
         setError(locale === 'zh' ? '加载用户数据失败' : 'Failed to load user data')
         setUserData(null)
         setSubscriptionStatus(null)
         setSubscriptionMetrics(null)
       }
     } catch (err) {
+      console.error('❌ 获取用户数据时发生错误:', err)
       setError(locale === 'zh' ? '加载用户数据失败' : 'Failed to load user data')
-      console.error('Unexpected error fetching user data:', err)
       setUserData(null)
       setSubscriptionStatus(null)
       setSubscriptionMetrics(null)
@@ -120,8 +166,26 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="animate-spin text-amber-500 h-8 w-8" />
-        <p className="ml-3 text-slate-700">{locale === 'zh' ? '加载中...' : 'Loading...'}</p>
+        <div className="text-center">
+          <Loader2 className="animate-spin text-amber-500 h-8 w-8 mx-auto mb-4" />
+          <p className="text-slate-700 mb-2">{locale === 'zh' ? '加载中...' : 'Loading...'}</p>
+          <div className="text-sm text-gray-500 mb-4">
+            <p>Auth Loading: {authLoading ? 'true' : 'false'}</p>
+            <p>User ID: {authUser?.id || 'null'}</p>
+            <p>Timeout: {authTimeout ? 'true' : 'false'}</p>
+          </div>
+          {authTimeout && (
+            <div className="text-red-500 text-sm mb-4">
+              {locale === 'zh' ? '认证超时，请刷新页面重试' : 'Authentication timeout, please refresh and try again'}
+            </div>
+          )}
+          <button
+            onClick={handleForceRefresh}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            {locale === 'zh' ? '强制刷新' : 'Force Refresh'}
+          </button>
+        </div>
       </div>
     )
   }
@@ -131,11 +195,39 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-500">{error}</p>
+          <p className="text-red-500 mb-4">{error}</p>
+          <button
+            onClick={() => router.push(`/${locale}`)}
+            className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
+          >
+            {locale === 'zh' ? '返回首页登录' : 'Back to Home to Login'}
+          </button>
         </div>
       </div>
     )
   }
+
+  // 获取订阅等级的数字值
+  const getSubscriptionTierValue = (tierName: string) => {
+    const tierValues: { [key: string]: number } = {
+      'free': 0,
+      'basic': 1,
+      'pro': 2,
+      'professional': 2,
+      'business': 3,
+      'enterprise': 4
+    }
+    return tierValues[tierName.toLowerCase()] || 0
+  }
+
+  // 获取当前用户的订阅等级值
+  const getCurrentUserTierValue = () => {
+    if (!userData) return 0
+    const currentTier = userData?.subscription_tiers?.name?.toLowerCase()
+    return getSubscriptionTierValue(currentTier || 'free')
+  }
+
+  const currentUserTierValue = getCurrentUserTierValue()
 
   const plans = [
     {
@@ -238,17 +330,29 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-slate-800 mb-4">
-            SuperAnalyst - AI-Powered Pro Equity Research
-          </h1>
-          <p className="text-xl text-slate-600">
-            Choose the perfect plan for your investment research needs
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => router.push(`/${locale}`)}
+                className="flex items-center text-slate-600 hover:text-slate-900"
+              >
+                <ArrowLeft className="w-5 h-5 mr-2" />
+                {locale === 'zh' ? '返回首页' : 'Back to Home'}
+              </button>
+              <h1 className="text-xl font-semibold text-slate-900">
+                {locale === 'zh' ? '订阅管理' : 'Subscription'}
+              </h1>
+            </div>
+          </div>
         </div>
+      </div>
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      
         {/* Current Subscription Status */}
         {userData && (
           <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
@@ -373,10 +477,10 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                   {plans.map((plan) => {
                     const IconComponent = plan.icon
                     return (
-                      <td key={plan.id} className="px-6 py-4 text-center">
+                      <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
                         <div className="flex flex-col items-center">
-                          <IconComponent className="w-8 h-8 text-gray-600 mb-2" />
-                          <div className="text-lg font-semibold text-gray-900">{plan.name}</div>
+                          <IconComponent className={`w-8 h-8 mb-2 ${plan.isCurrent ? 'text-yellow-600' : 'text-gray-600'}`} />
+                          <div className={`text-lg font-semibold ${plan.isCurrent ? 'text-yellow-800' : 'text-gray-900'}`}>{plan.name}</div>
                           {plan.isBestValue && (
                             <span className="inline-block px-2 py-1 text-xs font-semibold text-purple-600 bg-purple-100 rounded-full mt-1">
                               Best Value
@@ -394,10 +498,10 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                     Price
                   </td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="px-6 py-4 text-center">
-                      <div className="text-2xl font-bold text-gray-900">
+                    <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
+                      <div className={`text-2xl font-bold ${plan.isCurrent ? 'text-yellow-800' : 'text-gray-900'}`}>
                         {plan.price}
-                        {plan.period && <span className="text-sm text-gray-500">{plan.period}</span>}
+                        {plan.period && <span className={`text-sm ${plan.isCurrent ? 'text-yellow-600' : 'text-gray-500'}`}>{plan.period}</span>}
                       </div>
                     </td>
                   ))}
@@ -409,8 +513,8 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                     Reports per Month
                   </td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="px-6 py-4 text-center">
-                      <div className="text-lg font-semibold text-gray-900">
+                    <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
+                      <div className={`text-lg font-semibold ${plan.isCurrent ? 'text-yellow-800' : 'text-gray-900'}`}>
                         {plan.reportsPerMonth ? `${plan.reportsPerMonth} Reports per Month` : 'Custom'}
                       </div>
                     </td>
@@ -423,8 +527,8 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                     Reports per Day
                   </td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="px-6 py-4 text-center">
-                      <div className="text-sm text-gray-600">
+                    <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
+                      <div className={`text-sm ${plan.isCurrent ? 'text-yellow-700' : 'text-gray-600'}`}>
                         {plan.reportsPerDay ? `${plan.reportsPerDay} | Total: ${plan.totalReports}` : 'Custom'}
                       </div>
                     </td>
@@ -437,8 +541,8 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                     Average Cost
                   </td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="px-6 py-4 text-center">
-                      <div className="text-sm text-gray-600">
+                    <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
+                      <div className={`text-sm ${plan.isCurrent ? 'text-yellow-700' : 'text-gray-600'}`}>
                         {plan.averageCost ? `Average Cost: ${plan.averageCost}/篇` : '-'}
                       </div>
                     </td>
@@ -451,8 +555,8 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                     Additional Purchase
                   </td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="px-6 py-4 text-center">
-                      <div className="text-sm text-gray-600">
+                    <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
+                      <div className={`text-sm ${plan.isCurrent ? 'text-yellow-700' : 'text-gray-600'}`}>
                         {plan.additionalCost ? `Additional Purchase: ${plan.additionalCost}/篇` : '-'}
                       </div>
                     </td>
@@ -465,11 +569,11 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                     Features
                   </td>
                   {plans.map((plan) => (
-                    <td key={plan.id} className="px-6 py-4 text-center">
+                    <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
                       <div className="space-y-1">
                         {plan.features.map((feature, index) => (
-                          <div key={index} className="flex items-center justify-center text-sm text-gray-600">
-                            <Check className="w-4 h-4 text-green-500 mr-1" />
+                          <div key={index} className={`flex items-center justify-center text-sm ${plan.isCurrent ? 'text-yellow-700' : 'text-gray-600'}`}>
+                            <Check className={`w-4 h-4 mr-1 ${plan.isCurrent ? 'text-yellow-600' : 'text-green-500'}`} />
                             {feature}
                           </div>
                         ))}
@@ -483,37 +587,34 @@ export default function SubscriptionPage({ params }: SubscriptionPageProps) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     Action
                   </td>
-                  {plans.map((plan) => (
-                    <td key={plan.id} className="px-6 py-4 text-center">
-                      {plan.isCurrent ? (
-                        <div className="px-4 py-2 bg-green-100 text-green-600 rounded-lg text-center text-sm font-semibold">
-                          Current Plan
-                        </div>
-                      ) : plan.isCustom ? (
-                        <button
-                          onClick={() => handleUpgrade(plan.id)}
-                          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-semibold"
-                        >
-                          Contact Sales
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleUpgrade(plan.id)}
-                          className={`px-4 py-2 rounded-lg transition-colors text-sm font-semibold ${
-                            plan.color === 'blue'
-                              ? 'bg-blue-600 text-white hover:bg-blue-700'
-                              : plan.color === 'purple'
-                              ? 'bg-purple-600 text-white hover:bg-purple-700'
-                              : plan.color === 'amber'
-                              ? 'bg-amber-600 text-white hover:bg-amber-700'
-                              : 'bg-gray-600 text-white hover:bg-gray-700'
-                          }`}
-                        >
-                          {plan.price === 'Free' ? 'Get Started' : 'Upgrade'}
-                        </button>
-                      )}
-                    </td>
-                  ))}
+                  {plans.map((plan) => {
+                    const planTierValue = getSubscriptionTierValue(plan.id)
+                    const isLowerTier = planTierValue < currentUserTierValue
+                    const isDisabled = isLowerTier && !plan.isCurrent
+                    
+                    return (
+                      <td key={plan.id} className={`px-6 py-4 text-center ${plan.isCurrent ? 'bg-yellow-50 border-2 border-yellow-300' : ''}`}>
+                        {plan.isCurrent ? (
+                          <div className="px-4 py-2 bg-green-100 text-green-600 rounded-lg text-center text-sm font-semibold">
+                            Current Plan
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => !isDisabled && handleUpgrade(plan.id)}
+                            disabled={isDisabled}
+                            className={`px-4 py-2 rounded-lg transition-colors text-sm font-semibold ${
+                              isDisabled
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-yellow-500 text-black hover:bg-yellow-600'
+                            }`}
+                            title={isDisabled ? 'You already have a higher tier subscription' : ''}
+                          >
+                            {isDisabled ? 'Downgrade' : 'Upgrade'}
+                          </button>
+                        )}
+                      </td>
+                    )
+                  })}
                 </tr>
               </tbody>
             </table>

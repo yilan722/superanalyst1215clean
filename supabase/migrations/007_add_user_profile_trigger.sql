@@ -2,7 +2,7 @@
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.users (id, email, name, created_at, updated_at, free_reports_used, paid_reports_used, monthly_report_limit)
+  INSERT INTO public.users (id, email, name, created_at, updated_at, free_reports_used, paid_reports_used, subscription_id, subscription_start, subscription_end)
   VALUES (
     NEW.id,
     NEW.email,
@@ -11,7 +11,9 @@ BEGIN
     NEW.updated_at,
     0,
     0,
-    0
+    COALESCE((NEW.raw_user_meta_data->>'subscription_id')::INTEGER, 3),  -- 从metadata获取或默认Free层级
+    COALESCE(NEW.raw_user_meta_data->>'subscription_start', NEW.created_at),  -- 从metadata获取或使用创建时间
+    COALESCE(NEW.raw_user_meta_data->>'subscription_end', NULL)  -- 从metadata获取或NULL
   );
   RETURN NEW;
 END;

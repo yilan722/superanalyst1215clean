@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0 // 禁用缓存，确保实时更新
 
 interface HotStock {
   symbol: string
@@ -14,6 +15,10 @@ interface HotStock {
   sector: string
   reason: string
   confidence: 'high' | 'medium' | 'low'
+  rank?: number
+  high52Week?: number
+  low52Week?: number
+  isIndex?: boolean
 }
 
 // 使用Yahoo Finance API获取真实股票数据
@@ -36,25 +41,38 @@ async function fetchRealStockData(symbol: string): Promise<Partial<HotStock> | n
     }
 
     const meta = result.meta
-    const currentPrice = meta.regularMarketPrice || meta.previousClose
-    const previousClose = meta.chartPreviousClose || meta.previousClose
+    const currentPrice = meta.regularMarketPrice || 0
+    const previousClose = meta.chartPreviousClose || meta.previousClose || currentPrice
     const change = currentPrice - previousClose
-    const changePercent = (change / previousClose) * 100
+    const changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0
     const volume = meta.regularMarketVolume || 0
     const marketCap = meta.marketCap || 0
     const peRatio = meta.trailingPE || 0
+    const high52Week = meta.fiftyTwoWeekHigh || 0
+    const low52Week = meta.fiftyTwoWeekLow || 0
+    
+    console.log(`获取 ${symbol} 数据: 当前价格=${currentPrice}, 前收盘价=${previousClose}, 涨跌幅=${changePercent.toFixed(2)}%, 52周高=${high52Week}, 52周低=${low52Week}`)
 
-    // 获取公司名称
+    // 获取公司名称和更多数据
     const nameResponse = await fetch(
       `https://query1.finance.yahoo.com/v1/finance/search?q=${symbol}&quotesCount=1&newsCount=0`
     )
     
     let companyName = symbol
+    let sector = 'Technology'
     if (nameResponse.ok) {
       const nameData = await nameResponse.json()
       if (nameData.quotes && nameData.quotes[0]) {
         companyName = nameData.quotes[0].longName || nameData.quotes[0].shortName || symbol
+        sector = nameData.quotes[0].sector || 'Technology'
       }
+    }
+
+    // 对于 ETF，使用不同的市值计算方式
+    let finalMarketCap = marketCap
+    if (marketCap === 0 && (symbol.includes('SPY') || symbol.includes('QQQ') || symbol.includes('DIA'))) {
+      // ETF 的市值通常用 AUM (Assets Under Management) 表示
+      finalMarketCap = currentPrice * volume * 1000 // 粗略估算
     }
 
     return {
@@ -64,9 +82,11 @@ async function fetchRealStockData(symbol: string): Promise<Partial<HotStock> | n
       change,
       changePercent,
       volume,
-      marketCap,
+      marketCap: finalMarketCap,
       peRatio,
-      sector: 'Technology' // 默认值，可以后续优化
+      sector,
+      high52Week,
+      low52Week
     }
   } catch (error) {
     console.error(`Error fetching data for ${symbol}:`, error)
@@ -145,12 +165,179 @@ function getConfidenceLevel(changePercent: number, volume: number): 'high' | 'me
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const symbols = searchParams.get('symbols')?.split(',') || ['NVDA', 'TSLA', 'AAPL', 'AMD', 'MSFT']
+    const useStockTwits = searchParams.get('useStockTwits') !== 'false' // 默认使用 StockTwits
+    const symbols = searchParams.get('symbols')?.split(',')
     
+    // 如果指定了使用 StockTwits 或者没有指定 symbols
+    if (useStockTwits && !symbols) {
+      try {
+        console.log('使用 StockTwits 数据...')
+
+        // 调用 StockTwits API 获取完整数据
+        const stockTwitsUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/stocktwits-most-active`
+        console.log('调用 StockTwits API:', stockTwitsUrl)
+        const stockTwitsResponse = await fetch(stockTwitsUrl)
+        console.log('StockTwits API 响应状态:', stockTwitsResponse.status)
+        const stockTwitsData = await stockTwitsResponse.json()
+        console.log('StockTwits API 响应数据:', stockTwitsData.success, stockTwitsData.data?.length)
+
+        if (stockTwitsData.success && stockTwitsData.data) {
+          const hotStocks: HotStock[] = []
+
+          // 处理 StockTwits 返回的数据，如果价格数据不完整则使用 yfinance
+          for (const stockData of stockTwitsData.data) {
+            if (stockData.symbol) {
+              // StockTwits API 已经返回了完整的股票数据
+              let finalData = {
+                symbol: stockData.symbol,
+                name: stockData.name || stockData.symbol,
+                price: stockData.price || 0,
+                change: stockData.change || 0,
+                changePercent: stockData.changePercent || 0,
+                volume: stockData.volume || 0,
+                marketCap: stockData.marketCap || 0,
+                peRatio: stockData.peRatio || 0,
+                sector: stockData.sector || 'Unknown',
+                reason: stockData.reason || 'Market activity',
+                confidence: stockData.confidence || 'low',
+                rank: stockData.rank || 0,
+                high52Week: 0,
+                low52Week: 0,
+                isIndex: ['SPY', 'QQQ', 'DIA', 'IWM', 'ARKK'].includes(stockData.symbol)
+              }
+              
+              // 如果价格数据不完整，使用 yfinance 补充
+              if (finalData.price === 0 || finalData.volume === 0) {
+                console.log(`StockTwits 数据不完整，使用 yfinance 补充 ${stockData.symbol}`)
+                const yfinanceData = await fetchRealStockData(stockData.symbol)
+                if (yfinanceData) {
+                  finalData.price = yfinanceData.price || finalData.price
+                  finalData.change = yfinanceData.change || finalData.change
+                  finalData.changePercent = yfinanceData.changePercent || finalData.changePercent
+                  finalData.volume = yfinanceData.volume || finalData.volume
+                  finalData.marketCap = yfinanceData.marketCap || finalData.marketCap
+                  finalData.peRatio = yfinanceData.peRatio || finalData.peRatio
+                  finalData.sector = yfinanceData.sector || finalData.sector
+                }
+              }
+              
+              // 总是使用 yfinance 获取 52-week 数据
+              if (finalData.high52Week === 0 || finalData.low52Week === 0) {
+                console.log(`获取 ${stockData.symbol} 的 52-week 数据`)
+                const yfinanceData = await fetchRealStockData(stockData.symbol)
+                if (yfinanceData) {
+                  finalData.high52Week = yfinanceData.high52Week || finalData.high52Week
+                  finalData.low52Week = yfinanceData.low52Week || finalData.low52Week
+                  // 如果还没有 market cap，也获取
+                  if (finalData.marketCap === 0) {
+                    finalData.marketCap = yfinanceData.marketCap || finalData.marketCap
+                  }
+                }
+              }
+              
+              const reason = generateAnalysisReason(finalData.symbol, finalData.changePercent, finalData.sector)
+              const confidence = getConfidenceLevel(finalData.changePercent, finalData.volume)
+
+              hotStocks.push({
+                ...finalData,
+                reason,
+                confidence
+              })
+            }
+          }
+
+          console.log(`成功获取 ${hotStocks.length} 只 StockTwits 股票数据`)
+          return NextResponse.json({
+            success: true,
+            data: hotStocks,
+            source: 'stocktwits'
+          }, {
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
+          })
+        } else {
+          // 回退到硬编码列表，使用 StockTwits 的真实数据
+          const stockTwitsData = [
+            { symbol: 'SPY', name: 'SPDR S&P 500 ETF', rank: 1, isIndex: true },
+            { symbol: 'OPEN', name: 'Opendoor Technologies Inc', rank: 2, isIndex: false },
+            { symbol: 'HOLO', name: 'MicroCloud Hologram Inc', rank: 3, isIndex: false },
+            { symbol: 'BBAI', name: 'BigBear.ai Holdings Inc', rank: 4, isIndex: false },
+            { symbol: 'QQQ', name: 'Invesco QQQ Trust', rank: 5, isIndex: true },
+            { symbol: 'NVDA', name: 'NVIDIA Corp', rank: 6, isIndex: false },
+            { symbol: 'TSLA', name: 'Tesla Inc', rank: 7, isIndex: false },
+            { symbol: 'DJT', name: 'Trump Media & Technology Group', rank: 8, isIndex: false },
+            { symbol: 'ASST', name: 'Asset Entities Inc', rank: 9, isIndex: false },
+            { symbol: 'MU', name: 'Micron Technology Inc', rank: 10, isIndex: false }
+          ]
+          
+          const hotStocks: HotStock[] = []
+
+          // 并行获取所有股票数据
+          const stockDataPromises = stockTwitsData.map(async (stockInfo) => {
+            const data = await fetchRealStockData(stockInfo.symbol)
+            if (data) {
+              const name = stockInfo.name
+              const reason = generateAnalysisReason(stockInfo.symbol, data.changePercent || 0, data.sector || 'Unknown')
+              const confidence = getConfidenceLevel(data.changePercent || 0, data.volume || 0)
+
+              return {
+                symbol: data.symbol || stockInfo.symbol,
+                name,
+                price: data.price || 0,
+                change: data.change || 0,
+                changePercent: data.changePercent || 0,
+                volume: data.volume || 0,
+                marketCap: data.marketCap || 0,
+                peRatio: data.peRatio || 0,
+                sector: data.sector || 'Unknown',
+                reason,
+                confidence,
+                rank: stockInfo.rank,
+                high52Week: 0, // 这些数据需要从 yfinance 获取
+                low52Week: 0,
+                isIndex: stockInfo.isIndex
+              }
+            }
+            return null
+          })
+
+          const results = await Promise.all(stockDataPromises)
+
+          // 过滤掉null值并添加到结果中
+          results.forEach(stock => {
+            if (stock) {
+              hotStocks.push(stock)
+            }
+          })
+
+          console.log(`成功获取 ${hotStocks.length} 只 StockTwits 股票数据（回退模式）`)
+          return NextResponse.json({
+            success: true,
+            data: hotStocks,
+            source: 'stocktwits-fallback'
+          }, {
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
+          })
+        }
+
+      } catch (error) {
+        console.error('StockTwits 数据处理失败:', error)
+      }
+    }
+    
+    // 回退到原始逻辑
+    const finalSymbols = symbols || ['NVDA', 'TSLA', 'AAPL', 'AMD', 'MSFT']
     const hotStocks: HotStock[] = []
     
     // 并行获取所有股票数据
-    const stockDataPromises = symbols.map(async (symbol) => {
+    const stockDataPromises = finalSymbols.map(async (symbol) => {
       const data = await fetchRealStockData(symbol)
       if (data) {
         const name = await getCompanyName(symbol)
@@ -253,16 +440,35 @@ export async function GET(request: NextRequest) {
         }
       ]
       
-      return NextResponse.json({ success: true, data: mockStocks })
+      return NextResponse.json({ success: true, data: mockStocks, source: 'mock' }, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
     }
     
-    return NextResponse.json({ success: true, data: hotStocks })
+    return NextResponse.json({ success: true, data: hotStocks, source: 'yahoo' }, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    })
     
   } catch (error) {
     console.error('Error fetching hot stocks:', error)
     return NextResponse.json(
       { success: false, error: 'Failed to fetch hot stocks data' },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }
     )
   }
 }

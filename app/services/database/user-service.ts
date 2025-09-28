@@ -50,7 +50,7 @@ export class UserService extends BaseDatabaseService {
         `)
         .eq('id', userId)
         .single()
-
+      console.log('UseService获取用户订阅数据:', data)
       if (error) {
         if (error.code === 'PGRST116') {
           return null

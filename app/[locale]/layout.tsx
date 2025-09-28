@@ -7,8 +7,8 @@ import GoogleAnalytics from '../../components/GoogleAnalytics'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'SuperAnalystPro',
-  description: 'Professional AI-powered stock analysis platform',
+  title: 'SuperAnalyst.pro - AI Market Intelligence& Equity Research Platform That Automating 80% of Research Grunt Work',
+  description: 'Powered by most advanced deep research LLM and powerful database, SuperAnalyst.pro delivers comprehensive equity reports on global markets, empowering analysts to build their thesis and make smarter decisions, faster.',
 }
 
 export async function generateStaticParams() {

@@ -11,6 +11,20 @@ interface TodaysReport {
   summary: string
   pdfPath: string
   isPublic: boolean
+  keyInsights?: string[]
+  sections?: {
+    [key: string]: string
+  }
+  charts?: {
+    title: string
+    type: 'line' | 'bar' | 'pie' | 'scatter'
+    data: any
+  }[]
+  author?: string
+  tags?: string[]
+  marketCap?: number
+  sector?: string
+  industry?: string
 }
 
 // 获取今日报告
@@ -44,7 +58,25 @@ export async function GET(request: NextRequest) {
         date: todayString,
         summary: 'CoreWeave operates as a specialized cloud infrastructure provider focused exclusively on GPU-accelerated computing for artificial intelligence and high-performance workloads. The company has transformed from a cryptocurrency mining operation into an "AI Hyperscaler," providing infrastructure that supports compute workloads for enterprises, hyperscalers, and AI laboratories.',
         pdfPath: 'CoreWeave, Inc. (CRWV) - In-Depth Company Profile.pdf',
-        isPublic: true
+        isPublic: true,
+        keyInsights: [
+          'CoreWeave has successfully pivoted from crypto mining to AI infrastructure, positioning itself as a key enabler of the AI revolution',
+          'The company operates on a rental-based model similar to traditional cloud providers but optimized specifically for AI workloads',
+          'Strong demand for GPU compute resources driven by generative AI and machine learning applications',
+          'Strategic partnerships with major cloud providers and AI companies provide competitive advantages',
+          'Market opportunity estimated at $200+ billion as AI adoption accelerates across industries'
+        ],
+        sections: {
+          '1. Fundamental Analysis': 'CoreWeave demonstrates strong fundamentals with growing revenue and expanding market presence in the AI infrastructure space.',
+          '2. Market Position': 'The company is well-positioned to capitalize on the growing demand for AI compute resources.',
+          '3. Financial Performance': 'Revenue growth driven by increased GPU utilization and expanding customer base.',
+          '4. Risk Assessment': 'Key risks include competition from major cloud providers and potential market saturation.'
+        },
+        author: 'SuperAnalyst Pro Research Team',
+        tags: ['AI Infrastructure', 'Cloud Computing', 'GPU', 'Artificial Intelligence', 'Technology'],
+        sector: 'Technology',
+        industry: 'Cloud Infrastructure',
+        marketCap: 0 // Will be updated with real data
       }
     }
     

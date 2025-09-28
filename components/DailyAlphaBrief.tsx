@@ -48,6 +48,10 @@ interface HotStock {
   sector: string
   reason: string
   confidence: 'high' | 'medium' | 'low'
+  rank?: number
+  high52Week?: number
+  low52Week?: number
+  isIndex?: boolean
 }
 
 interface TodaysReport {
@@ -172,13 +176,17 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
   const fetchHotStocks = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/hot-stocks?symbols=NVDA,TSLA,AAPL,AMD,MSFT')
+      // 默认使用 StockTwits 数据，不指定 symbols 参数
+      const response = await fetch('/api/hot-stocks')
       const data = await response.json()
       
       if (data.success) {
         setHotStocks(data.data)
+        console.log(`✅ 成功获取 ${data.data.length} 只热门股票数据，数据源: ${data.source}`)
+        console.log('股票符号:', data.data.map((s: HotStock) => s.symbol))
       } else {
         // 如果API失败，使用模拟数据
+        console.log('❌ API 调用失败，使用模拟数据')
         setHotStocks(mockHotStocks)
         toast.error(locale === 'zh' ? '无法获取实时数据，显示模拟数据' : 'Unable to fetch real-time data, showing mock data')
       }
@@ -271,8 +279,8 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
   }, [historicalReports])
 
   const handleStockClick = (stock: HotStock) => {
-    setSelectedStock(stock)
-    setShowAnalysis(true)
+    // 直接跳转到报告生成页面
+    window.location.href = `/?symbol=${stock.symbol}`
   }
 
   const handleTodaysReportClick = () => {
@@ -312,23 +320,6 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
     }
   }
 
-  const getConfidenceColor = (confidence: string) => {
-    switch (confidence) {
-      case 'high': return 'text-green-400 bg-green-400/10'
-      case 'medium': return 'text-yellow-400 bg-yellow-400/10'
-      case 'low': return 'text-red-400 bg-red-400/10'
-      default: return 'text-gray-400 bg-gray-400/10'
-    }
-  }
-
-  const getConfidenceText = (confidence: string) => {
-    switch (confidence) {
-      case 'high': return getTranslation(locale, 'highConfidence')
-      case 'medium': return getTranslation(locale, 'mediumConfidence')
-      case 'low': return getTranslation(locale, 'lowConfidence')
-      default: return getTranslation(locale, 'unknownConfidence')
-    }
-  }
 
   if (isLoading) {
     return (
@@ -339,7 +330,7 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl p-6 border border-slate-700">
         <div className="flex items-center space-x-3 mb-4">
@@ -355,20 +346,30 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
             </p>
           </div>
         </div>
-        <div className="flex items-center space-x-6 text-sm text-slate-400">
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-4 h-4" />
-            <span>{new Date().toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-6 text-sm text-slate-400">
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-4 h-4" />
+              <span>{new Date().toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <BarChart3 className="w-4 h-4" />
+              <span>{hotStocks.length} {getTranslation(locale, 'hotStocks')}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-slate-500">
+                {locale === 'zh' ? '实时数据' : 'Real-time Data'}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <BarChart3 className="w-4 h-4" />
-            <span>{hotStocks.length} {getTranslation(locale, 'hotStocks')}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-slate-500">
-              {locale === 'zh' ? '实时数据' : 'Real-time Data'}
-            </span>
-          </div>
+          <button
+            onClick={fetchHotStocks}
+            disabled={isLoading}
+            className="flex items-center space-x-2 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <TrendingUp className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>{isLoading ? (locale === 'zh' ? '刷新中...' : 'Refreshing...') : (locale === 'zh' ? '刷新' : 'Refresh')}</span>
+          </button>
         </div>
       </div>
 
@@ -419,9 +420,11 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
             </div>
           </div>
           
-          <div 
-            onClick={handleTodaysReportClick}
-            className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-600 transition-colors cursor-pointer group"
+          <a 
+            href={`/en/reports/${(translatedTodaysReport || todaysReport)?.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-600 transition-colors cursor-pointer group"
           >
             <div className="flex items-start justify-between mb-3">
               <div>
@@ -483,7 +486,7 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
                 )}
               </div>
             </div>
-          </div>
+          </a>
         </div>
       )}
 
@@ -596,60 +599,119 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
         </div>
       )}
 
-      {/* Hot Stocks Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {hotStocks.map((stock) => (
-          <div
-            key={stock.symbol}
-            onClick={() => handleStockClick(stock)}
-            className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:bg-slate-750 hover:border-amber-500/30 transition-all duration-200 cursor-pointer group"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="text-lg font-semibold text-white group-hover:text-amber-300 transition-colors">
-                  {stock.symbol}
-                </h3>
-                <p className="text-sm text-slate-400 truncate">{stock.name}</p>
-              </div>
-              <div className={`px-2 py-1 rounded-full text-xs font-medium ${getConfidenceColor(stock.confidence)}`}>
-                {getConfidenceText(stock.confidence)}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold text-white">${stock.price}</span>
-                <div className={`flex items-center space-x-1 ${
-                  stock.change >= 0 ? 'text-green-400' : 'text-red-400'
-                }`}>
-                  {stock.change >= 0 ? (
-                    <TrendingUp className="w-4 h-4" />
-                  ) : (
-                    <TrendingDown className="w-4 h-4" />
-                  )}
-                  <span className="font-semibold">
-                    {stock.change >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
-                <div className="flex items-center space-x-1">
-                  <DollarSign className="w-3 h-3" />
-                  <span>${(stock.marketCap / 1e9).toFixed(1)}B</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <BarChart3 className="w-3 h-3" />
-                  <span>P/E {stock.peRatio}</span>
-                </div>
-              </div>
-
-              <p className="text-xs text-slate-500 mt-2 line-clamp-2">
-                {stock.reason}
-              </p>
-            </div>
-          </div>
-        ))}
+      {/* Hot Stocks Table - StockTwits Style */}
+      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-700">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  Rank
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  Symbol
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  Last Price
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  %Change
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  Volume
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  52-wk High
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  52-wk Low
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  Market Cap
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700">
+              {hotStocks.map((stock) => (
+                <tr
+                  key={stock.symbol}
+                  className="hover:bg-slate-750 transition-colors duration-200"
+                >
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-300">
+                    {stock.rank || '-'}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div>
+                      <div className="text-sm font-medium text-white">
+                        {stock.symbol}
+                      </div>
+                      <div className="text-xs text-slate-400 truncate max-w-32">
+                        {stock.name}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-white text-right">
+                    ${stock.price.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-right">
+                    <div className={`flex items-center justify-end space-x-1 ${
+                      stock.change >= 0 ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {stock.change >= 0 ? (
+                        <TrendingUp className="w-4 h-4" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4" />
+                      )}
+                      <span className="font-medium">
+                        {stock.change >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-300 text-right">
+                    {stock.volume > 1000000 
+                      ? `${(stock.volume / 1000000).toFixed(1)}M`
+                      : stock.volume > 1000 
+                        ? `${(stock.volume / 1000).toFixed(1)}K`
+                        : stock.volume.toLocaleString()
+                    }
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-300 text-right">
+                    {stock.high52Week ? `$${stock.high52Week.toFixed(2)}` : '-'}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-300 text-right">
+                    {stock.low52Week ? `$${stock.low52Week.toFixed(2)}` : '-'}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-300 text-right">
+                    {stock.isIndex 
+                      ? 'ETF'
+                      : stock.marketCap > 0 
+                        ? `$${(stock.marketCap / 1e9).toFixed(1)}B`
+                        : '-'
+                    }
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-center">
+                    {stock.isIndex ? (
+                      <span className="text-xs text-slate-500 px-2 py-1 rounded-full bg-slate-700">
+                        Index
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleStockClick(stock)}
+                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors duration-200"
+                      >
+                        <FileText className="w-3 h-3 mr-1" />
+                        Generate Report
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Analysis Modal */}
@@ -706,10 +768,7 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
                 <p className="text-slate-300 leading-relaxed">
                   {selectedStock.reason}
                 </p>
-                <div className="mt-4 flex items-center justify-between">
-                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${getConfidenceColor(selectedStock.confidence)}`}>
-                    {getConfidenceText(selectedStock.confidence)}
-                  </div>
+                <div className="mt-4 flex items-center justify-end">
                   <button className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors flex items-center space-x-2">
                     <ExternalLink className="w-4 h-4" />
                     <span>{getTranslation(locale, 'generateFullReport')}</span>

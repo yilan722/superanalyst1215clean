@@ -1,6 +1,10 @@
-export default function Footer() {
+interface FooterProps {
+  isSidebarCollapsed?: boolean
+}
+
+export default function Footer({ isSidebarCollapsed = false }: FooterProps) {
   return (
-    <footer className="bg-slate-800 border-t border-amber-500/30 mt-16">
+    <footer className={`bg-slate-800 border-t border-amber-500/30 mt-16 transition-all duration-300 ${isSidebarCollapsed ? 'ml-16' : 'ml-56'}`}>
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8">
         {/* Disclaimer - Centered with justified text */}
         <div className="text-center mb-6 sm:mb-8">

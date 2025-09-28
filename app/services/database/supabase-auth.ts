@@ -142,13 +142,16 @@ export function getGlobalForceSignOut() {
   return globalForceSignOut
 }
 
-export async function signUp(email: string, password: string, name?: string) {
+export async function signUp(email: string, password: string, name?: string, subscriptionId?: number, additionalData?: any) {
+  console.log('subscriptionid', subscriptionId)
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
-        name: name || null
+        name: name || null,
+        subscription_id: subscriptionId || 3,
+        ...additionalData  // 传递额外的用户元数据
       }
     }
   })
@@ -165,25 +168,40 @@ export async function signUp(email: string, password: string, name?: string) {
     try {
       console.log('📋 Creating user profile manually...')
       
+      // 从 user_metadata 中获取额外数据
+      const userMetadata = data.user.user_metadata || {}
+      const subscriptionId = userMetadata.subscription_id || 3  // 默认 Free 层级
+      const subscriptionStart = userMetadata.subscription_start || new Date().toISOString()
+      
+      // 使用 UPSERT 操作，避免重复键错误
       const { error: profileError } = await supabase
         .from('users')
-        .insert({
+        .upsert({
           id: data.user.id,
           email: data.user.email!,
-          name: name || null,
+          name: name || userMetadata.name || null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           free_reports_used: 0,
           paid_reports_used: 0,
-          monthly_report_limit: 0
+          subscription_id: subscriptionId,
+          subscription_start: subscriptionStart,
+          subscription_end: userMetadata.subscription_end || null
+        }, {
+          onConflict: 'id'  // 如果ID冲突，则更新记录
         })
       
       if (profileError) {
-        console.error('❌ Failed to create user profile:', profileError)
-        // 不抛出错误，因为用户已经注册成功，只是profile创建失败
-        console.log('⚠️ User profile creation failed, but user registration was successful')
+        // 检查是否是重复键错误
+        if (profileError.code === '23505' && profileError.message.includes('duplicate key value violates unique constraint')) {
+          console.log('⚠️ User profile already exists (created by database trigger)')
+          console.log('✅ User registration completed successfully')
+        } else {
+          console.error('❌ Failed to create user profile:', profileError)
+          console.log('⚠️ User profile creation failed, but user registration was successful')
+        }
       } else {
-        console.log('✅ User profile created successfully')
+        console.log('✅ User profile created/updated successfully')
       }
     } catch (profileError) {
       console.error('❌ Error creating user profile:', profileError)
