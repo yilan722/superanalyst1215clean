@@ -82,6 +82,23 @@ a {
 .report-content table {
   @apply w-full border-collapse mb-8 bg-white rounded-xl shadow-lg overflow-hidden !important;
   border: 2px solid #e5e7eb !important;
+  position: relative !important;
+}
+
+/* 表格水印 */
+.report-content table::before {
+  content: "superanalyst.pro" !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) rotate(-45deg) !important;
+  font-size: 24px !important;
+  font-weight: 300 !important;
+  color: rgba(0, 0, 0, 0.05) !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+  white-space: nowrap !important;
+  user-select: none !important;
 }
 
 .report-content table.metric-table {

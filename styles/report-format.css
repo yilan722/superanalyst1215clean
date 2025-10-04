@@ -54,6 +54,23 @@
   margin: 1.2em 0;
   font-size: 0.95em;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+/* 表格水印 */
+.metric-table::before {
+  content: "superanalyst.pro";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  font-size: 24px;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.05);
+  z-index: 1;
+  pointer-events: none;
+  white-space: nowrap;
+  user-select: none;
 }
 
 .metric-table th {
@@ -289,6 +306,23 @@
   border-radius: 12px;
   overflow: hidden;
   background: white;
+  position: relative;
+}
+
+/* Insight 表格水印 */
+.insight-table::before {
+  content: "superanalyst.pro";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  font-size: 24px;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.05);
+  z-index: 1;
+  pointer-events: none;
+  white-space: nowrap;
+  user-select: none;
 }
 
 .insight-table th {

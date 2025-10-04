@@ -25,24 +25,40 @@ export async function generateMetadata({ params }: ReportPageProps): Promise<Met
   const isEnglish = params.locale === 'en'
   const reportData = isEnglish && report.translations?.en ? report.translations.en : report
   
+  // SEO优化的标题和描述
   const title = `${reportData.title} | SuperAnalyst Pro`
-  const description = reportData.summary || `In-depth analysis of ${report.company} (${report.symbol}) by SuperAnalyst Pro`
+  const description = reportData.summary || `Comprehensive ${report.company} (${report.symbol}) stock analysis with fundamental analysis, business segments, growth catalysts, and valuation insights. Professional equity research report by SuperAnalyst Pro.`
+  
+  // 生成SEO友好的关键词
+  const keywords = [
+    report.company,
+    report.symbol,
+    `${report.company} stock analysis`,
+    `${report.symbol} investment research`,
+    `${report.company} financial analysis`,
+    `${report.symbol} equity research`,
+    `${report.company} valuation`,
+    `${report.symbol} DCF analysis`,
+    `${report.company} fundamental analysis`,
+    `${report.symbol} stock report`,
+    `${report.company} investment thesis`,
+    `${report.symbol} financial metrics`,
+    'stock analysis',
+    'investment research',
+    'financial analysis',
+    'equity research',
+    'valuation analysis',
+    'DCF analysis',
+    'fundamental analysis',
+    'SuperAnalyst Pro',
+    'professional research',
+    'investment insights'
+  ]
   
   return {
     title,
     description,
-    keywords: [
-      report.company,
-      report.symbol,
-      'stock analysis',
-      'investment research',
-      'financial analysis',
-      'equity research',
-      'valuation',
-      'DCF analysis',
-      'fundamental analysis',
-      'SuperAnalyst Pro'
-    ],
+    keywords,
     authors: [{ name: 'SuperAnalyst Pro Research Team' }],
     creator: 'SuperAnalyst Pro',
     publisher: 'SuperAnalyst Pro',
@@ -70,6 +86,19 @@ export async function generateMetadata({ params }: ReportPageProps): Promise<Met
     },
     alternates: {
       canonical: `https://superanalyst.pro/reports/${report.id}`
+    },
+    // 添加结构化数据
+    other: {
+      'article:section': 'Financial Analysis',
+      'article:tag': keywords.join(', '),
+      'article:author': 'SuperAnalyst Pro Research Team',
+      'article:published_time': report.date,
+      'article:modified_time': new Date().toISOString(),
+      'og:type': 'article',
+      'og:site_name': 'SuperAnalyst Pro',
+      'og:locale': params.locale === 'zh' ? 'zh_CN' : 'en_US',
+      'twitter:site': '@SuperAnalystPro',
+      'twitter:creator': '@SuperAnalystPro'
     }
   }
 }
@@ -87,5 +116,56 @@ export default async function ReportPage({ params }: ReportPageProps) {
     notFound()
   }
 
-  return <ReportViewer report={report} locale={params.locale} />
+  // 生成JSON-LD结构化数据
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": report.title,
+    "description": report.summary,
+    "author": {
+      "@type": "Organization",
+      "name": "SuperAnalyst Pro Research Team",
+      "url": "https://superanalyst.pro"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "SuperAnalyst Pro",
+      "url": "https://superanalyst.pro",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://superanalyst.pro/logo.png"
+      }
+    },
+    "datePublished": report.date,
+    "dateModified": new Date().toISOString(),
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `https://superanalyst.pro/reports/${report.id}`
+    },
+    "about": {
+      "@type": "Organization",
+      "name": report.company,
+      "tickerSymbol": report.symbol
+    },
+    "keywords": [
+      report.company,
+      report.symbol,
+      "stock analysis",
+      "investment research",
+      "financial analysis",
+      "equity research"
+    ].join(", "),
+    "articleSection": "Financial Analysis",
+    "inLanguage": params.locale === 'zh' ? 'zh-CN' : 'en-US'
+  }
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ReportViewer report={report} locale={params.locale} />
+    </>
+  )
 }

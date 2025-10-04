@@ -11,7 +11,9 @@ import {
   Calendar,
   TrendingUp,
   Users,
-  BarChart3
+  BarChart3,
+  ChevronRight,
+  User
 } from 'lucide-react'
 import ReportFolder from './ReportFolder'
 import ReportList from './ReportList'
@@ -56,50 +58,88 @@ export default function ReportHub({ userId, locale }: ReportHubProps) {
   const [comparisonReportId, setComparisonReportId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchHubData()
+    if (userId) {
+      fetchHubData()
+    }
   }, [userId])
 
   const fetchHubData = async () => {
+    if (!userId) {
+      console.log('❌ 用户ID不存在，无法获取报告数据')
+      return
+    }
+
     try {
       setIsLoading(true)
       
-      // 首先设置数据库表
-      await fetch('/api/setup-insight-refinery', { method: 'POST' })
+      // 尝试设置数据库表（忽略错误）
+      try {
+        await fetch('/api/setup-insight-refinery', { method: 'POST' })
+      } catch (error) {
+        console.log('⚠️ 数据库表设置失败，继续执行:', error)
+      }
       
-      // 获取用户的所有研报
-      const reportsResponse = await fetch(`/api/reports?userId=${userId}`)
-      const reportsResult = await reportsResponse.json()
-      const reportsData = reportsResult.data || []
-      
-      console.log('📊 获取到的研报数据:', reportsData)
-      
-      if (reportsData && reportsData.length > 0) {
-        // 将研报转换为文件夹格式
-        const foldersData = reportsData.map((report: any) => ({
-          id: `folder-${report.id}`,
-          companyName: report.stock_name || 'Unknown Company',
-          ticker: report.stock_symbol || 'Unknown',
-          originalReportId: report.id,
-          latestVersionId: report.id,
-          totalVersions: 1,
-          totalDiscussions: 0,
-          lastActivity: report.created_at,
-          createdAt: report.created_at
-        }))
+      // 获取用户自己生成的所有研报（从数据库）
+      try {
+        const reportsResponse = await fetch(`/api/reports?userId=${userId}`)
+        const reportsResult = await reportsResponse.json()
         
-        console.log('📁 转换后的文件夹数据:', foldersData)
-        setFolders(foldersData)
+        if (reportsResult.error) {
+          console.log('❌ 获取报告失败:', reportsResult.error)
+          // 显示空状态而不是错误
+          setFolders([])
+          setStats({
+            totalFolders: 0,
+            totalReports: 0,
+            totalDiscussions: 0,
+            activeSessions: 0,
+            insightRefineryReports: 0
+          })
+          return
+        }
         
-        // 计算统计数据
-        setStats({
-          totalFolders: foldersData.length,
-          totalReports: reportsData.length,
-          totalDiscussions: 0,
-          activeSessions: 0,
-          insightRefineryReports: 0
-        })
-      } else {
-        console.log('❌ 没有找到研报数据')
+        const reportsData = reportsResult.data || []
+        console.log('📊 获取到的用户生成报告数据:', reportsData)
+        
+        if (reportsData && reportsData.length > 0) {
+          // 将用户生成的报告转换为文件夹格式
+          const foldersData = reportsData.map((report: any) => ({
+            id: `folder-${report.id}`,
+            companyName: report.stock_name || 'Unknown Company',
+            ticker: report.stock_symbol || 'Unknown',
+            originalReportId: report.id,
+            latestVersionId: report.id,
+            totalVersions: 1,
+            totalDiscussions: 0,
+            lastActivity: report.created_at,
+            createdAt: report.created_at
+          }))
+          
+          console.log('📁 转换后的文件夹数据:', foldersData)
+          setFolders(foldersData)
+          
+          // 计算统计数据
+          setStats({
+            totalFolders: foldersData.length,
+            totalReports: reportsData.length,
+            totalDiscussions: 0,
+            activeSessions: 0,
+            insightRefineryReports: 0
+          })
+        } else {
+          console.log('❌ 没有找到用户生成的报告数据')
+          setFolders([])
+          setStats({
+            totalFolders: 0,
+            totalReports: 0,
+            totalDiscussions: 0,
+            activeSessions: 0,
+            insightRefineryReports: 0
+          })
+        }
+      } catch (apiError) {
+        console.log('❌ API调用失败:', apiError)
+        // 显示空状态而不是错误
         setFolders([])
         setStats({
           totalFolders: 0,
@@ -112,6 +152,15 @@ export default function ReportHub({ userId, locale }: ReportHubProps) {
 
     } catch (error) {
       console.error('Error fetching hub data:', error)
+      // 显示空状态而不是错误
+      setFolders([])
+      setStats({
+        totalFolders: 0,
+        totalReports: 0,
+        totalDiscussions: 0,
+        activeSessions: 0,
+        insightRefineryReports: 0
+      })
     } finally {
       setIsLoading(false)
     }
@@ -137,6 +186,21 @@ export default function ReportHub({ userId, locale }: ReportHubProps) {
     setShowComparison(true)
   }
 
+
+  if (!userId) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            {locale === 'zh' ? '请先登录' : 'Please Login First'}
+          </h2>
+          <p className="text-gray-600 mb-6">
+            {locale === 'zh' ? '登录后即可使用洞察精炼器功能' : 'Login to access Insight Refinery features'}
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   if (isLoading) {
     return (
@@ -210,10 +274,89 @@ export default function ReportHub({ userId, locale }: ReportHubProps) {
 
       {/* 研报列表 - 可滚动区域 */}
       <div className="flex-1 overflow-y-auto">
-        <ReportList
-          userId={userId}
-          locale={locale}
-        />
+        {folders.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {folders.map((folder) => (
+              <div
+                key={folder.id}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 p-6 cursor-pointer group"
+                onClick={() => handleReportSelect(folder.originalReportId)}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                      {folder.companyName}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {folder.ticker}
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                  </div>
+                </div>
+                
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-sm text-gray-500">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    <span>{new Date(folder.lastActivity).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}</span>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-500">
+                    <User className="h-4 w-4 mr-2" />
+                    <span>{locale === 'zh' ? '版本数' : 'Versions'}: {folder.totalVersions}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleStartInsightRefinery(folder.originalReportId)
+                      }}
+                      className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                    >
+                      {locale === 'zh' ? '洞察精炼' : 'Insight Refinery'}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleStartComparison(folder.originalReportId)
+                      }}
+                      className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+                    >
+                      {locale === 'zh' ? '对比分析' : 'Compare'}
+                    </button>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <FileText className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {locale === 'zh' ? '暂无用户报告' : 'No User Reports Available'}
+            </h3>
+            <p className="text-gray-500 max-w-md">
+              {locale === 'zh' 
+                ? '您还没有使用AI生成任何研报。开始创建您的第一份AI研报吧！' 
+                : 'You haven\'t generated any AI reports yet. Start creating your first AI report!'
+              }
+            </p>
+            <div className="mt-6">
+              <button
+                onClick={() => window.location.href = '/en/valuation'}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                {locale === 'zh' ? '开始创建研报' : 'Start Creating Report'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 模态框 */}

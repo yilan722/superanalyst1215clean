@@ -553,62 +553,6 @@ export default function ValuationReport({ stockData, reportData, isLoading, loca
                   <div dangerouslySetInnerHTML={{ __html: reportData.valuationAnalysis }} />
                 </div>
 
-                {/* DCF参数调整区域 - 放在原始内容之后 */}
-                <div className="mt-8 border-t border-gray-200 pt-6">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4">
-                    {locale === 'zh' ? 'DCF参数调整' : 'DCF Parameter Adjustment'}
-                  </h4>
-                  
-                  {/* DCF参数编辑器 */}
-                  {dcfParameters && (
-                    <DCFParameterEditor
-                      initialParameters={dcfParameters}
-                      originalParameters={originalDCFParameters || undefined}
-                      onParametersChange={handleDCFParametersChange}
-                      onRecalculate={handleDCFRecalculate}
-                      isRecalculating={isRecalculating}
-                      locale={locale}
-                    />
-                  )}
-
-                  {/* 更新后的估值数据 */}
-                  {updatedValuationData && (
-                    <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h5 className="text-lg font-semibold text-blue-800 mb-3">
-                        {locale === 'zh' ? '更新后的DCF估值结果' : 'Updated DCF Valuation Results'}
-                      </h5>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div className="bg-white p-3 rounded border">
-                          <div className="text-sm text-gray-600">
-                            {locale === 'zh' ? 'DCF估值' : 'DCF Value'}
-                          </div>
-                          <div className="text-xl font-bold text-green-600">
-                            ${updatedValuationData.dcfValue?.toFixed(2) || 'N/A'}
-                          </div>
-                        </div>
-                        <div className="bg-white p-3 rounded border">
-                          <div className="text-sm text-gray-600">
-                            {locale === 'zh' ? '目标价格' : 'Target Price'}
-                          </div>
-                          <div className="text-xl font-bold text-blue-600">
-                            ${updatedValuationData.targetPrice?.toFixed(2) || 'N/A'}
-                          </div>
-                        </div>
-                        <div className="bg-white p-3 rounded border">
-                          <div className="text-sm text-gray-600">
-                            {locale === 'zh' ? '基准情景' : 'Base Scenario'}
-                          </div>
-                          <div className="text-xl font-bold text-gray-600">
-                            ${updatedValuationData.dcfScenarios?.base?.toFixed(2) || 'N/A'}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="prose max-w-none report-content">
-                        <div dangerouslySetInnerHTML={{ __html: updatedValuationData.reasoning || '' }} />
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             )}
           </div>

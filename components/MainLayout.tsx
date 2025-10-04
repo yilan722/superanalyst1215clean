@@ -61,7 +61,7 @@ export default function MainLayout({
       case 'daily-alpha':
         return <DailyAlphaBrief locale={locale} user={user} />
       case 'insight-refinery':
-        return user ? (
+        return user && user.id ? (
           <ReportHub userId={user.id} locale={locale} />
         ) : (
           <div className="flex items-center justify-center h-64">

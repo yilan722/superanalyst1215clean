@@ -6,6 +6,8 @@ import { type Locale } from '../app/services/i18n'
 import { getTranslation } from '../app/services/translations'
 import toast from 'react-hot-toast'
 import LinkedInShareTool from './LinkedInShareTool'
+import PaginatedHistoricalReports from './PaginatedHistoricalReports'
+import ReportDetailModal from './ReportDetailModal'
 import ShareTool from './ShareTool'
 import ShareAnalytics from './ShareAnalytics'
 
@@ -65,6 +67,20 @@ interface TodaysReport {
   isPublic: boolean
   isPublicVersion?: boolean
   message?: string
+  translations?: {
+    en?: {
+      title: string
+      company: string
+      summary: string
+    }
+  }
+  fullContent?: {
+    parsedContent?: {
+      sections?: any
+      charts?: any
+      tables?: any
+    }
+  }
 }
 
 interface HistoricalReport {
@@ -78,6 +94,13 @@ interface HistoricalReport {
   isPublic: boolean
   isPublicVersion?: boolean
   message?: string
+  translations?: {
+    en?: {
+      title: string
+      company: string
+      summary: string
+    }
+  }
 }
 
 interface DailyAlphaBriefProps {
@@ -97,9 +120,11 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
   const [showReportModal, setShowReportModal] = useState(false)
   const [showShareTool, setShowShareTool] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
-  const [showHistoricalReports, setShowHistoricalReports] = useState(false)
+  const [showHistoricalReports, setShowHistoricalReports] = useState(true) // 默认展开
   const [selectedHistoricalReport, setSelectedHistoricalReport] = useState<HistoricalReport | null>(null)
   const [showHistoricalReportModal, setShowHistoricalReportModal] = useState(false)
+  const [selectedReport, setSelectedReport] = useState<HistoricalReport | null>(null)
+  const [showReportDetail, setShowReportDetail] = useState(false)
   const [translatedTodaysReport, setTranslatedTodaysReport] = useState<TodaysReport | null>(null)
   const [isTranslating, setIsTranslating] = useState(false)
 
@@ -176,11 +201,23 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
   const fetchHotStocks = async () => {
     setIsLoading(true)
     try {
-      // 默认使用 StockTwits 数据，不指定 symbols 参数
-      const response = await fetch('/api/hot-stocks')
+      // 添加超时控制
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10秒超时
+      
+      const response = await fetch('/api/hot-stocks', {
+        signal: controller.signal
+      })
+      
+      clearTimeout(timeoutId)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
       const data = await response.json()
       
-      if (data.success) {
+      if (data.success && data.data && data.data.length > 0) {
         setHotStocks(data.data)
         console.log(`✅ 成功获取 ${data.data.length} 只热门股票数据，数据源: ${data.source}`)
         console.log('股票符号:', data.data.map((s: HotStock) => s.symbol))
@@ -193,7 +230,11 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
     } catch (error) {
       console.error('Error fetching hot stocks:', error)
       setHotStocks(mockHotStocks)
-      toast.error(locale === 'zh' ? '数据获取失败，显示模拟数据' : 'Failed to fetch data, showing mock data')
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error(locale === 'zh' ? '请求超时，显示模拟数据' : 'Request timeout, showing mock data')
+      } else {
+        toast.error(locale === 'zh' ? '数据获取失败，显示模拟数据' : 'Failed to fetch data, showing mock data')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -202,18 +243,25 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
   // 获取今日报告
   const fetchTodaysReport = async () => {
     setIsLoadingReport(true)
+    // 清除翻译状态，强制使用最新数据
+    setTranslatedTodaysReport(null)
     try {
       const response = await fetch('/api/todays-report')
       const data = await response.json()
       
       if (data.success) {
         setTodaysReport(data.data)
-        // 如果是英文版本，需要翻译内容
-        if (locale === 'en') {
-          await translateTodaysReport(data.data)
+        // 如果是英文版本，使用英文翻译
+        if (locale === 'en' && data.data.translations?.en) {
+          setTranslatedTodaysReport({
+            ...data.data,
+            ...data.data.translations.en
+          })
         } else {
           setTranslatedTodaysReport(data.data)
         }
+        console.log('✅ 成功获取今日报告:', data.data.title)
+        console.log('📊 报告公司:', data.data.company, '符号:', data.data.symbol)
       }
     } catch (error) {
       console.error('Error fetching today\'s report:', error)
@@ -273,9 +321,23 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
     fetchHistoricalReports()
   }, [])
 
+  // 备用初始化机制 - 如果5秒后还在加载，强制显示内容
+  useEffect(() => {
+    const fallbackTimer = setTimeout(() => {
+      if (isLoading && hotStocks.length === 0) {
+        console.log('⚠️ 备用机制触发：强制显示模拟数据')
+        setHotStocks(mockHotStocks)
+        setIsLoading(false)
+      }
+    }, 5000)
+
+    return () => clearTimeout(fallbackTimer)
+  }, [isLoading, hotStocks.length])
+
   // 调试历史报告状态
   useEffect(() => {
     console.log('Historical reports updated:', historicalReports, 'Length:', historicalReports.length)
+    console.log('Historical reports IDs:', historicalReports.map(r => r.id))
   }, [historicalReports])
 
   const handleStockClick = (stock: HotStock) => {
@@ -292,6 +354,11 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
   const handleHistoricalReportClick = (report: HistoricalReport) => {
     setSelectedHistoricalReport(report)
     setShowHistoricalReportModal(true)
+  }
+
+  const handleReportClick = (report: HistoricalReport) => {
+    setSelectedReport(report)
+    setShowReportDetail(true)
   }
 
   const handleDownloadReport = async () => {
@@ -520,58 +587,11 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
           </div>
           
           {showHistoricalReports && (
-            <div className="space-y-3">
-              {historicalReports.map((report, index) => (
-                <div
-                  key={report.id}
-                  className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors cursor-pointer group"
-                  onClick={() => handleHistoricalReportClick(report)}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
-                        {report.title}
-                      </h3>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
-                        {report.company} ({report.symbol})
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
-                      <Calendar className="w-3 h-3" />
-                      <span>{new Date(report.date).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}</span>
-                    </div>
-                  </div>
-                  
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
-                    {report.summary}
-                  </p>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
-                      <FileText className="w-3 h-3" />
-                      <span>PDF Report</span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          const link = document.createElement('a')
-                          link.href = `/reference-reports/${report.pdfPath}`
-                          link.download = report.pdfPath
-                          document.body.appendChild(link)
-                          link.click()
-                          document.body.removeChild(link)
-                        }}
-                        className="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm font-medium"
-                      >
-                        {locale === 'zh' ? '下载' : 'Download'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <PaginatedHistoricalReports
+              reports={historicalReports}
+              locale={locale}
+              onReportClick={handleReportClick}
+            />
           )}
         </div>
       )}
@@ -810,9 +830,76 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
                   {locale === 'zh' ? '报告摘要' : 'Report Summary'}
                 </h3>
                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                  {(translatedTodaysReport || todaysReport)?.summary}
+                  {locale === 'zh' 
+                    ? (translatedTodaysReport || todaysReport)?.summary || ''
+                    : (translatedTodaysReport || todaysReport)?.translations?.en?.summary || (translatedTodaysReport || todaysReport)?.summary || ''
+                  }
                 </p>
               </div>
+
+              {/* Full Report Content */}
+              {(translatedTodaysReport || todaysReport)?.fullContent?.parsedContent?.sections && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    {locale === 'zh' ? '完整报告内容' : 'Full Report Content'}
+                  </h3>
+                  
+                  {/* Report Sections - 根据语言显示内容 */}
+                  {Object.entries((translatedTodaysReport || todaysReport)?.fullContent?.parsedContent?.sections || {}).map(([sectionTitle, sectionContent]) => (
+                    <div key={sectionTitle} className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                      <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+                        {sectionTitle}
+                      </h4>
+                      <div className="prose prose-slate dark:prose-invert max-w-none">
+                        <div className="whitespace-pre-line text-slate-700 dark:text-slate-300 leading-relaxed">
+                          {String(sectionContent || '')}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+
+                  {/* Tables Section */}
+                  {(translatedTodaysReport || todaysReport)?.fullContent?.parsedContent?.tables && (
+                    <div className="space-y-6">
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                        {locale === 'zh' ? '数据表格' : 'Data Tables'}
+                      </h3>
+                      {(translatedTodaysReport || todaysReport)?.fullContent?.parsedContent?.tables.map((table: any, index: number) => (
+                        <div key={index} className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                          <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+                            {table.title}
+                          </h4>
+                          <div className="overflow-x-auto">
+                            <table className="w-full border-collapse">
+                              <thead>
+                                <tr className="bg-slate-50 dark:bg-slate-700">
+                                  {table.data[0].map((header: string, headerIndex: number) => (
+                                    <th key={headerIndex} className="border border-slate-200 dark:border-slate-600 px-4 py-2 text-left text-sm font-medium text-slate-900 dark:text-white">
+                                      {header}
+                                    </th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {table.data.slice(1).map((row: string[], rowIndex: number) => (
+                                  <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-700'}>
+                                    {row.map((cell: string, cellIndex: number) => (
+                                      <td key={cellIndex} className="border border-slate-200 dark:border-slate-600 px-4 py-2 text-sm text-slate-700 dark:text-slate-300">
+                                        {cell}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Access Control */}
               {!user && (
@@ -1024,6 +1111,14 @@ export default function DailyAlphaBrief({ locale, user }: DailyAlphaBriefProps) 
           </div>
         </div>
       )}
+
+      {/* Report Detail Modal */}
+      <ReportDetailModal
+        report={selectedReport}
+        isOpen={showReportDetail}
+        onClose={() => setShowReportDetail(false)}
+        locale={locale}
+      />
     </div>
   )
 }

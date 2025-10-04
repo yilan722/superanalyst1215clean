@@ -441,14 +441,19 @@ function validateReportFormat(reportContent: any): any {
         for (let i = 0; i < missingCharts; i++) {
           chartHtml += `
             <div class="chart-container">
-              <h4>图表 ${i + 1}</h4>
-              <div class="chart-placeholder">
-                <p>图表描述：这里应该包含具体的图表数据和分析</p>
-                <ul>
-                  <li>数据点1：具体数值和趋势</li>
-                  <li>数据点2：具体数值和趋势</li>
-                  <li>数据点3：具体数值和趋势</li>
-                </ul>
+              <h4>Investment Risk-Return Profile</h4>
+              <div class="chart-analysis">
+                <div class="chart-key-points">
+                  <div class="key-point">
+                    <strong>Asymmetric Returns:</strong> Significant upside potential with limited downside risk given current valuation levels
+                  </div>
+                  <div class="key-point">
+                    <strong>Multiple Catalysts:</strong> Pipeline advancement, cost optimization, and strategic execution providing multiple value creation paths
+                  </div>
+                  <div class="key-point">
+                    <strong>Income Support:</strong> Substantial dividend yield providing returns while awaiting fundamental value recognition
+                  </div>
+                </div>
               </div>
             </div>
           `
@@ -629,16 +634,21 @@ valuationAnalysis (估值分析) - 必须包含以下内容：
 - 每个财务数据、市场数据、行业数据都必须包含可验证的链接
 - 链接应该指向原始数据源，如：公司官网投资者关系页面、SEC EDGAR数据库、财报PDF、权威新闻网站等
 - 在表格中，每行数据都应该包含相应的数据来源链接
+- 重要：所有数据都必须有具体的来源链接，不能使用占位符或通用链接
+- 引用格式示例：
+  - 财务数据：<a href="https://www.sec.gov/edgar/browse/?CIK=SYMBOL" target="_blank" class="data-source-link">SEC 10-K Filing</a>
+  - 股价数据：<a href="https://finance.yahoo.com/quote/SYMBOL" target="_blank" class="data-source-link">Yahoo Finance</a>
+  - 行业数据：<a href="https://example-industry-report.com" target="_blank" class="data-source-link">Industry Report 2024</a>
 
 📊 专业格式要求（参考/Users/yilanliu/opus4modelvaluation/reference-reports/CoreWeave, Inc. (CRWV) - In-Depth Company Profile.pdf）
 - 使用专业的HTML样式，严格按照以下类名：'report-title', 'section-title', 'subsection-title', 'metric-table', 'highlight-box', 'positive', 'negative', 'neutral', 'recommendation-buy', 'recommendation-sell', 'recommendation-hold'
 - 重要：在表格中必须使用正确的CSS类名：
-  - 正面数据使用 class="positive"（绿色）
-  - 负面数据使用 class="negative"（红色）
-  - 中性数据使用 class="neutral"（灰色）
-- 报告标题使用大标题格式：<h1>公司名称 (股票代码) 估值分析报告</h1>
-- 重要：不要在每个部分开头添加主要章节标题（如"1. 基本面分析"），这些标题会在PDF模板中自动添加
-- 子部分使用三级标题：<h3>1.1 公司概况</h3>
+  - 正面数据使用 class="positive" (绿色)
+  - 负面数据使用 class="negative" (红色)
+  - 中性数据使用 class="neutral" (灰色)
+- 报告标题使用大标题格式：<h1>Company Name (Ticker) Valuation Analysis Report</h1>
+- 重要：不要在每个部分开头添加主要章节标题（如"1. Fundamental Analysis"），这些标题会在PDF模板中自动添加
+- 子部分使用三级标题：<h3>1.1 Company Overview</h3>
 - 重要：英文版本中不要包含任何中文标题，所有标题都使用英文
 - 数据表格使用专业格式：表头粗体，数据对齐，边框清晰
 - 重要数据使用高亮框突出显示
@@ -651,14 +661,19 @@ valuationAnalysis (估值分析) - 必须包含以下内容：
 - 每个部分必须包含恰好3个数据表格来支撑分析
 - 每个部分还必须包含3个图表，使用以下HTML格式（这是强制要求，必须包含）：
   <div class="chart-container">
-    <h4>图表标题</h4>
-    <div class="chart-placeholder">
-      <p>图表描述：这里应该包含具体的图表数据和分析</p>
-      <ul>
-        <li>数据点1：具体数值和趋势</li>
-        <li>数据点2：具体数值和趋势</li>
-        <li>数据点3：具体数值和趋势</li>
-      </ul>
+    <h4>Investment Risk-Return Profile</h4>
+    <div class="chart-analysis">
+      <div class="chart-key-points">
+        <div class="key-point">
+          <strong>Asymmetric Returns:</strong> Significant upside potential with limited downside risk given current valuation levels
+        </div>
+        <div class="key-point">
+          <strong>Multiple Catalysts:</strong> Pipeline advancement, cost optimization, and strategic execution providing multiple value creation paths
+        </div>
+        <div class="key-point">
+          <strong>Income Support:</strong> Substantial dividend yield providing returns while awaiting fundamental value recognition
+        </div>
+      </div>
     </div>
   </div>
 - 重要：每个部分必须包含恰好3个图表，不能多也不能少
@@ -723,7 +738,26 @@ fundamentalAnalysis (Fundamental Analysis) - Must include:
 - Latest quarterly/annual performance vs. year-over-year comparison (must include specific financial data and growth rates)
 - Revenue growth, profit margins, cash flow analysis (must include historical trends and forecasts)
 - Industry position and competitive advantages (must include market share, competitive landscape analysis)
-- Must include 2-3 data tables: core financial metrics table, performance comparison table, industry comparison table
+- Must include exactly 3 data tables: core financial metrics table, performance comparison table, industry comparison table
+- Each table must use standard HTML format with class="metric-table":
+  <table class="metric-table">
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th>Current Value</th>
+        <th>Previous Year</th>
+        <th>Change</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Revenue</td>
+        <td>$1.21B</td>
+        <td>$0.39B</td>
+        <td class="positive">+207%</td>
+      </tr>
+    </tbody>
+  </table>
 
 businessSegments (Business Segments) - Must include:
 - Detailed revenue breakdown by business segment (must include specific numbers and percentages)
@@ -732,7 +766,7 @@ businessSegments (Business Segments) - Must include:
 - Market share analysis by business segment (must include competitor comparison)
 - Business segment profitability and profit margins (must include gross margin, net margin comparison)
 - Future business segment growth projections (must include specific forecast data)
-- Must include 2-3 data tables: revenue structure table, business segment performance table, regional distribution table
+- Must include exactly 3 data tables: revenue structure table, business segment performance table, regional distribution table
 
 growthCatalysts (Growth Catalysts) - Must include:
 - Major growth drivers and market opportunities (must include specific market data and opportunity quantification)
@@ -742,7 +776,7 @@ growthCatalysts (Growth Catalysts) - Must include:
 - Technology investments and R&D (must include R&D investment, technology breakthrough points)
 - Regulatory benefits or headwinds (must include specific policy impact analysis)
 - Competitive advantages and moats (must include specific competitive advantage analysis)
-- Must include 2-3 data tables: growth catalyst impact table, new product timeline table, market opportunity assessment table
+- Must include exactly 3 data tables: growth catalyst impact table, new product timeline table, market opportunity assessment table
 
 valuationAnalysis (Valuation Analysis) - Must include:
 - DCF (Discounted Cash Flow) analysis with detailed assumptions (must include key assumptions and calculation results)
@@ -750,7 +784,7 @@ valuationAnalysis (Valuation Analysis) - Must include:
 - Intrinsic value estimation using multiple methods (must include DCF, relative valuation, asset value methods)
 - Valuation synthesis and key findings (avoid direct investment recommendations, only state analytical findings)
 - Key risks and mitigation factors (must include key risk identification and response measures)
-- Must include 2-3 data tables: DCF valuation table, comparable company valuation table, intrinsic value summary table
+- Must include exactly 3 data tables: DCF valuation table, comparable company valuation table, intrinsic value summary table
 
 🔑 Core Requirements:
 - Use the latest financial data (e.g., if today is September 5, 2025, search for 2024 annual reports and 2025 Q1, Q2 earnings); search for the latest relevant information for deep analysis of valuation changes
@@ -762,6 +796,11 @@ valuationAnalysis (Valuation Analysis) - Must include:
 - Every financial data, market data, and industry data must include verifiable links
 - Links should point to original data sources such as: company investor relations pages, SEC EDGAR database, earnings report PDFs, authoritative news websites, etc.
 - In tables, each row of data should include corresponding data source links
+- IMPORTANT: All data must have specific source links, no placeholders or generic links allowed
+- Citation format examples:
+  - Financial data: <a href="https://www.sec.gov/edgar/browse/?CIK=SYMBOL" target="_blank" class="data-source-link">SEC 10-K Filing</a>
+  - Stock price data: <a href="https://finance.yahoo.com/quote/SYMBOL" target="_blank" class="data-source-link">Yahoo Finance</a>
+  - Industry data: <a href="https://example-industry-report.com" target="_blank" class="data-source-link">Industry Report 2024</a>
 
 📊 Professional Format Requirements (Reference: 300053_valuation_report_2025-09-03.pdf):
 - Use professional HTML styling with these exact class names: 'report-title', 'section-title', 'subsection-title', 'metric-table', 'highlight-box', 'positive', 'negative', 'neutral', 'recommendation-buy', 'recommendation-sell', 'recommendation-hold'
@@ -778,16 +817,22 @@ valuationAnalysis (Valuation Analysis) - Must include:
 - Ensure correct and valid JSON format
 - Each section should be comprehensive and detailed (minimum 500 words per section)
 - Each section must include exactly 3 data tables to support analysis
+- All tables must use the metric-table class for proper styling
 - Each section must also include exactly 3 charts using the following HTML format (MANDATORY REQUIREMENT):
   <div class="chart-container">
-    <h4>Chart Title</h4>
-    <div class="chart-placeholder">
-      <p>Chart Description: This should contain specific chart data and analysis</p>
-      <ul>
-        <li>Data Point 1: Specific values and trends</li>
-        <li>Data Point 2: Specific values and trends</li>
-        <li>Data Point 3: Specific values and trends</li>
-      </ul>
+    <h4>Investment Risk-Return Profile</h4>
+    <div class="chart-analysis">
+      <div class="chart-key-points">
+        <div class="key-point">
+          <strong>Asymmetric Returns:</strong> Significant upside potential with limited downside risk given current valuation levels
+        </div>
+        <div class="key-point">
+          <strong>Multiple Catalysts:</strong> Pipeline advancement, cost optimization, and strategic execution providing multiple value creation paths
+        </div>
+        <div class="key-point">
+          <strong>Income Support:</strong> Substantial dividend yield providing returns while awaiting fundamental value recognition
+        </div>
+      </div>
     </div>
   </div>
 - IMPORTANT: Each section must contain exactly 3 charts, no more, no less

@@ -2,170 +2,23 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
-interface TodaysReport {
-  id: string
-  title: string
-  company: string
-  symbol: string
-  date: string
-  summary: string
-  pdfPath: string
-  isPublic: boolean
-  keyInsights?: string[]
-  sections?: {
-    [key: string]: string
-  }
-  charts?: {
-    title: string
-    type: 'line' | 'bar' | 'pie' | 'scatter'
-    data: any
-  }[]
-  author?: string
-  tags?: string[]
-  marketCap?: number
-  sector?: string
-  industry?: string
-}
-
-// 获取今日报告
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url)
-    const isPublic = searchParams.get('public') === 'true'
+    const todaysReportPath = path.join(process.cwd(), 'data', 'todays-report.json')
     
-    // 从文件系统读取今日报告配置
-    const reportsDir = path.join(process.cwd(), 'reference-reports')
-    const configPath = path.join(reportsDir, 'todays-report.json')
-    
-    let todaysReport: TodaysReport | null = null
-    
-    // 检查配置文件是否存在
-    if (fs.existsSync(configPath)) {
-      const configData = fs.readFileSync(configPath, 'utf-8')
-      const config = JSON.parse(configData)
-      todaysReport = config
-    } else {
-      // 默认报告配置 - 使用真实当前时间
-      const today = new Date()
-      const todayString = today.toISOString().split('T')[0]
-      const reportId = `coreweave-${todayString}`
-      
-      todaysReport = {
-        id: reportId,
-        title: 'CoreWeave, Inc. (CRWV) - In-Depth Company Profile',
-        company: 'CoreWeave, Inc.',
-        symbol: 'CRWV',
-        date: todayString,
-        summary: 'CoreWeave operates as a specialized cloud infrastructure provider focused exclusively on GPU-accelerated computing for artificial intelligence and high-performance workloads. The company has transformed from a cryptocurrency mining operation into an "AI Hyperscaler," providing infrastructure that supports compute workloads for enterprises, hyperscalers, and AI laboratories.',
-        pdfPath: 'CoreWeave, Inc. (CRWV) - In-Depth Company Profile.pdf',
-        isPublic: true,
-        keyInsights: [
-          'CoreWeave has successfully pivoted from crypto mining to AI infrastructure, positioning itself as a key enabler of the AI revolution',
-          'The company operates on a rental-based model similar to traditional cloud providers but optimized specifically for AI workloads',
-          'Strong demand for GPU compute resources driven by generative AI and machine learning applications',
-          'Strategic partnerships with major cloud providers and AI companies provide competitive advantages',
-          'Market opportunity estimated at $200+ billion as AI adoption accelerates across industries'
-        ],
-        sections: {
-          '1. Fundamental Analysis': 'CoreWeave demonstrates strong fundamentals with growing revenue and expanding market presence in the AI infrastructure space.',
-          '2. Market Position': 'The company is well-positioned to capitalize on the growing demand for AI compute resources.',
-          '3. Financial Performance': 'Revenue growth driven by increased GPU utilization and expanding customer base.',
-          '4. Risk Assessment': 'Key risks include competition from major cloud providers and potential market saturation.'
-        },
-        author: 'SuperAnalyst Pro Research Team',
-        tags: ['AI Infrastructure', 'Cloud Computing', 'GPU', 'Artificial Intelligence', 'Technology'],
-        sector: 'Technology',
-        industry: 'Cloud Infrastructure',
-        marketCap: 0 // Will be updated with real data
-      }
+    if (!fs.existsSync(todaysReportPath)) {
+      return NextResponse.json({ error: 'Todays report not found' }, { status: 404 })
     }
     
-    if (!todaysReport) {
-      return NextResponse.json(
-        { success: false, error: 'No report available for today' },
-        { status: 404 }
-      )
-    }
+    const todaysReportData = fs.readFileSync(todaysReportPath, 'utf-8')
+    const todaysReport = JSON.parse(todaysReportData)
     
-    // 如果是公开访问，返回简化版本（隐藏估值部分）
-    if (isPublic) {
-      return NextResponse.json({
-        success: true,
-        data: {
-          ...todaysReport,
-          isPublicVersion: true,
-          message: 'Register to view full report with valuation analysis'
-        }
-      })
-    }
-    
-    return NextResponse.json({ success: true, data: todaysReport })
-    
+    return NextResponse.json({ 
+      success: true, 
+      data: todaysReport 
+    })
   } catch (error) {
-    console.error('Error fetching today\'s report:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch today\'s report' },
-      { status: 500 }
-    )
-  }
-}
-
-// 更新今日报告
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const { title, company, symbol, summary, pdfPath } = body
-    
-    const reportsDir = path.join(process.cwd(), 'reference-reports')
-    const todaysConfigPath = path.join(reportsDir, 'todays-report.json')
-    const historicalConfigPath = path.join(reportsDir, 'historical-reports.json')
-    
-    // 确保目录存在
-    if (!fs.existsSync(reportsDir)) {
-      fs.mkdirSync(reportsDir, { recursive: true })
-    }
-    
-    // 1. 将当前的今日报告移到历史记录中
-    if (fs.existsSync(todaysConfigPath)) {
-      const currentReportData = fs.readFileSync(todaysConfigPath, 'utf-8')
-      const currentReport = JSON.parse(currentReportData)
-      
-      // 读取历史报告
-      let historicalReports: TodaysReport[] = []
-      if (fs.existsSync(historicalConfigPath)) {
-        const historicalData = fs.readFileSync(historicalConfigPath, 'utf-8')
-        historicalReports = JSON.parse(historicalData)
-      }
-      
-      // 将当前报告添加到历史记录开头
-      historicalReports.unshift(currentReport)
-      
-      // 保存历史报告
-      fs.writeFileSync(historicalConfigPath, JSON.stringify(historicalReports, null, 2))
-    }
-    
-    // 2. 创建新的今日报告
-    const todaysReport: TodaysReport = {
-      id: `${symbol.toLowerCase()}-${new Date().toISOString().split('T')[0]}`,
-      title,
-      company,
-      symbol,
-      date: new Date().toISOString().split('T')[0],
-      summary,
-      pdfPath,
-      isPublic: true
-    }
-    
-    // 3. 保存新的今日报告
-    fs.writeFileSync(todaysConfigPath, JSON.stringify(todaysReport, null, 2))
-    
-    return NextResponse.json({ success: true, data: todaysReport })
-    
-  } catch (error) {
-    console.error('Error updating today\'s report:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to update today\'s report' },
-      { status: 500 }
-    )
+    console.error('Error fetching todays report:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

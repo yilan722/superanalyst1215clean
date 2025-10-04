@@ -53,6 +53,23 @@
   border-collapse: collapse;
   margin: 1em 0;
   font-size: 0.9em;
+  position: relative;
+}
+
+/* 表格水印 */
+.report-content table::before {
+  content: "superanalyst.pro";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  font-size: 24px;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.05);
+  z-index: 1;
+  pointer-events: none;
+  white-space: nowrap;
+  user-select: none;
 }
 
 .report-content th,

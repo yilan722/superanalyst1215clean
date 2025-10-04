@@ -73,7 +73,7 @@ export default function Sidebar({
 
   const handleReportHub = () => {
     setIsUserProfileExpanded(false)
-    router.push(`/${locale}/reports`)
+    onTabChange('insight-refinery')
   }
 
   const handleAccount = () => {

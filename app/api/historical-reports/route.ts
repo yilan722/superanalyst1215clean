@@ -20,15 +20,16 @@ export async function GET(request: NextRequest) {
     const isPublic = searchParams.get('public') === 'true'
     
     // 从文件系统读取历史报告配置
-    const reportsDir = path.join(process.cwd(), 'reference-reports')
-    const configPath = path.join(reportsDir, 'historical-reports.json')
+    const configPath = path.join(process.cwd(), 'data', 'historical-reports.json')
     
     let historicalReports: HistoricalReport[] = []
     
     // 检查配置文件是否存在
     if (fs.existsSync(configPath)) {
       const configData = fs.readFileSync(configPath, 'utf-8')
-      historicalReports = JSON.parse(configData)
+      const parsedData = JSON.parse(configData)
+      // 处理不同的数据结构
+      historicalReports = parsedData.reports || parsedData || []
     }
     
     // 按日期降序排序（最新的在前）

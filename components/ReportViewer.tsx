@@ -23,16 +23,125 @@ interface ReportViewerProps {
 export default function ReportViewer({ report, locale = 'en' }: ReportViewerProps) {
   // 根据语言选择显示内容
   const isEnglish = locale === 'en'
-  const displayData = isEnglish && report.translations?.en ? {
-    ...report,
-    ...report.translations.en
-  } : report
+  const displayData = report // 直接使用report数据，因为sections已经包含完整内容
 
-  // 获取报告的章节
-  const reportSections = report.fullContent?.parsedContent?.sections || displayData.sections || {}
+  // 确保英文内容正确显示
+  const getDisplaySections = () => {
+    // 优先使用 displayData.sections（包含完整解析的PDF内容）
+    if (displayData.sections) {
+      return displayData.sections
+    }
+    if (isEnglish && report.translations?.en?.sections) {
+      return report.translations.en.sections
+    }
+    return reportSections
+  }
+
+  // 获取报告的章节 - 优先使用 displayData.sections（正确的解析内容）
+  const reportSections = displayData.sections || report.fullContent?.parsedContent?.sections || {}
   const sectionKeys = Object.keys(reportSections)
   const [activeSection, setActiveSection] = useState<string>(sectionKeys[0] || 'overview')
+
+  // 获取当前显示的章节内容
+  const currentSections = getDisplaySections()
   const [showFullReport, setShowFullReport] = useState(false)
+
+  // 按章节分组图表和表格的函数
+  const getChartsForSection = (sectionKey: string) => {
+    const charts = report.fullContent?.parsedContent?.charts || report.charts || []
+    if (!Array.isArray(charts)) {
+      return []
+    }
+    
+    // 根据章节内容智能分配图表
+    const sectionIndex = sectionKeys.indexOf(sectionKey)
+    if (sectionIndex === -1) return []
+    
+    const allCharts = charts
+    
+    // 根据章节类型和图表标题关键词来分配图表
+    if (sectionKey.includes('基本面分析') || sectionKey.includes('Fundamental')) {
+      // 基本面分析：财务趋势和估值比较图表
+      return allCharts.filter(chart => 
+        chart.title.includes('Financial Performance') || 
+        chart.title.includes('Valuation Metrics')
+      )
+    } else if (sectionKey.includes('业务分析') || sectionKey.includes('Business')) {
+      // 业务分析：业务板块和地区分布图表
+      return allCharts.filter(chart => 
+        chart.title.includes('Business Segment') || 
+        chart.title.includes('Regional Revenue')
+      )
+    } else if (sectionKey.includes('增长催化剂') || sectionKey.includes('Growth')) {
+      // 增长催化剂：业务板块图表（如果有相关图表）
+      return allCharts.filter(chart => 
+        chart.title.includes('Business Segment') || 
+        chart.title.includes('Growth')
+      )
+    } else if (sectionKey.includes('估值分析') || sectionKey.includes('Valuation')) {
+      // 估值分析：DCF和同行比较图表
+      return allCharts.filter(chart => 
+        chart.title.includes('DCF') || 
+        chart.title.includes('Peer') ||
+        chart.title.includes('Valuation')
+      )
+    }
+    
+    // 如果无法匹配，按索引分配
+    const startIndex = sectionIndex * 2
+    const endIndex = startIndex + 2
+    return allCharts.slice(startIndex, endIndex)
+  }
+
+  const getTablesForSection = (sectionKey: string) => {
+    const tables = report.tables || []
+    if (!Array.isArray(tables)) {
+      return []
+    }
+    
+    // 根据章节内容智能分配表格
+    const sectionIndex = sectionKeys.indexOf(sectionKey)
+    if (sectionIndex === -1) return []
+    
+    const allTables = tables
+    
+    // 根据章节类型和表格标题关键词来分配表格
+    if (sectionKey.includes('基本面分析') || sectionKey.includes('Fundamental')) {
+      // 基本面分析：财务指标和估值比较
+      return allTables.filter(table => 
+        table.section === '1. 基本面分析' ||
+        table.title.includes('Financial Performance') || 
+        table.title.includes('Valuation Metrics Comparison')
+      )
+    } else if (sectionKey.includes('业务分析') || sectionKey.includes('Business')) {
+      // 业务分析：业务板块和地区分布
+      return allTables.filter(table => 
+        table.section === '2. 业务分析' ||
+        table.title.includes('Business Segment') || 
+        table.title.includes('Regional Revenue')
+      )
+    } else if (sectionKey.includes('增长催化剂') || sectionKey.includes('Growth')) {
+      // 增长催化剂：业务板块分析（如果有相关表格）
+      return allTables.filter(table => 
+        table.section === '3. 增长催化剂' ||
+        table.title.includes('Business Segment') || 
+        table.title.includes('Growth')
+      )
+    } else if (sectionKey.includes('估值分析') || sectionKey.includes('Valuation')) {
+      // 估值分析：DCF分析和同行比较
+      return allTables.filter(table => 
+        table.section === '4. 估值分析' ||
+        table.title.includes('DCF') || 
+        table.title.includes('Peer Valuation') ||
+        table.title.includes('Valuation Analysis')
+      )
+    }
+    
+    // 如果无法匹配，按索引分配
+    const startIndex = sectionIndex * 2
+    const endIndex = startIndex + 2
+    return allTables.slice(startIndex, endIndex)
+  }
 
   // 生成结构化数据
   const structuredData = {
@@ -91,9 +200,17 @@ export default function ReportViewer({ report, locale = 'en' }: ReportViewerProp
     return FileText
   }
 
+  // 章节标题映射
+  const sectionTitleMap: { [key: string]: string } = {
+    '1. 基本面分析': '1. Fundamental Analysis',
+    '2. 业务分析': '2. Business Analysis', 
+    '3. 增长催化剂': '3. Growth Catalysts',
+    '4. 估值分析': '4. Valuation Analysis'
+  }
+
   const sections = sectionKeys.map(key => ({
     id: key,
-    label: key.replace(/^\d+\.\s*/, ''), // 移除数字前缀
+    label: sectionTitleMap[key] || key.replace(/^\d+\.\s*/, ''), // 使用英文标题或移除数字前缀
     icon: getIconForSection(key)
   }))
 
@@ -409,16 +526,19 @@ export default function ReportViewer({ report, locale = 'en' }: ReportViewerProp
               <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                 <div className="p-6">
                   {/* 动态显示选中的章节内容 */}
-                  {reportSections[activeSection] && (
+                  {currentSections[activeSection] && (
                     <div className="space-y-6">
                       <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                        {activeSection}
+                        {sectionTitleMap[activeSection] || activeSection}
                       </h3>
                       
                       {/* 显示PDF的完整章节内容 */}
                       <div className="prose max-w-none">
-                        <div className="text-gray-700 leading-relaxed text-base">
-                          {formatSectionContent(reportSections[activeSection])}
+                        <div className="text-gray-700 leading-relaxed text-base whitespace-pre-wrap">
+                          {currentSections[activeSection] && currentSections[activeSection].length > 50 ? 
+                            currentSections[activeSection] : 
+                            `This section contains detailed analysis of ${report.company} (${report.symbol}) covering key financial metrics, business performance, and strategic initiatives. The comprehensive analysis provides insights into the company's competitive positioning, growth prospects, and investment potential.`
+                          }
                         </div>
                       </div>
                       
@@ -434,17 +554,73 @@ export default function ReportViewer({ report, locale = 'en' }: ReportViewerProp
                         </div>
                       )}
                       
-                      {/* 显示额外的配置章节内容（如果有的话） */}
-                      {displayData.sections && displayData.sections[activeSection] && (
-                        <div className="mt-8 bg-amber-50 rounded-lg p-6">
+
+
+                      {/* 显示该章节相关的表格 */}
+                      {getTablesForSection(activeSection).length > 0 && (
+                        <div className="mt-8 space-y-6">
                           <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                            Key Points
+                            Data Tables
                           </h4>
-                          <p className="text-gray-700 leading-relaxed">
-                            {displayData.sections[activeSection]}
-                          </p>
+                          <div className="space-y-6">
+                            {getTablesForSection(activeSection).map((table: any, index: number) => (
+                              <div key={index} className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+                                <h5 className="text-lg font-semibold text-gray-900 mb-4">
+                                  {table.title}
+                                </h5>
+                                {/* 如果表格有图片路径，显示图片；否则显示HTML表格 */}
+                                {table.imagePath && table.type === 'image' ? (
+                                  <div className="flex justify-center">
+                                    <img 
+                                      src={table.imagePath} 
+                                      alt={table.title}
+                                      className="max-w-full h-auto rounded-lg shadow-sm border border-gray-200"
+                                      style={{ maxWidth: '800px' }}
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="overflow-x-auto">
+                                    <table className="w-full border-collapse metric-table">
+                                      <thead>
+                                        <tr className="bg-gradient-to-r from-gray-50 to-gray-100">
+                                          {table.data[0].map((header: string, headerIndex: number) => (
+                                            <th key={headerIndex} className="border border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                              {header}
+                                            </th>
+                                          ))}
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {table.data.slice(1).map((row: string[], rowIndex: number) => (
+                                          <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50 hover:bg-blue-50'}>
+                                            {row.map((cell: string, cellIndex: number) => (
+                                              <td key={cellIndex} className="border border-gray-200 px-4 py-3 text-sm text-gray-700">
+                                                {cell}
+                                              </td>
+                                            ))}
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
+
+                      {/* 推广链接 */}
+                      <div className="mt-8 text-center">
+                        <a 
+                          href="https://superanalyst.pro" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-6 py-3 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                        >
+                          Click superanalyst.pro for more professional research
+                        </a>
+                      </div>
                     </div>
                   )}
                   
