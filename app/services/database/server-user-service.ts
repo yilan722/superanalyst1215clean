@@ -36,30 +36,48 @@ export class ServerUserService extends ServerDatabaseService {
    */
   async getUserWithSubscription(userId: string): Promise<UserWithSubscription | null> {
     try {
-      const { data, error } = await this.supabase
+      // First, get the user data
+      const { data: userData, error: userError } = await this.supabase
         .from('users')
-        .select(`
-          *,
-          subscription_tiers!subscription_id(
-            id,
-            name,
-            monthly_report_limit,
-            price_monthly,
-            features
-          )
-        `)
+        .select('*')
         .eq('id', userId)
         .single()
 
-      if (error) {
-        if (error.code === 'PGRST116') {
+      if (userError) {
+        if (userError.code === 'PGRST116') {
           return null
         }
-        console.error('Error fetching user with subscription:', error)
-        throw new Error(error.message)
+        console.error('Error fetching user:', userError)
+        throw new Error(userError.message)
       }
 
-      return data as UserWithSubscription
+      if (!userData) {
+        return null
+      }
+
+      // If user has a subscription_id, fetch the subscription tier
+      let subscriptionTier = null
+      if (userData.subscription_id) {
+        const { data: tierData, error: tierError } = await this.supabase
+          .from('subscription_tiers')
+          .select('id, name, monthly_report_limit, price_monthly, features')
+          .eq('id', userData.subscription_id)
+          .single()
+
+        if (!tierError && tierData) {
+          subscriptionTier = tierData
+        } else {
+          console.warn('Subscription tier not found for subscription_id:', userData.subscription_id)
+        }
+      }
+
+      // Combine user data with subscription tier
+      const result: UserWithSubscription = {
+        ...userData,
+        subscription_tiers: subscriptionTier
+      }
+
+      return result
     } catch (error) {
       console.error('Unexpected error fetching user with subscription:', error)
       throw error

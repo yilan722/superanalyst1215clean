@@ -69,10 +69,30 @@ TUSHARE_TOKEN=your_tushare_token_here
 # Nuwa API for AI models (Claude Opus 4.1 + Gemini Pro 2.5)
 OPUS4_API_KEY=your_nuwa_api_key_here
 
+# Perplexity API for real-time search (Sonar)
+PERPLEXITY_API_KEY=your_perplexity_api_key_here
+PERPLEXITY_API_URL=https://api.perplexity.ai/chat/completions
+SONAR_MODEL=sonar
+
+# Qwen API for deep analysis (Gemini 3 Pro)
+QWEN_API_KEY=your_qwen_api_key_here
+QWEN_API_URL=https://api.nuwaapi.com/v1/chat/completions
+QWEN_MODEL=gemini-3-pro-preview
+
 # Supabase (optional)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Report Generation Configuration (optional)
+MAX_SONAR_QUERIES=8
+QUERY_PLANNER_MAX_TOKENS=500
+DEEP_ANALYSIS_MAX_TOKENS=16000
+MAX_CONCURRENT_SEARCHES=5
+API_TIMEOUT=300
+MAX_RETRIES=3
+ENABLE_CACHE=true
+CACHE_EXPIRY_HOURS=6
 
 # PayPal 已移除，只使用 Stripe 支付
 ```
@@ -80,7 +100,11 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 **Important**: 
 - `TUSHARE_TOKEN`: For A-share stock data retrieval
 - `OPUS4_API_KEY`: For AI analysis (reports, company comparison, personal research)
+- `PERPLEXITY_API_KEY`: For real-time information search using Sonar API
+- `QWEN_API_KEY`: For deep analysis and report generation using Gemini 3 Pro
 - YFinance API: No API key required for US/HK stock data
+
+For detailed configuration options, see [docs/ENV_CONFIG.md](docs/ENV_CONFIG.md)
 
 ## Project Structure
 
@@ -163,6 +187,16 @@ Create a `.env.local` file for environment variables:
 ```env
 # Opus4 API (Required)
 OPUS4_API_KEY=your_api_key_here
+
+# Perplexity API (Required for report generation)
+PERPLEXITY_API_KEY=your_perplexity_api_key_here
+PERPLEXITY_API_URL=https://api.perplexity.ai/chat/completions
+SONAR_MODEL=sonar
+
+# Qwen API (Required for report generation)
+QWEN_API_KEY=your_qwen_api_key_here
+QWEN_API_URL=https://api.nuwaapi.com/v1/chat/completions
+QWEN_MODEL=gemini-3-pro-preview
 
 # Supabase (Required)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url

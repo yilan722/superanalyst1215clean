@@ -187,6 +187,15 @@
   text-align: justify;
 }
 
+/* 表格解释段落样式（如"Interpretation of Table X:"） */
+.report-content p.table-interpretation {
+  font-weight: 600;
+  color: #34495e;
+  margin-top: 1em;
+  margin-bottom: 0.8em;
+  font-style: italic;
+}
+
 /* 列表样式 */
 .report-content ul, .report-content ol {
   margin: 1em 0;
