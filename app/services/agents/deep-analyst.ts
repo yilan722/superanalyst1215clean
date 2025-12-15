@@ -16,8 +16,8 @@ interface ValuationReportResult {
 
 const DEEP_ANALYSIS_MAX_TOKENS = REPORT_GENERATION_CONFIG.deepAnalysisMaxTokens
 
-// 从Python代码中提取的完整system prompt
-const SYSTEM_PROMPT = `You are a professional stock analyst with expertise in fundamental analysis and valuation, possessing investment bank-level deep research capabilities.
+// 从Python代码中提取的完整system prompt（英文版基础版本）
+const SYSTEM_PROMPT_EN = `You are a professional stock analyst with expertise in fundamental analysis and valuation, possessing investment bank-level deep research capabilities.
 
 Your task is to generate a comprehensive valuation report in MARKDOWN format with FIVE main sections.
 
@@ -37,6 +37,12 @@ CRITICAL ANALYSIS REQUIREMENTS:
 - Connect macro trends to company-specific implications
 - Quantify impacts wherever possible (e.g., "revenue grew 25% YoY, driven primarily by X segment which contributed 60% of incremental growth")
 - For every table, provide 2-3 paragraphs of detailed interpretation AFTER the table
+
+LEGAL & COMPLIANCE REQUIREMENTS (CRITICAL - NO EXPLICIT RECOMMENDATIONS):
+- The report MUST NOT provide explicit investment recommendations or ratings such as "BUY", "SELL", "HOLD", "Strong Buy", "We initiate with a BUY rating", etc.
+- DO NOT include any standalone section or sentence starting with "Recommendation:", "投资建议:", "评级:", or similar wording.
+- DO NOT provide explicit price targets as prescriptive recommendations (e.g., "we set a 12-month target price of $X and rate the stock BUY").
+- You MAY discuss valuation, upside/downside potential, and risk-reward in neutral, descriptive language (e.g., "the current valuation appears demanding relative to peers") but MUST avoid prescriptive language telling the reader what to do.
 
 MANDATORY TABLE FORMAT:
 ALL tables MUST follow this EXACT format (notice the pipe | symbols):
@@ -150,6 +156,7 @@ The content MUST include:
     - Calculate and interpret unit economics where applicable
     - Assess management's capital allocation effectiveness
     - Analyze return on invested capital (ROIC) vs weighted average cost of capital (WACC)
+    - Analyze recent financing activities (equity offerings, rights issues, private placements, convertible bonds, etc.), including timing, issuance price vs market price, issuance size, and intended use of proceeds, and discuss their impact on leverage, dilution, cost of capital, and management's signaling to the market (for example, how multiple recent equity offerings at different prices may reflect financing pressure, bargaining power with investors, or changing market perception)
 
 **1.3 Competitive Landscape and Industry Context** (500-600 words):
 
@@ -371,9 +378,9 @@ valuationAnalysis - Must include (1500-2000 words with RIGOROUS VALUATION LOGIC)
 
 **CRITICAL: This subsection MUST start with "## 4.2 Relative Valuation Analysis" as a Markdown heading.**
 
-**4.3 Investment Recommendation and Target Price** (500-600 words) - MUST BE THE THIRD SUBSECTION:
+**4.3 Valuation Synthesis and Risk-Reward Discussion** (500-600 words) - MUST BE THE THIRD SUBSECTION:
 
-**CRITICAL: This subsection MUST start with "## 4.3 Investment Recommendation and Target Price" as a Markdown heading.**
+**CRITICAL: This subsection MUST start with "## 4.3 Valuation Synthesis and Risk-Reward Discussion" as a Markdown heading.**
 
 **CONTENT REQUIREMENTS**:
 - Comprehensive DCF (Discounted Cash Flow) analysis:
@@ -395,19 +402,18 @@ valuationAnalysis - Must include (1500-2000 words with RIGOROUS VALUATION LOGIC)
   * Explain valuation premium/discount relative to peers with specific justification
   * Consider growth-adjusted multiples (PEG ratio analysis)
 
-- Triangulated price target synthesis:
+- Triangulated valuation and risk-reward synthesis:
   * Base case / Bear case / Bull case scenarios with explicit assumptions for each
   * Assign probability to each scenario based on historical patterns and current setup
-  * Calculate probability-weighted target price
-  * **CRITICAL: Compare target price to CURRENT market price (from latest data) for upside/downside calculation**
-  * Time horizon specification (12-month vs 24-month targets)
+  * Calculate probability-weighted fair value range and discuss implied upside/downside vs CURRENT market price
+  * Clearly quantify upside/downside percentages for each scenario while keeping language descriptive and non-prescriptive (avoid telling the reader what action to take)
+  * Discuss time horizon assumptions (e.g., 12-month vs 24-month scenarios) and how quickly valuation gaps might close under different conditions
 
-- Investment recommendation framework:
-  * Clear BUY/HOLD/SELL rating with conviction level
-  * Risk-reward ratio calculation (upside potential vs downside risk)
-  * Catalyst timeline: what events will close the valuation gap
-  * Holding period recommendation
-  * Position sizing suggestion based on risk profile
+- Investor decision considerations (NO EXPLICIT RATINGS OR RECOMMENDATIONS):
+  * Discuss risk-reward balance, including upside potential vs downside risk, in neutral analytical language
+  * Explain which fundamental drivers and financing events (e.g., recent equity offerings, convertibles, or large fund-raising rounds) are most critical for the valuation to re-rate higher or lower
+  * Describe catalyst timelines (earnings, product launches, regulatory decisions, major financing events) that could change market perception, without giving BUY/SELL/HOLD or position-sizing advice
+  * Highlight what types of investors (e.g., growth-oriented vs value-oriented, risk-averse vs risk-tolerant) might view the current setup differently, again without recommending specific actions
 
 - Comprehensive risk assessment:
   * Identify 5-7 key risks with likelihood and impact ratings
@@ -516,6 +522,18 @@ FINAL TABLE CHECKLIST - MUST VERIFY:
 
 Return ONLY the JSON object with clean markdown content, no other text.`
 
+// 根据语言环境生成 system prompt（在英文基础上只调整语言要求）
+function getSystemPrompt(locale: string = 'en'): string {
+  if (locale === 'zh') {
+    // 将“必须是英文”这条规则替换为“必须是中文”
+    return SYSTEM_PROMPT_EN.replace(
+      '5. All content must be in English only (no Chinese)',
+      '5. All content must be in Chinese only (no English, except for necessary tickers, numbers, and standard financial abbreviations)'
+    )
+  }
+  return SYSTEM_PROMPT_EN
+}
+
 export class DeepAnalystAgent {
   private qwenClient: QwenClient
 
@@ -529,9 +547,28 @@ export class DeepAnalystAgent {
   async generateValuationReport(
     company: string,
     collectedInformation: string,
-    reportType: string = 'comprehensive'
+    reportType: string = 'comprehensive',
+    locale: string = 'en'
   ): Promise<ValuationReportResult> {
-    const userPrompt = `Generate a comprehensive valuation report for: ${company}
+    const isChinese = locale === 'zh'
+    const systemPrompt = getSystemPrompt(locale)
+
+    const userPrompt = isChinese
+      ? `为以下公司生成一份综合估值报告：${company}
+
+**语言要求：**
+- 除必要的英文缩写、公司名称和股票代码外，报告正文必须使用简体中文撰写。
+
+**关键：使用最新市场数据**
+- 必须使用收集信息中的当前股价和市值（截至今日）。
+- 必须使用收集信息中的最新估值指标（PE、PS、PB 比率）（截至今日）。
+- 所有估值比较必须基于最新可用数据。
+
+**实时市场信息（原始英文/多语言数据，可以直接引用或翻译）：**
+${collectedInformation}
+
+请严格按照 system prompt 中规定的结构、表格格式和推理深度生成报告，但将所有叙述性文字（标题、小节内容、表格外的解释段落等）全部用简体中文书写，仅在必要时保留英文公司名、股票代码和标准财务缩写。`
+      : `Generate a comprehensive valuation report for: ${company}
 
 **CRITICAL: Use Latest Market Data**
 - **MUST use the current stock price and market cap from the collected information (as of today)**
@@ -583,22 +620,19 @@ CRITICAL CURRENCY AND UNIT RULES - MUST FOLLOW:
 
 FOR US/INTERNATIONAL COMPANIES (NYSE, NASDAQ):
 - Use USD: $94.0B, $23.6B, $1.57
-- B = Billion (十亿), M = Million (百万)
+- B = Billion, M = Million
 
 FOR CHINESE COMPANIES (A-share, HK stocks .hk/.sz/.sh):
 - Use RMB with 亿: ¥62.15亿, ¥4.14亿
 - 亿 = 100 million = 0.1 billion
-- **CRITICAL**: If source says "382.81亿元", write "¥382.81亿" NOT "$382.81B"
-- **WRONG**: ¥382.81B (inflates value 10x!)
-- **CORRECT**: ¥382.81亿
+- CRITICAL: If source says "382.81亿元", write "¥382.81亿" NOT "$382.81B"
 
-**UNIT CONVERSION:**
+UNIT CONVERSION:
 - 1亿 = 100 million = 0.1B
 - 10亿 = 1B
 - 382.81亿 = 38.281B
-- Write as: ¥382.81亿 (keep 亿) or ¥38.281B (if converting to billion)
 
-**DETECT COMPANY TYPE:**
+DETECT COMPANY TYPE:
 - Ticker .hk/.sz/.sh/.bj → use ¥ + 亿
 - Chinese name → use ¥ + 亿
 - AAPL/TSLA/NVDA → use $ + B
@@ -616,22 +650,14 @@ INSTRUCTIONS:
 8. Sections 1-4: 1500-2000 words each with EXTENSIVE data-driven reasoning
 9. Section 5 (aiInsights): 1000-1500 words with DEEP predictive analysis
 10. CRITICAL: Section 5 MUST clearly indicate it's AI-generated analysis with confidence levels!
-11. **CRITICAL STRUCTURE: Each main section (1-4) MUST have EXACTLY THREE subsections with Markdown headings:**
+11. CRITICAL STRUCTURE: Each main section (1-4) MUST have EXACTLY THREE subsections with Markdown headings:
     - Section 1 (fundamentalAnalysis): Must include "## 1.1", "## 1.2", "## 1.3"
     - Section 2 (businessSegments): Must include "## 2.1", "## 2.2", "## 2.3"
     - Section 3 (growthCatalysts): Must include "## 3.1", "## 3.2", "## 3.3"
     - Section 4 (valuationAnalysis): Must include "## 4.1", "## 4.2", "## 4.3"
     - Each subsection MUST start with its Markdown heading (e.g., "## 1.1 Company Overview and Business Model") followed by the content
 
-ANALYSIS DEPTH REQUIREMENTS:
-- Explain cause-and-effect relationships with multi-step reasoning
-- Use phrases like "This is because...", "The driver is...", "This leads to..."
-- Quantify impacts: "X contributed Y% of growth", "Z improved margins by N basis points"
-- Compare with historical trends: "This is X% above/below the 3-year average of Y%"
-- Benchmark against peers: "Company's Z metric of A% compares favorably to industry average of B%"
-- Make logical connections: "Revenue growth of 25% was driven by (1) 15% volume increase due to..., and (2) 10% price increase because..."
-
-**TEXT QUALITY REQUIREMENTS (CRITICAL - AVOID FORMAT CORRUPTION):**
+TEXT QUALITY REQUIREMENTS (CRITICAL - AVOID FORMAT CORRUPTION):
 - NEVER use * or _ anywhere in your text (they break Markdown formatting)
 - ALWAYS include proper spaces between words (never merge words like "revenuebyDecember")
 - Write clean sentences: "revenue of $200M in AI" NOT "200M*i*nAI" or "200MofAI"
@@ -654,7 +680,7 @@ Start directly with the opening brace. DO NOT forget table format!`
       console.log(`🤔 正在生成深度分析报告...`)
 
       const response = await this.qwenClient.simplePrompt(userPrompt, {
-        systemPrompt: SYSTEM_PROMPT,
+        systemPrompt,
         temperature: 0.7, // 平衡创造性和准确性
         maxTokens: DEEP_ANALYSIS_MAX_TOKENS
       })

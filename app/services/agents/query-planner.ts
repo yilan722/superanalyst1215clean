@@ -49,10 +49,12 @@ export class QueryPlannerAgent {
 4. 查询应该具体、可搜索
 5. **必须包含股票当前价格和市值的查询**（高优先级）
 6. **所有估值指标查询必须明确要求"截止今日"或"最新"数据**
+7. **必须包含至少一个专门针对近期增发/融资事件的查询**（例如 secondary offering、equity financing、capital raise、rights issue、private placement、convertible bonds 等），需要获取每次融资的日期、发行方式、发行价格、发行规模以及募集资金用途
 
 重要规则：
-- 必须有一个查询专门获取股票当前价格和市值（使用"current stock price", "market cap", "today", "latest"等关键词）
-- 所有估值指标（PE、PS、PB等）查询必须包含时间限定词（"latest", "current", "as of today", "截止今日"等）
+- 必须有一个查询专门获取股票当前价格和市值（使用 "current stock price", "market cap", "today", "latest" 等关键词）
+- 必须有一个查询专门聚焦最近的增发/融资事件及条款（使用 "secondary offering", "equity financing", "capital raise", "rights issue", "private placement", "convertible bonds", "fundraising round" 等关键词，并结合公司名称）
+- 所有估值指标（PE、PS、PB等）查询必须包含时间限定词（"latest", "current", "as of today", "截止今日" 等）
 - 使用英文进行查询
 
 输出格式（必须是有效的JSON）：
@@ -76,18 +78,20 @@ export class QueryPlannerAgent {
 5. **供应链关系**（中优先级）：主要供应商、客户关系、供应链稳定性
 6. 行业地位和竞争优势
 7. 最新新闻和重大事件
-8. **市场估值指标（截止今日最新数据）**：PE市盈率、PS市销率、PB市净率等估值指标，必须明确要求"截止今日"或"最新"数据
-9. 未来增长预期和战略方向
-10. 风险因素和挑战
-11. 分析师观点和评级
-12. 行业趋势和宏观环境
+8. **增发/融资事件（高优先级）**：secondary offerings、equity financing、capital raise、rights issue、private placement、convertible bonds 等，重点获取每次融资的时间、方式、发行价格相对当时股价的折价/溢价、发行规模、认购对象以及募集资金用途
+9. **市场估值指标（截止今日最新数据）**：PE市盈率、PS市销率、PB市净率等估值指标，必须明确要求 "截止今日" 或 "最新" 数据
+10. 未来增长预期和战略方向
+11. 风险因素和挑战
+12. 分析师观点和评级
+13. 行业趋势和宏观环境
 
 重要要求：
 - 必须包含一个查询专门获取股票当前价格和市值（作为高优先级查询）
 - 必须包含一个查询专门获取公司基本介绍（成立背景、团队、管理层）
 - 必须包含一个查询专门获取竞争和合作关系（竞争对手、合作伙伴）
 - 必须包含一个查询专门获取供应链关系（供应商、客户关系）
-- 所有估值指标相关的查询必须明确包含"截止今日"、"最新"、"current"、"latest"等时间限定词
+- 必须包含一个查询专门获取最近几次增发/融资事件及关键条款（发行日期、方式、价格、规模、认购对象、募集资金用途等），用于评估融资压力、管理层议价能力和对现有股东的摊薄影响
+- 所有估值指标相关的查询必须明确包含 "截止今日"、"最新"、"current"、"latest" 等时间限定词
 - 查询应该具体、可搜索，使用英文
 
 请生成精确、可搜索的查询。只返回JSON，不要其他内容。`
@@ -191,6 +195,11 @@ export class QueryPlannerAgent {
       {
         query: `${companyOrTopic} competitors competitive landscape strategic partnerships alliances`,
         purpose: '竞争和合作关系',
+        priority: 'high'
+      },
+      {
+        query: `${companyOrTopic} secondary offering equity financing capital raise rights issue private placement convertible bonds fundraising round details`,
+        purpose: '最近的增发/股权融资/配股/可转债等融资事件及关键条款（日期、方式、价格、规模、用途）',
         priority: 'high'
       },
       {

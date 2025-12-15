@@ -167,7 +167,8 @@ export async function POST(request: NextRequest) {
         const analysisResult = await deepAnalyst.generateValuationReport(
           companyName,
           formattedInfo,
-          'comprehensive'
+          'comprehensive',
+          locale
         )
         
         if (analysisResult.status !== 'success' || !analysisResult.reportJson) {
