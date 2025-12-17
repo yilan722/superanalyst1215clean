@@ -6,7 +6,7 @@ import { User, Crown, FileText, CreditCard, Settings, ArrowLeft, Plus, CheckCirc
 import { type Locale } from '@/app/services/i18n'
 import { getTranslation } from '@/app/services/translations'
 import { useAuthContext } from '@/app/services/auth-context'
-import { supabase } from '@/app/services/database/supabase-client'
+import { SubscriptionPageService } from '@/app/services/subscription-page-service'
 import toast from 'react-hot-toast'
 
 interface UserData {
@@ -65,28 +65,19 @@ export default function AccountPage({ params }: SuccessPageProps) {
 
   const fetchUserData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select(`
-          *,
-          subscription_tiers!subscription_id(
-            id,
-            name,
-            monthly_report_limit,
-            price_monthly,
-            features
-          )
-        `)
-        .eq('id', user?.id)
-        .single()
-
-      if (error) {
-        console.error('Error fetching user data:', error)
-        toast.error('Failed to load account information')
+      if (!user?.id) {
+        setIsLoading(false)
         return
       }
 
-      setUserData(data)
+      const data = await SubscriptionPageService.fetchUserSubscriptionData(user.id)
+
+      if (data) {
+        setUserData(data)
+      } else {
+        console.error('Error fetching user data: No data returned')
+        toast.error('Failed to load account information')
+      }
     } catch (error) {
       console.error('Error fetching user data:', error)
       toast.error('Failed to load account information')

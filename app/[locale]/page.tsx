@@ -20,7 +20,7 @@ import toast from 'react-hot-toast'
 // 导入Insight Refinery组件
 import InsightRefineryButton from '../../components/InsightRefinery/InsightRefineryButton'
 import { canGenerateReport } from '../services/database/supabase-auth'
-import { supabase } from '../services/database/supabase-client'
+import { SubscriptionPageService } from '../services/subscription-page-service'
 
 interface PageProps {
   params: { locale: Locale }
@@ -52,27 +52,13 @@ export default function HomePage({ params }: PageProps) {
     if (!useAuthUser?.id) return
     
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select(`
-          *,
-          subscription_tiers!subscription_id(
-            id,
-            name,
-            monthly_report_limit,
-            price_monthly,
-            features
-          )
-        `)
-        .eq('id', useAuthUser.id)
-        .single()
-
-      if (error) {
-        console.error('Error fetching user data:', error)
-        return
+      const data = await SubscriptionPageService.fetchUserSubscriptionData(useAuthUser.id)
+      
+      if (data) {
+        setUserData(data)
+      } else {
+        console.error('Error fetching user data: No data returned')
       }
-
-      setUserData(data)
     } catch (error) {
       console.error('Error fetching user data:', error)
     }

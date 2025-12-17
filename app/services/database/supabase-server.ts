@@ -71,7 +71,12 @@ export function createApiSupabaseClient(request: Request) {
     {
       cookies: {
         getAll() {
-          return Object.entries(cookies).map(([name, value]) => ({ name, value }))
+          return Object.entries(cookies)
+            .filter(([name, value]) => name && value) // 确保 name 和 value 都存在
+            .map(([name, value]) => ({ 
+              name: String(name), 
+              value: String(value) // 确保值是字符串
+            }))
         },
         setAll(cookiesToSet) {
           // 在API路由中，我们不需要设置cookies

@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { type Report } from '@/app/services/reports'
 import { Calendar, Building2, FileText, ExternalLink, ArrowLeft } from 'lucide-react'
 import { useAuthContext } from '@/app/services/auth-context'
-import { supabase } from '@/app/services/database/supabase-client'
+import { SubscriptionPageService } from '@/app/services/subscription-page-service'
 
 interface ReportsPageProps {
   params: {
@@ -38,22 +38,9 @@ export default function ReportsPage({ params }: ReportsPageProps) {
 
         // 如果用户已登录，获取用户数据
         if (user?.id) {
-          const { data, error } = await supabase
-            .from('users')
-            .select(`
-              *,
-              subscription_tiers!subscription_id(
-                id,
-                name,
-                monthly_report_limit,
-                price_monthly,
-                features
-              )
-            `)
-            .eq('id', user.id)
-            .single()
+          const data = await SubscriptionPageService.fetchUserSubscriptionData(user.id)
           
-          if (data && !error) {
+          if (data) {
             setUserData(data)
           }
         }

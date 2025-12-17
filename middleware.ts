@@ -55,10 +55,14 @@ export async function middleware(request: NextRequest) {
     // 如果是API路由，确保会话被正确传递
     if (pathname.startsWith('/api/')) {
       // 对于API路由，我们需要确保会话信息被正确传递
-      if (session) {
+      if (session && session.user && session.user.id) {
         // 如果会话存在，将其添加到请求头中
-        response.headers.set('x-user-id', session.user.id)
-        response.headers.set('x-session-valid', 'true')
+        // 确保值不是 null 或 undefined
+        const userId = String(session.user.id)
+        if (userId) {
+          response.headers.set('x-user-id', userId)
+          response.headers.set('x-session-valid', 'true')
+        }
       }
       return response
     }

@@ -4,7 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { type Locale } from '@/app/services/i18n'
 import { useAuthContext } from '@/app/services/auth-context'
-import { supabase } from '@/app/services/database/supabase-client'
+import { SubscriptionPageService } from '@/app/services/subscription-page-service'
 import { ArrowLeft, Loader2, AlertCircle, CreditCard, Check } from 'lucide-react'
 import SimpleStripeCheckout from '@/components/SimpleStripeCheckout'
 
@@ -90,27 +90,20 @@ function PaymentPageContent({ params }: PaymentPageProps) {
     setIsLoading(true)
     setError(null)
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select(`
-          *,
-          subscription_tiers!subscription_id(
-            id,
-            name,
-            monthly_report_limit,
-            price_monthly,
-            features
-          )
-        `)
-        .eq('id', authUser?.id)
-        .single()
+      if (!authUser?.id) {
+        setError(locale === 'zh' ? '用户未认证' : 'User not authenticated')
+        setIsLoading(false)
+        return
+      }
 
-      if (error) {
-        setError(error.message)
-        console.error('Error fetching user data:', error)
-        setUserData(null)
-      } else {
+      const data = await SubscriptionPageService.fetchUserSubscriptionData(authUser.id)
+
+      if (data) {
         setUserData(data)
+      } else {
+        setError(locale === 'zh' ? '加载用户数据失败' : 'Failed to load user data')
+        console.error('Error fetching user data: No data returned')
+        setUserData(null)
       }
     } catch (err) {
       setError(locale === 'zh' ? '加载用户数据失败' : 'Failed to load user data')
