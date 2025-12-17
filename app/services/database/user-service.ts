@@ -1,0 +1,153 @@
+import { BaseDatabaseService } from './base-database-service'
+
+export interface User {
+  id: string
+  email: string
+  name: string | null
+  created_at: string
+  updated_at: string
+  free_reports_used: number
+  paid_reports_used: number
+  subscription_id: number | null
+  subscription_start: string | null
+  subscription_end: string | null
+}
+
+export interface UserWithSubscription extends User {
+  subscription_tiers?: {
+    id: number
+    name: string
+    monthly_report_limit: number
+    price_monthly: number
+    features: Record<string, any>
+  } | null
+}
+
+export class UserService extends BaseDatabaseService {
+  /**
+   * Get user by ID
+   */
+  async getUserById(userId: string): Promise<User | null> {
+    return this.fetchSingle<User>('users', '*', { id: userId })
+  }
+
+  /**
+   * Get user with subscription tier information
+   */
+  async getUserWithSubscription(userId: string): Promise<UserWithSubscription | null> {
+    try {
+      // First, get the user data
+      const { data: userData, error: userError } = await this.supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      if (userError) {
+        if (userError.code === 'PGRST116') {
+          return null
+        }
+        console.error('Error fetching user:', userError)
+        throw new Error(userError.message)
+      }
+
+      if (!userData) {
+        return null
+      }
+
+      // If user has a subscription_id, fetch the subscription tier
+      let subscriptionTier = null
+      if (userData.subscription_id) {
+        const { data: tierData, error: tierError } = await this.supabase
+          .from('subscription_tiers')
+          .select('id, name, monthly_report_limit, price_monthly, features')
+          .eq('id', userData.subscription_id)
+          .single()
+
+        if (!tierError && tierData) {
+          subscriptionTier = tierData
+        } else {
+          console.warn('Subscription tier not found for subscription_id:', userData.subscription_id)
+        }
+      }
+
+      // Combine user data with subscription tier
+      const result: UserWithSubscription = {
+        ...userData,
+        subscription_tiers: subscriptionTier
+      }
+
+      console.log('UseService获取用户订阅数据:', result)
+      return result
+    } catch (error) {
+      console.error('Unexpected error fetching user with subscription:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Create new user
+   */
+  async createUser(userData: Partial<User>): Promise<User> {
+    return this.insertData<User>('users', userData)
+  }
+
+  /**
+   * Update user
+   */
+  async updateUser(userId: string, updates: Partial<User>): Promise<User> {
+    return this.updateData<User>('users', { id: userId }, updates)
+  }
+
+  /**
+   * Update user's subscription information
+   */
+  async updateUserSubscription(
+    userId: string,
+    subscriptionData: {
+      subscription_id?: number | null
+      subscription_type?: number | null
+      subscription_start?: string | null
+      subscription_end?: string | null
+      monthly_report_limit?: number
+    }
+  ): Promise<User> {
+    return this.updateData<User>('users', { id: userId }, subscriptionData)
+  }
+
+  /**
+   * Increment user's report usage
+   */
+  async incrementReportUsage(
+    userId: string,
+    type: 'free' | 'paid' = 'free'
+  ): Promise<User> {
+    const user = await this.getUserById(userId)
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    const updates: Partial<User> = {}
+    if (type === 'free') {
+      updates.free_reports_used = user.free_reports_used + 1
+    } else {
+      updates.paid_reports_used = user.paid_reports_used + 1
+    }
+
+    return this.updateData<User>('users', { id: userId }, updates)
+  }
+
+  /**
+   * Get all users (admin only)
+   */
+  async getAllUsers(): Promise<User[]> {
+    return this.fetchData<User>('users', '*', undefined, { column: 'created_at', ascending: false })
+  }
+
+  /**
+   * Delete user
+   */
+  async deleteUser(userId: string): Promise<boolean> {
+    return this.deleteData('users', { id: userId })
+  }
+}

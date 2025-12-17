@@ -1,0 +1,57 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "functions": {
+    "app/api/generate-report-perplexity/route.ts": {
+      "maxDuration": 800
+    },
+    "app/api/generate-report-external/route.ts": {
+      "maxDuration": 300
+    },
+    "app/api/recalculate-dcf/route.ts": {
+      "maxDuration": 300
+    },
+    "app/api/translate/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/todays-report/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/historical-reports/route.ts": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
+        }
+      ]
+    }
+  ]
+}
