@@ -30,13 +30,47 @@ export async function middleware(request: NextRequest) {
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) => {
-              request.cookies.set(name, value)
-              response = NextResponse.next({
-                request: {
-                  headers: request.headers,
-                },
-              })
-              response.cookies.set(name, value, options)
+              // 确保 name 和 value 都是有效的字符串
+              if (!name || typeof name !== 'string' || name.trim() === '') {
+                console.warn('Invalid cookie name:', name)
+                return
+              }
+              if (value === null || value === undefined) {
+                console.warn('Invalid cookie value (null/undefined) for:', name)
+                return
+              }
+              const stringValue = String(value)
+              if (stringValue.trim() === '') {
+                console.warn('Invalid cookie value (empty) for:', name)
+                return
+              }
+              
+              try {
+                request.cookies.set(name, stringValue)
+                response = NextResponse.next({
+                  request: {
+                    headers: request.headers,
+                  },
+                })
+                
+                // 验证并清理 options，确保所有值都是有效的
+                const validOptions: any = {}
+                if (options) {
+                  Object.entries(options).forEach(([key, val]) => {
+                    // 只保留有效的字符串、数字或布尔值
+                    if (val !== null && val !== undefined) {
+                      if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+                        validOptions[key] = val
+                      } else if (typeof val === 'object' && val instanceof Date) {
+                        validOptions[key] = val
+                      }
+                    }
+                  })
+                }
+                response.cookies.set(name, stringValue, validOptions)
+              } catch (error) {
+                console.error('Error setting cookie in middleware:', error, { name, value: stringValue })
+              }
             })
           },
         },

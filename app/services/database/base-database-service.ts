@@ -1,17 +1,61 @@
+// 在客户端使用浏览器客户端，在服务器端使用标准客户端
 import { createClient } from '@supabase/supabase-js'
+import { supabase as browserSupabase } from './supabase-client'
 
-// Base configuration
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Base configuration with validation
+const getEnvVar = (key: string, defaultValue?: string): string => {
+  const value = process.env[key]
+  if (!value || typeof value !== 'string' || value.trim() === '') {
+    if (defaultValue) {
+      return defaultValue
+    }
+    throw new Error(`${key} is not set or is not a valid string`)
+  }
+  return value.trim()
+}
 
-// Create Supabase client
-const supabase = createClient(supabaseUrl, supabaseKey)
+const supabaseUrl = getEnvVar('NEXT_PUBLIC_SUPABASE_URL', 'https://decmecsshjqymhkykazg.supabase.co')
+const supabaseKey = getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlY21lY3NzaGpxeW1oa3lrYXpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MzIyNTMsImV4cCI6MjA3MDIwODI1M30.-eRwyHINS0jflhYeWT3bvZAmpdvSOLmpFmKCztMLzU0')
+
+// 创建服务器端 Supabase 客户端（单例）
+let serverSupabaseClient: any = null
+
+// 获取正确的 Supabase 客户端
+// 在客户端使用浏览器客户端（支持 SSR），在服务器端使用标准客户端
+const getSupabaseClient = () => {
+  // 在客户端（浏览器环境），使用浏览器客户端
+  if (typeof window !== 'undefined') {
+    return browserSupabase
+  }
+  
+  // 在服务器端，创建标准客户端（单例模式）
+  if (!serverSupabaseClient) {
+    serverSupabaseClient = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+        flowType: 'pkce'
+      },
+      global: {
+        headers: {
+          'X-Client-Info': 'supabase-js/2.x'
+        }
+      }
+    })
+  }
+  
+  return serverSupabaseClient
+}
 
 /**
  * Base database service class with common operations
  */
 export abstract class BaseDatabaseService {
-  protected supabase = supabase
+  // 使用 getter 确保在运行时获取正确的客户端
+  protected get supabase() {
+    return getSupabaseClient()
+  }
 
   /**
    * Generic method to fetch data from any table
