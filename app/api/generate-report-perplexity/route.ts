@@ -80,12 +80,13 @@ export async function POST(request: NextRequest) {
 
       // 验证用户（支持测试模式）
       let user = null
+      let apiSupabaseClient = null
       if (userId === 'test-user-id') {
         console.log('🧪 使用测试模式，跳过用户验证')
         user = { id: 'test-user-id', email: 'test@example.com' }
       } else {
-        const supabase = createApiSupabaseClient(request)
-        const { data: userData, error: userError } = await supabase
+        apiSupabaseClient = createApiSupabaseClient(request)
+        const { data: userData, error: userError } = await apiSupabaseClient
           .from('users')
           .select('*')
           .eq('id', userId)
@@ -102,8 +103,9 @@ export async function POST(request: NextRequest) {
       }
 
       // 检查用户是否可以生成报告（测试模式跳过）
+      // 传递 service role key 客户端以绕过 RLS
       if (userId !== 'test-user-id') {
-        const canGenerate = await canGenerateReport(user.id)
+        const canGenerate = await canGenerateReport(user.id, apiSupabaseClient)
         if (!canGenerate.canGenerate) {
           return NextResponse.json(
             { error: 'Report generation limit reached', details: canGenerate.reason },
@@ -293,16 +295,19 @@ export async function POST(request: NextRequest) {
         console.log('💾 保存报告到数据库...')
         
         try {
+          // 使用 service role key 客户端保存报告和更新使用量
+          const dbClient = userId !== 'test-user-id' ? apiSupabaseClient : undefined
           await createReport(
             user.id,
             stockData.symbol,
             stockData.name,
-            JSON.stringify(validatedContent)
+            JSON.stringify(validatedContent),
+            dbClient
           )
           console.log('✅ 报告保存成功')
           
           // 更新用户使用量
-          await incrementReportUsage(user.id)
+          await incrementReportUsage(user.id, true, dbClient)
           console.log('✅ 用户使用量更新成功')
         } catch (dbError) {
           console.error('❌ 保存报告到数据库时出错:', dbError)

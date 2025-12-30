@@ -300,8 +300,9 @@ export async function getCurrentUser() {
   }
 }
 
-export async function getUserProfile(userId: string) {
-  const { data, error } = await supabase
+export async function getUserProfile(userId: string, client?: any) {
+  const dbClient = client || supabase
+  const { data, error } = await dbClient
     .from('users')
     .select('*')
     .eq('id', userId)
@@ -314,9 +315,17 @@ export async function getUserProfile(userId: string) {
   return data
 }
 
-export async function canGenerateReport(userId: string): Promise<{ canGenerate: boolean; reason?: string; remainingReports?: number; needsSubscription?: boolean }> {
+export async function canGenerateReport(userId: string, client?: any): Promise<{ canGenerate: boolean; reason?: string; remainingReports?: number; needsSubscription?: boolean }> {
   try {
     console.log('🚀 canGenerateReport 开始执行，用户ID:', userId)
+    
+    // 使用传入的客户端，如果没有则使用默认客户端（向后兼容）
+    const dbClient = client || supabase
+    if (client) {
+      console.log('🔑 使用传入的 Supabase 客户端（可能是 service role key）')
+    } else {
+      console.log('🔑 使用默认 Supabase 客户端（anon key）')
+    }
     
     // 移除硬编码白名单用户，使用正常的权限检查流程
     console.log('📋 开始正常权限检查流程...')
@@ -329,7 +338,7 @@ export async function canGenerateReport(userId: string): Promise<{ canGenerate: 
       setTimeout(() => reject(new Error('查询超时，请稍后重试')), 15000) // 15秒超时
     })
     
-    const queryPromise = supabase
+    const queryPromise = dbClient
       .from('users')
       .select('*')
       .eq('id', userId)
@@ -354,10 +363,10 @@ export async function canGenerateReport(userId: string): Promise<{ canGenerate: 
 
     console.log('📧 用户邮箱:', userProfile.email)
 
-    // 🔥 新增：检查是否在白名单中 - 使用原始客户端，添加超时保护
+    // 🔥 新增：检查是否在白名单中 - 使用传入的客户端，添加超时保护
     console.log('📋 步骤2: 查询白名单状态...')
     
-    const whitelistQueryPromise = supabase
+    const whitelistQueryPromise = dbClient
       .from('whitelist_users')
       .select('*')
       .eq('email', userProfile.email)
@@ -386,7 +395,7 @@ export async function canGenerateReport(userId: string): Promise<{ canGenerate: 
       // 如果日期不是今天，重置积分
       if (lastResetDate !== today) {
         console.log('🔄 日期已更新，重置白名单用户积分...')
-        const updatePromise = supabase
+        const updatePromise = dbClient
           .from('whitelist_users')
           .update({ 
             daily_free_credits: 100,
@@ -431,7 +440,7 @@ export async function canGenerateReport(userId: string): Promise<{ canGenerate: 
 
     // 非白名单用户：使用原有逻辑
     console.log('📋 步骤3: 查询用户详细资料...')
-    const profilePromise = getUserProfile(userId)
+    const profilePromise = getUserProfile(userId, dbClient)
     
     const profile = await profilePromise
     
@@ -506,9 +515,10 @@ export async function canGenerateReport(userId: string): Promise<{ canGenerate: 
   }
 }
 
-export async function incrementReportUsage(userId: string, isFree: boolean = true) {
+export async function incrementReportUsage(userId: string, isFree: boolean = true, client?: any) {
+  const dbClient = client || supabase
   // First get current values
-  const { data: currentUser, error: fetchError } = await supabase
+  const { data: currentUser, error: fetchError } = await dbClient
     .from('users')
     .select('free_reports_used, paid_reports_used, email')
     .eq('id', userId)
@@ -519,7 +529,7 @@ export async function incrementReportUsage(userId: string, isFree: boolean = tru
   }
 
   // 检查是否是白名单用户
-  const { data: whitelistUser, error: whitelistError } = await supabase
+  const { data: whitelistUser, error: whitelistError } = await dbClient
     .from('whitelist_users')
     .select('*')
     .eq('email', currentUser.email)
@@ -528,7 +538,7 @@ export async function incrementReportUsage(userId: string, isFree: boolean = tru
   if (whitelistUser && !whitelistError) {
     // 白名单用户：扣减积分
     console.log('白名单用户生成报告，扣减积分')
-    const { error: updateError } = await supabase
+    const { error: updateError } = await dbClient
       .from('whitelist_users')
       .update({ 
         daily_free_credits: Math.max(0, whitelistUser.daily_free_credits - 1),
@@ -545,7 +555,7 @@ export async function incrementReportUsage(userId: string, isFree: boolean = tru
       ? { free_reports_used: (currentUser.free_reports_used || 0) + 1 }
       : { paid_reports_used: (currentUser.paid_reports_used || 0) + 1 }
 
-    const { error } = await supabase
+    const { error } = await dbClient
       .from('users')
       .update(updateData)
       .eq('id', userId)
@@ -556,8 +566,9 @@ export async function incrementReportUsage(userId: string, isFree: boolean = tru
   }
 }
 
-export async function createReport(userId: string, stockSymbol: string, stockName: string, reportData: string) {
-  const { data, error } = await supabase
+export async function createReport(userId: string, stockSymbol: string, stockName: string, reportData: string, client?: any) {
+  const dbClient = client || supabase
+  const { data, error } = await dbClient
     .from('reports')
     .insert({
       user_id: userId,
