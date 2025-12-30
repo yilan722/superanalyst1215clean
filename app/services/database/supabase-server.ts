@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 // 获取环境变量，确保它们是有效的字符串
@@ -15,6 +16,8 @@ const getEnvVar = (key: string, defaultValue?: string): string => {
 
 const supabaseUrl = getEnvVar('NEXT_PUBLIC_SUPABASE_URL', 'https://decmecsshjqymhkykazg.supabase.co')
 const supabaseAnonKey = getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlY21lY3NzaGpxeW1oa3lrYXpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MzIyNTMsImV4cCI6MjA3MDIwODI1M30.-eRwyHINS0jflhYeWT3bvZAmpdvSOLmpFmKCztMLzU0')
+// Service role key for API routes (bypasses RLS)
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 // Server-side Supabase client
 export function createServerSupabaseClient() {
@@ -98,15 +101,39 @@ export function createServerSupabaseClient() {
 }
 
 // 专门用于API路由的Supabase客户端
+// 使用 service role key 绕过 RLS 策略，允许查询用户数据
 export function createApiSupabaseClient(request: Request) {
   // 确保环境变量是有效的字符串
   if (!supabaseUrl || typeof supabaseUrl !== 'string' || supabaseUrl.trim() === '') {
     throw new Error('NEXT_PUBLIC_SUPABASE_URL is not a valid string')
   }
-  if (!supabaseAnonKey || typeof supabaseAnonKey !== 'string' || supabaseAnonKey.trim() === '') {
-    throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY is not a valid string')
+  
+  // 优先使用 service role key（绕过 RLS），如果没有则回退到 anon key
+  const apiKey = supabaseServiceKey && typeof supabaseServiceKey === 'string' && supabaseServiceKey.trim() !== ''
+    ? supabaseServiceKey
+    : supabaseAnonKey
+  
+  if (!apiKey || typeof apiKey !== 'string' || apiKey.trim() === '') {
+    throw new Error('Supabase API key is not configured. Please set SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY')
   }
 
+  // 如果使用 service role key，使用标准客户端（不需要 cookie 处理）
+  if (apiKey === supabaseServiceKey) {
+    console.log('🔑 使用 Service Role Key 创建 Supabase 客户端（绕过 RLS）')
+    return createClient(
+      supabaseUrl,
+      apiKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
+  }
+
+  // 回退到使用 anon key 和 cookie-based 客户端（用于向后兼容）
+  console.log('⚠️ 使用 Anon Key 创建 Supabase 客户端（受 RLS 限制）')
   const cookieHeader = request.headers.get('cookie') || ''
   
   // 解析cookies，确保所有值都是有效的字符串
@@ -126,7 +153,7 @@ export function createApiSupabaseClient(request: Request) {
 
   return createServerClient(
     supabaseUrl,
-    supabaseAnonKey,
+    apiKey,
     {
       cookies: {
         getAll() {
