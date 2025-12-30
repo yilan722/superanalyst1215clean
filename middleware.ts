@@ -19,7 +19,18 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    // 处理Supabase会话
+    // ⚠️ 重要优化：Vercel Edge Middleware 有严格的执行时间限制（通常 < 50ms）
+    // 不要在 Middleware 中做慢速的数据库查询或网络请求，这会导致 504 超时错误
+    
+    // 对于 API 路由，跳过 Supabase 客户端创建，让 API 路由自己处理认证
+    // 这样可以避免在 Edge Middleware 中的任何潜在慢速操作
+    if (pathname.startsWith('/api/')) {
+      // API 路由：直接返回，让 API 路由内部使用 createApiSupabaseClient 进行认证
+      return response
+    }
+    
+    // 对于非 API 路由，创建 Supabase 客户端仅用于 cookie 管理（不查询数据库）
+    // 实际的会话刷新会在页面组件中通过 Supabase SSR 自动进行
     const supabase = createServerClient(
       supabaseUrl,
       supabaseAnonKey,
@@ -32,17 +43,14 @@ export async function middleware(request: NextRequest) {
             cookiesToSet.forEach(({ name, value, options }) => {
               // 确保 name 和 value 都是有效的字符串
               if (!name || typeof name !== 'string' || name.trim() === '') {
-                console.warn('Invalid cookie name:', name)
-                return
+                return // 静默跳过无效的 cookie
               }
               if (value === null || value === undefined) {
-                console.warn('Invalid cookie value (null/undefined) for:', name)
-                return
+                return // 静默跳过无效值
               }
               const stringValue = String(value)
               if (stringValue.trim() === '') {
-                console.warn('Invalid cookie value (empty) for:', name)
-                return
+                return // 静默跳过空值
               }
               
               try {
@@ -69,7 +77,7 @@ export async function middleware(request: NextRequest) {
                 }
                 response.cookies.set(name, stringValue, validOptions)
               } catch (error) {
-                console.error('Error setting cookie in middleware:', error, { name, value: stringValue })
+                // 静默处理 cookie 设置错误，避免影响主流程
               }
             })
           },
@@ -82,30 +90,15 @@ export async function middleware(request: NextRequest) {
         }
       }
     )
-
-    // 刷新会话 - 这对API路由也很重要
-    const { data: { session } } = await supabase.auth.getSession()
-  
-    // 如果是API路由，确保会话被正确传递
-    if (pathname.startsWith('/api/')) {
-      // 对于API路由，我们需要确保会话信息被正确传递
-      if (session && session.user && session.user.id) {
-        // 如果会话存在，将其添加到请求头中
-        // 确保值不是 null 或 undefined
-        const userId = String(session.user.id)
-        if (userId) {
-          response.headers.set('x-user-id', userId)
-          response.headers.set('x-session-valid', 'true')
-        }
-      }
-      return response
-    }
+    
+    // 注意：这里不调用 getSession()，因为那会触发数据库查询
+    // 会话刷新会在页面组件加载时自动进行（通过 Supabase SSR）
     
     return handleLocaleRedirect(request, response)
     
   } catch (error) {
-    console.error('❌ 中间件Supabase错误:', error)
-    // 如果Supabase出错，仍然处理语言重定向
+    // 如果任何操作失败，仍然处理语言重定向，确保网站可以正常访问
+    console.error('❌ 中间件错误:', error)
     return handleLocaleRedirect(request, response)
   }
 }
